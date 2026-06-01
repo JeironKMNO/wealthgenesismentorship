@@ -1108,6 +1108,70 @@ ul { list-style: none; }
   background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
 }
 
+/* ── Pricing — bloque del precio ── */
+.pricing-price-block {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-sub);
+  text-align: left;
+}
+
+.pricing-label {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.6rem;
+}
+
+.pricing-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  margin-bottom: 0.5rem;
+  color: var(--cream);
+}
+
+.pricing-currency {
+  font-family: var(--f-display);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0.75;
+}
+
+.pricing-value {
+  font-family: var(--f-display);
+  font-size: 4.4rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pricing-period {
+  font-family: var(--f-ui);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--cream-70);
+  letter-spacing: 0.04em;
+  margin-left: 0.4rem;
+}
+
+.pricing-sublabel {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--cream-70);
+  opacity: 0.85;
+}
+
 .pricing-features {
   display: flex;
   flex-direction: column;
@@ -1451,6 +1515,10 @@ ul { list-style: none; }
     font-size: 1.15rem;
     margin-bottom: 0.75rem;
   }
+
+  /* Mobile: precio un pelín más compacto pero igual de dominante */
+  .pricing-value { font-size: 3.6rem; }
+  .pricing-currency { font-size: 1.7rem; }
 }
 
 /* ── Responsive — 480px ── */
