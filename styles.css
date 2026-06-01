@@ -263,8 +263,15 @@ ul { list-style: none; }
 }
 
 .nav-logo img {
-  height: 38px;
+  height: 56px;
   width: auto;
+  transition: height 0.3s var(--ease);
+}
+
+/* Al hacer scroll, el header se compacta — el logo se achica un pelín
+   para mantener proporción y dejar más espacio visual a la nav. */
+.site-header.compact .nav-logo img {
+  height: 44px;
 }
 
 .nav-links {
@@ -1428,6 +1435,10 @@ ul { list-style: none; }
 
   /* Mobile: logo del footer (lockup con texto) un poco más compacto */
   .footer-brand img { height: 84px; }
+
+  /* Mobile: logo del navbar un pelín más chico para no apretar el toggle */
+  .nav-logo img { height: 48px; }
+  .site-header.compact .nav-logo img { height: 40px; }
 
   /* Mobile: la cita del mentor con padding lateral cómodo */
   .method-quote {
