@@ -1377,6 +1377,15 @@ ul { list-style: none; }
   .announce-inner {
     font-size: 0.64rem;
     gap: 0.5rem;
+    line-height: 1.4;
+  }
+
+  /* Mobile: permitir que la barra crezca cuando el texto envuelve a varias líneas.
+     En desktop tiene max-height:44px para mantenerla compacta, pero en mobile esa
+     altura recortaba el texto cuando el flex-wrap rompía a 2-3 líneas. */
+  .announce-bar {
+    max-height: none;
+    padding: 0.7rem 1rem;
   }
 
   .hero {
