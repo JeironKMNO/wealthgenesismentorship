@@ -1209,7 +1209,7 @@ ul { list-style: none; }
 }
 
 .footer-brand img {
-  height: 32px;
+  height: 96px;
   width: auto;
   margin-bottom: 1.25rem;
 }
@@ -1416,6 +1416,21 @@ ul { list-style: none; }
     text-align: center;
     gap: 0.5rem;
   }
+
+  /* Mobile: logo del footer (lockup con texto) un poco más compacto */
+  .footer-brand img { height: 84px; }
+
+  /* Mobile: la cita del mentor con padding lateral cómodo */
+  .method-quote {
+    font-size: 1.1rem;
+    padding: 1.5rem 1.25rem;
+  }
+
+  /* Mobile: encabezados de "Para Quién" alineados con margen seguro */
+  #para-quien .feat-body h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+  }
 }
 
 /* ── Responsive — 480px ── */
@@ -1447,5 +1462,16 @@ ul { list-style: none; }
   .announce-inner span:nth-child(5),
   .announce-inner span:nth-child(6) {
     display: none;
+  }
+
+  /* Pantallas pequeñas: footer logo aún más compacto */
+  .footer-brand img { height: 72px; }
+
+  /* Pantallas pequeñas: WhatsApp FAB más cerca del borde para no chocar con CTAs */
+  .wa-float {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 48px;
+    height: 48px;
   }
 }
