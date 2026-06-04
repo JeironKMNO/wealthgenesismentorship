@@ -109,7 +109,9 @@
       if (hero) heroBottom = hero.offsetTop + hero.offsetHeight;
     }
     if (window.scrollY < heroBottom) {
-      heroImg.style.transform = `translateY(${window.scrollY * 0.07}px)`;
+      // Se escribe como CSS custom property (no como transform directo) para que
+      // el keyframe float-gentle pueda componer ambos efectos vía calc().
+      heroImg.style.setProperty('--parallax-y', `${window.scrollY * 0.07}px`);
     }
   }
 

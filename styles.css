@@ -626,6 +626,47 @@ ul { list-style: none; }
   display: block;
   position: relative;
   z-index: 1;
+  /* Float ambient. El parallax del scroll (JS) se aplica vía la custom property
+     --parallax-y, así float y parallax COMPONEN dentro del mismo translateY en
+     vez de pelearse por la propiedad transform. */
+  animation: float-gentle 6.5s var(--ease) infinite alternate;
+  will-change: transform;
+}
+
+/* Halo dorado sutil detrás del toro. Se posiciona dentro de .hero-frame pero
+   con inset negativo para que el glow rebose suavemente fuera del marco
+   (.hero-frame no tiene overflow:hidden). */
+.hero-halo {
+  position: absolute;
+  inset: -22%;
+  background: radial-gradient(
+    ellipse 65% 60% at 50% 55%,
+    rgba(201, 165, 90, 0.20) 0%,
+    rgba(201, 165, 90, 0.07) 35%,
+    transparent 65%
+  );
+  filter: blur(8px);
+  z-index: 0;
+  pointer-events: none;
+  animation: halo-pulse 5s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+@keyframes float-gentle {
+  from { transform: translateY(calc(var(--parallax-y, 0px) - 10px)); }
+  to   { transform: translateY(calc(var(--parallax-y, 0px) + 10px)); }
+}
+
+@keyframes halo-pulse {
+  from { transform: scale(0.96); opacity: 0.55; }
+  to   { transform: scale(1.04); opacity: 0.90; }
+}
+
+/* Accesibilidad: respetar la preferencia del usuario por menos movimiento.
+   El halo se mantiene visible pero sin pulso, el toro queda estático. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-img { animation: none; transform: translateY(var(--parallax-y, 0px)); }
+  .hero-halo { animation: none; opacity: 0.7; transform: scale(1); }
 }
 
 .hero-badge {
