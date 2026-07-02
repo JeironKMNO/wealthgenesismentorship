@@ -21,6 +21,14 @@
   --gold-border: rgba(201, 165, 90, 0.22);
   --gold-glow:   rgba(201, 165, 90, 0.08);
 
+  /* Silver — metallic complement to the gold */
+  --silver:        #C8CDD4;
+  --silver-light:  #E6E9EE;
+  --silver-pale:   #F2F4F7;
+  --silver-dim:    rgba(200, 205, 212, 0.14);
+  --silver-border: rgba(200, 205, 212, 0.22);
+  --silver-glow:   rgba(200, 205, 212, 0.07);
+
   /* Text — warm cream tones */
   --cream:       #EDE8DF;
   --cream-70:    rgba(237, 232, 223, 0.70);
@@ -170,7 +178,7 @@ ul { list-style: none; }
   top: 0; left: 0;
   height: 2px;
   width: 0%;
-  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  background: linear-gradient(90deg, var(--gold), var(--silver-light), var(--gold-light));
   z-index: 9999;
   pointer-events: none;
   transition: width 0.1s linear;
@@ -1005,6 +1013,19 @@ ul { list-style: none; }
   padding: 0.28rem 0.7rem;
 }
 
+/* Nasdaq (NQ) card — acento plateado/metálico para diferenciarlo del oro (GC),
+   sin salir de la paleta general del sitio. */
+.market-card--silver:hover {
+  border-color: var(--silver-border);
+}
+
+.market-card--silver .market-ticker-label { color: var(--silver-light); }
+
+.market-card--silver .market-tags span {
+  color: var(--silver-light);
+  border-color: var(--silver-border);
+}
+
 /* ── Community Section ── */
 .community-section {
   padding: var(--sp-xl) 0;
@@ -1146,7 +1167,7 @@ ul { list-style: none; }
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+  background: linear-gradient(90deg, var(--gold), var(--silver-light), var(--gold));
 }
 
 /* ── Pricing — bloque del precio ── */
