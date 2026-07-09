@@ -968,6 +968,44 @@ ul { list-style: none; }
   font-weight: 600;
 }
 
+/* Tira de prueba: certificados de fondeo (credencial factual, no P&L) */
+.mentor-proof {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.9rem;
+  margin-top: 2rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--border-sub);
+}
+
+.proof-item {
+  margin: 0;
+}
+
+.proof-item img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border-sub);
+  background: var(--bg-deep);
+  transition: border-color 0.3s var(--ease), transform 0.3s var(--ease);
+}
+
+.proof-item img:hover {
+  border-color: var(--gold-border);
+  transform: translateY(-3px);
+}
+
+.proof-item figcaption {
+  margin-top: 0.55rem;
+  font-family: var(--f-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cream-40);
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .mentor-grid {
     grid-template-columns: 1fr;
