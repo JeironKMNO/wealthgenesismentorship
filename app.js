@@ -6,6 +6,64 @@
 (function () {
   'use strict';
 
+  /* ════════════════════════════════════════════════════════════════
+     ANALYTICS & CONVERSION TRACKING
+
+     👉 PEGA TUS IDs REALES AQUÍ ABAJO.
+     Mientras tengan las "X", NO se carga nada (cero requests rotos).
+     Cuando pongas los IDs reales, GA4 y el Pixel se activan solos y
+     cada clic en un CTA de WhatsApp dispara un evento de conversión.
+     ════════════════════════════════════════════════════════════════ */
+  const ANALYTICS = {
+    GA4_ID:        'G-XXXXXXXXXX',    // Google Analytics 4 — Measurement ID
+    META_PIXEL_ID: 'XXXXXXXXXXXXXXX'  // Meta (Facebook/Instagram) — Pixel ID
+  };
+
+  const isConfigured = (id) =>
+    typeof id === 'string' && id.length > 4 && !/X{3,}/i.test(id);
+
+  // Google Analytics 4
+  if (isConfigured(ANALYTICS.GA4_ID)) {
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ANALYTICS.GA4_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', ANALYTICS.GA4_ID);
+  }
+
+  // Meta Pixel
+  if (isConfigured(ANALYTICS.META_PIXEL_ID)) {
+    /* eslint-disable */
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    /* eslint-enable */
+    window.fbq('init', ANALYTICS.META_PIXEL_ID);
+    window.fbq('track', 'PageView');
+  }
+
+  // Un solo listener delegado: cada clic en un CTA de WhatsApp = conversión.
+  document.addEventListener('click', (e) => {
+    const wa = e.target.closest('a[href*="wa.me"]');
+    if (!wa) return;
+    const label = (wa.textContent || 'whatsapp').trim().slice(0, 60);
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'whatsapp_click', {
+        event_category: 'conversion',
+        event_label: label,
+        transport_type: 'beacon'
+      });
+    }
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', 'Contact', { content_name: label });
+    }
+  });
+
   // ── Scroll Progress Bar ──
   const scrollBar = document.createElement('div');
   scrollBar.className = 'scroll-bar';
