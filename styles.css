@@ -77,6 +77,17 @@ img { display: block; max-width: 100%; height: auto; }
 a { text-decoration: none; color: inherit; }
 ul { list-style: none; }
 
+/* Accesibilidad: foco visible por teclado en todos los elementos interactivos */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
 /* ── Layout ── */
 .container {
   max-width: var(--max-w);
@@ -671,10 +682,19 @@ ul { list-style: none; }
 }
 
 /* Accesibilidad: respetar la preferencia del usuario por menos movimiento.
-   El halo se mantiene visible pero sin pulso, el toro queda estático. */
+   Neutraliza animaciones/transiciones globalmente pero conserva los estados finales
+   (el contenido con .reveal queda visible aunque no haya animación). */
 @media (prefers-reduced-motion: reduce) {
-  .hero-img { animation: none; transform: translateY(var(--parallax-y, 0px)); }
-  .hero-halo { animation: none; opacity: 0.7; transform: scale(1); }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .ticker-track { animation: none !important; }
+  .hero-img { transform: translateY(var(--parallax-y, 0px)); }
+  .hero-halo { opacity: 0.7; transform: scale(1); }
 }
 
 .hero-badge {
@@ -1023,51 +1043,7 @@ ul { list-style: none; }
   background: var(--bg-dark);
 }
 
-.markets-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-top: 3rem;
-}
-
-.market-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-sub);
-  overflow: hidden;
-  transition: border-color 0.3s, transform 0.35s var(--ease);
-}
-
-.market-card:hover {
-  border-color: var(--gold-border);
-  transform: translateY(-5px);
-}
-
-.market-img {
-  height: 200px;
-  overflow: hidden;
-  background: var(--bg-deep);
-  border-bottom: 1px solid var(--border-sub);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.market-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 1.5rem;
-  transition: transform 0.4s var(--ease);
-}
-
-.market-card:hover .market-img img {
-  transform: scale(1.05);
-}
-
-.market-body {
-  padding: 2rem;
-}
-
+/* Etiqueta de ticker (reutilizada por la sección Herramientas) */
 .market-ticker-label {
   font-family: var(--f-mono);
   font-size: 0.65rem;
@@ -1076,52 +1052,6 @@ ul { list-style: none; }
   text-transform: uppercase;
   color: var(--gold);
   margin-bottom: 0.75rem;
-}
-
-.market-body h3 {
-  font-family: var(--f-display);
-  font-size: clamp(1.3rem, 2.2vw, 1.6rem);
-  font-weight: 600;
-  color: var(--cream);
-  margin-bottom: 0.75rem;
-  line-height: 1.2;
-}
-
-.market-body p {
-  font-size: 0.88rem;
-  line-height: 1.75;
-  color: var(--cream-70);
-  margin-bottom: 1.25rem;
-}
-
-.market-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.market-tags span {
-  font-family: var(--f-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--gold);
-  border: 1px solid var(--gold-border);
-  padding: 0.28rem 0.7rem;
-}
-
-/* Nasdaq (NQ) card — acento plateado/metálico para diferenciarlo del oro (GC),
-   sin salir de la paleta general del sitio. */
-.market-card--silver:hover {
-  border-color: var(--silver-border);
-}
-
-.market-card--silver .market-ticker-label { color: var(--silver-light); }
-
-.market-card--silver .market-tags span {
-  color: var(--silver-light);
-  border-color: var(--silver-border);
 }
 
 /* Markets — versión compacta (imagen NQ + dos filas) */
@@ -1374,7 +1304,12 @@ ul { list-style: none; }
   border: 1px solid var(--border);
   background: var(--gold-dim);
   flex-shrink: 0;
-  font-size: 1.15rem;
+  color: var(--gold);
+}
+
+.comm-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .comm-feat strong {
@@ -2074,11 +2009,6 @@ ul { list-style: none; }
     gap: 3rem;
   }
 
-  .markets-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
   .footer-main {
     grid-template-columns: 1fr;
     gap: 2.5rem;
@@ -2172,10 +2102,17 @@ ul { list-style: none; }
 
 /* ── Responsive — 480px ── */
 @media (max-width: 480px) {
+  /* Headline y títulos un pelín más chicos para no desbordar en ~375px */
+  .hero-headline { font-size: clamp(2.9rem, 13vw, 3.6rem); }
+  .top-brand-banner span { font-size: clamp(2rem, 9vw, 2.8rem); }
+
   .hero-ctas {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .btn-primary.btn-lg,
+  .hero-ctas .btn-primary { width: 100%; justify-content: center; }
 
   .hero-data {
     flex-direction: column;

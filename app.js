@@ -238,7 +238,6 @@
   }
 
   addTilt('.feat-item');
-  addTilt('.market-card');
 
   // ── Passive Scroll Handler ──
   window.addEventListener('scroll', () => {
