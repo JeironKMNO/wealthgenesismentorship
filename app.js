@@ -64,6 +64,40 @@
     }
   });
 
+  // ── Lead Capture (STUB — sin proveedor conectado) ──
+  const leadForm = document.getElementById('leadForm');
+  if (leadForm) {
+    const emailInput = document.getElementById('leadEmail');
+    const leadMsg = document.getElementById('leadMsg');
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    leadForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = (emailInput.value || '').trim();
+
+      if (!emailRe.test(email)) {
+        leadMsg.textContent = 'Escribe un correo válido.';
+        leadMsg.className = 'lead-msg lead-msg--error';
+        emailInput.focus();
+        return;
+      }
+
+      // TODO: conectar a un proveedor de email (Mailchimp / ConvertKit / Beehiiv…)
+      //       y entregar el PDF de la guía. Por ahora solo confirma en el front,
+      //       NO se envía el email a ningún lado.
+      leadMsg.textContent = '¡Listo! En breve recibes la guía en tu correo.';
+      leadMsg.className = 'lead-msg lead-msg--ok';
+      leadForm.reset();
+
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'lead_submit', { event_category: 'conversion' });
+      }
+      if (typeof window.fbq === 'function') {
+        window.fbq('track', 'Lead');
+      }
+    });
+  }
+
   // ── Scroll Progress Bar ──
   const scrollBar = document.createElement('div');
   scrollBar.className = 'scroll-bar';
