@@ -1572,24 +1572,44 @@ summary:focus-visible,
 }
 
 .pay-link {
-  font-family: var(--f-mono);
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  color: var(--cream-70);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 2px;
-  transition: color 0.2s, border-color 0.2s;
+  display: inline-block;
+  font-family: var(--f-ui);
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  /* Brillo metálico animado, igual que el título del header */
+  background: linear-gradient(
+    135deg,
+    #DFC280 0%,
+    #ffffff 18%,
+    #EDD9A8 34%,
+    #ffffff 50%,
+    #C9A55A 66%,
+    #ffffff 82%,
+    #DFC280 100%
+  );
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  animation: payShimmer 5s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(201, 165, 90, 0.15));
+  transition: filter 0.25s;
 }
 
 .pay-link:hover {
-  color: var(--gold-light);
-  border-color: var(--gold-light);
+  filter: drop-shadow(0 0 10px rgba(201, 165, 90, 0.35));
 }
 
 .pay-link:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
+}
+
+@keyframes payShimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 300% center; }
 }
 
 .pricing-note {
