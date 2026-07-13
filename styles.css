@@ -1394,6 +1394,72 @@ ul { list-style: none; }
   margin: 0;
 }
 
+/* ── Steps / Después de Aplicar ── */
+.steps-section {
+  padding: var(--sp-xl) 0;
+  background: var(--bg-section);
+  position: relative;
+}
+
+.steps-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 3rem;
+}
+
+.step-item {
+  padding: 2.25rem;
+  border: 1px solid var(--border-sub);
+  background: var(--bg-card);
+  transition: border-color 0.3s var(--ease), transform 0.35s var(--ease);
+}
+
+.step-item:hover {
+  border-color: var(--gold-border);
+  transform: translateY(-4px);
+}
+
+.step-num {
+  display: inline-block;
+  font-family: var(--f-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gold-border);
+}
+
+.step-item h3 {
+  font-family: var(--f-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 0.6rem;
+  line-height: 1.2;
+}
+
+.step-item p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--cream-70);
+}
+
+@media (max-width: 768px) {
+  .steps-grid { grid-template-columns: 1fr; }
+}
+
 /* ── Pricing Section ── */
 .pricing-section {
   padding: var(--sp-xl) 0;
