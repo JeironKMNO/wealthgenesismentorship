@@ -1238,14 +1238,16 @@ ul { list-style: none; }
   object-fit: contain;
 }
 
-.shot figcaption {
-  margin-top: 0.75rem;
-  font-family: var(--f-mono);
-  font-size: 0.66rem;
-  line-height: 1.5;
-  letter-spacing: 0.03em;
-  color: var(--cream-40);
+.tools-shots-caption {
+  max-width: 720px;
+  margin: 1.5rem auto 0;
+  text-align: center;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--cream-70);
 }
+
+.tools-shots-caption strong { color: var(--silver-light); font-weight: 600; }
 
 .tools-note {
   margin-top: 2.75rem;
