@@ -47,8 +47,21 @@
     window.fbq('track', 'PageView');
   }
 
-  // Un solo listener delegado: cada clic en un CTA de WhatsApp = conversión.
+  // Un solo listener delegado para conversiones: CTA de WhatsApp y botón de pago Stripe.
   document.addEventListener('click', (e) => {
+    // Pago directo (Stripe) → inicio de checkout.
+    const pay = e.target.closest('#payNow');
+    if (pay) {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'begin_checkout', { event_category: 'conversion' });
+      }
+      if (typeof window.fbq === 'function') {
+        window.fbq('track', 'InitiateCheckout');
+      }
+      return;
+    }
+
+    // CTA de WhatsApp → contacto.
     const wa = e.target.closest('a[href*="wa.me"]');
     if (!wa) return;
     const label = (wa.textContent || 'whatsapp').trim().slice(0, 60);

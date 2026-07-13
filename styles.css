@@ -1636,6 +1636,27 @@ ul { list-style: none; }
   gap: 0.9rem;
 }
 
+.pay-link {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--cream-70);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.pay-link:hover {
+  color: var(--gold-light);
+  border-color: var(--gold-light);
+}
+
+.pay-link:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
 .pricing-note {
   font-family: var(--f-mono);
   font-size: 0.67rem;
