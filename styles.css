@@ -1000,31 +1000,35 @@ summary:focus-visible,
 
 .proof-item {
   margin: 0;
-}
-
-.proof-item img {
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--border-sub);
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--bg-deep);
+  border: 1px solid var(--border-sub);
+  overflow: hidden;
   transition: border-color 0.3s var(--ease), transform 0.3s var(--ease);
 }
 
-.proof-item img:hover {
+.proof-item:hover {
   border-color: var(--gold-border);
   transform: translateY(-3px);
 }
 
-.proof-item figcaption {
-  margin-top: 0.55rem;
-  font-family: var(--f-mono);
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--cream-40);
-  text-align: center;
+.proof-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
+
+.mentor-body .mentor-proof-caption {
+  margin-top: 1.35rem;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--cream-70);
+}
+
+.mentor-body .mentor-proof-caption strong { color: var(--gold-light); font-weight: 600; }
 
 @media (max-width: 768px) {
   .mentor-grid {
