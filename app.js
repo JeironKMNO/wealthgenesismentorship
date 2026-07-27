@@ -109,9 +109,11 @@
         return;
       }
 
-      // Si el webhook aún no está configurado (tiene las X), solo confirma en el front.
+      // Sin webhook configurado aún: llevamos la solicitud por WhatsApp (entrega manual).
       if (!isConfigured(LEAD_WEBHOOK) || /X{3,}/i.test(LEAD_WEBHOOK)) {
-        leadMsg.textContent = '¡Listo! En breve recibes la clase en tu correo.';
+        const msg = encodeURIComponent('Hola, quiero la clase completa gratis de WGM. Mi correo: ' + email);
+        window.open('https://wa.me/17873297067?text=' + msg, '_blank', 'noopener');
+        leadMsg.textContent = 'Te llevamos a WhatsApp para hacerte llegar la clase.';
         leadMsg.className = 'lead-msg lead-msg--ok';
         leadForm.reset();
         fireConversion();
