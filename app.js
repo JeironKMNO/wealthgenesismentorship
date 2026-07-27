@@ -19,6 +19,10 @@
     META_PIXEL_ID: 'XXXXXXXXXXXXXXX'  // Meta (Facebook/Instagram) — Pixel ID
   };
 
+  // 👉 PEGA AQUÍ la URL del webhook de n8n que recibe los correos de "clase gratis".
+  //    Mientras tenga las X, el form valida y confirma pero NO envía a ningún lado.
+  const LEAD_WEBHOOK = 'https://n8n.TU-DOMINIO/webhook/XXXXXXXX';
+
   const isConfigured = (id) =>
     typeof id === 'string' && id.length > 4 && !/X{3,}/i.test(id);
 
@@ -77,14 +81,24 @@
     }
   });
 
-  // ── Lead Capture (STUB — sin proveedor conectado) ──
+  // ── Captura de "clase gratis" → webhook de n8n ──
   const leadForm = document.getElementById('leadForm');
   if (leadForm) {
     const emailInput = document.getElementById('leadEmail');
     const leadMsg = document.getElementById('leadMsg');
+    const submitBtn = leadForm.querySelector('button[type="submit"]');
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    leadForm.addEventListener('submit', (e) => {
+    const fireConversion = () => {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'lead_submit', { event_category: 'conversion' });
+      }
+      if (typeof window.fbq === 'function') {
+        window.fbq('track', 'Lead');
+      }
+    };
+
+    leadForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = (emailInput.value || '').trim();
 
@@ -95,18 +109,36 @@
         return;
       }
 
-      // TODO: conectar a un proveedor de email (Mailchimp / ConvertKit / Beehiiv…)
-      //       y entregar el PDF de la guía. Por ahora solo confirma en el front,
-      //       NO se envía el email a ningún lado.
-      leadMsg.textContent = '¡Listo! En breve recibes la guía en tu correo.';
-      leadMsg.className = 'lead-msg lead-msg--ok';
-      leadForm.reset();
-
-      if (typeof window.gtag === 'function') {
-        window.gtag('event', 'lead_submit', { event_category: 'conversion' });
+      // Si el webhook aún no está configurado (tiene las X), solo confirma en el front.
+      if (!isConfigured(LEAD_WEBHOOK) || /X{3,}/i.test(LEAD_WEBHOOK)) {
+        leadMsg.textContent = '¡Listo! En breve recibes la clase en tu correo.';
+        leadMsg.className = 'lead-msg lead-msg--ok';
+        leadForm.reset();
+        fireConversion();
+        return;
       }
-      if (typeof window.fbq === 'function') {
-        window.fbq('track', 'Lead');
+
+      // Envío real al webhook de n8n.
+      leadMsg.textContent = 'Enviando…';
+      leadMsg.className = 'lead-msg';
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const res = await fetch(LEAD_WEBHOOK, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, source: 'clase-gratis', ts: new Date().toISOString() })
+        });
+        if (!res.ok) throw new Error('bad status ' + res.status);
+        leadMsg.textContent = '¡Listo! En breve recibes la clase en tu correo.';
+        leadMsg.className = 'lead-msg lead-msg--ok';
+        leadForm.reset();
+        fireConversion();
+      } catch (err) {
+        leadMsg.textContent = 'Ups, algo falló. Escríbenos por WhatsApp y te la enviamos.';
+        leadMsg.className = 'lead-msg lead-msg--error';
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
       }
     });
   }

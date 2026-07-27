@@ -1252,6 +1252,91 @@ summary:focus-visible,
   .shot-frame { height: 300px; }
 }
 
+/* ── Video / El Sistema en Acción ── */
+.video-section {
+  padding: var(--sp-xl) 0;
+  background: var(--bg-dark);
+  position: relative;
+}
+
+.video-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+.video-wrap {
+  max-width: 760px;
+  margin: 3rem auto 0;
+  position: relative;
+  border: 1px solid var(--border);
+  background: #000;
+  overflow: hidden;
+}
+
+.video-player {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.video-caption {
+  max-width: 720px;
+  margin: 1.6rem auto 0;
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--cream-70);
+}
+
+.video-caption strong { color: var(--gold-light); font-weight: 600; }
+
+.video-disclaimer {
+  max-width: 700px;
+  margin: 1rem auto 0;
+  text-align: center;
+  font-family: var(--f-mono);
+  font-size: 0.66rem;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: var(--cream-40);
+}
+
+.class-cta {
+  max-width: 760px;
+  margin: 2.75rem auto 0;
+  padding: 1.85rem 2rem;
+  border: 1px solid var(--gold-border);
+  background: var(--gold-dim);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.75rem;
+  align-items: center;
+}
+
+.class-cta-text > strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 0.4rem;
+}
+
+.class-cta-text span {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--cream-70);
+}
+
+.class-cta-text span strong { color: var(--gold-light); font-weight: 600; }
+
+@media (max-width: 768px) {
+  .class-cta { grid-template-columns: 1fr; gap: 1.25rem; }
+}
+
 /* ── Community Section ── */
 .community-section {
   padding: var(--sp-xl) 0;
