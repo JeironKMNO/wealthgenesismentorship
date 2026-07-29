@@ -19,10 +19,6 @@
     META_PIXEL_ID: 'XXXXXXXXXXXXXXX'  // Meta (Facebook/Instagram) — Pixel ID
   };
 
-  // 👉 PEGA AQUÍ la URL del webhook de n8n que recibe los correos de "clase gratis".
-  //    Mientras tenga las X, el form valida y confirma pero NO envía a ningún lado.
-  const LEAD_WEBHOOK = 'https://n8n.TU-DOMINIO/webhook/XXXXXXXX';
-
   const isConfigured = (id) =>
     typeof id === 'string' && id.length > 4 && !/X{3,}/i.test(id);
 
@@ -65,84 +61,38 @@
       return;
     }
 
-    // CTA de WhatsApp → contacto.
+    // CTA de WhatsApp → conversión diferenciada por origen (data-loc).
     const wa = e.target.closest('a[href*="wa.me"]');
     if (!wa) return;
+    const loc = (wa.getAttribute('data-loc') || 'other').replace(/[^a-z0-9_]/gi, '_');
     const label = (wa.textContent || 'whatsapp').trim().slice(0, 60);
     if (typeof window.gtag === 'function') {
-      window.gtag('event', 'whatsapp_click', {
+      window.gtag('event', 'whatsapp_' + loc, {
         event_category: 'conversion',
         event_label: label,
         transport_type: 'beacon'
       });
     }
     if (typeof window.fbq === 'function') {
-      window.fbq('track', 'Contact', { content_name: label });
+      window.fbq('track', 'Contact', { content_name: 'whatsapp_' + loc });
     }
   });
 
-  // ── Captura de "clase gratis" → webhook de n8n ──
-  const leadForm = document.getElementById('leadForm');
-  if (leadForm) {
-    const emailInput = document.getElementById('leadEmail');
-    const leadMsg = document.getElementById('leadMsg');
-    const submitBtn = leadForm.querySelector('button[type="submit"]');
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    const fireConversion = () => {
-      if (typeof window.gtag === 'function') {
-        window.gtag('event', 'lead_submit', { event_category: 'conversion' });
-      }
-      if (typeof window.fbq === 'function') {
-        window.fbq('track', 'Lead');
-      }
+  // ── Video: eventos de reproducción (play, 50%, completo) ──
+  const videoEl = document.querySelector('.video-player');
+  if (videoEl) {
+    const firedVid = {};
+    const trackVid = (name) => {
+      if (firedVid[name]) return;
+      firedVid[name] = true;
+      if (typeof window.gtag === 'function') window.gtag('event', name, { event_category: 'video' });
+      if (typeof window.fbq === 'function') window.fbq('trackCustom', name);
     };
-
-    leadForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = (emailInput.value || '').trim();
-
-      if (!emailRe.test(email)) {
-        leadMsg.textContent = 'Escribe un correo válido.';
-        leadMsg.className = 'lead-msg lead-msg--error';
-        emailInput.focus();
-        return;
-      }
-
-      // Sin webhook configurado aún: llevamos la solicitud por WhatsApp (entrega manual).
-      if (!isConfigured(LEAD_WEBHOOK) || /X{3,}/i.test(LEAD_WEBHOOK)) {
-        const msg = encodeURIComponent('Hola, quiero la clase completa gratis de WGM. Mi correo: ' + email);
-        window.open('https://wa.me/17873297067?text=' + msg, '_blank', 'noopener');
-        leadMsg.textContent = 'Te llevamos a WhatsApp para hacerte llegar la clase.';
-        leadMsg.className = 'lead-msg lead-msg--ok';
-        leadForm.reset();
-        fireConversion();
-        return;
-      }
-
-      // Envío real al webhook de n8n.
-      leadMsg.textContent = 'Enviando…';
-      leadMsg.className = 'lead-msg';
-      if (submitBtn) submitBtn.disabled = true;
-
-      try {
-        const res = await fetch(LEAD_WEBHOOK, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, source: 'clase-gratis', ts: new Date().toISOString() })
-        });
-        if (!res.ok) throw new Error('bad status ' + res.status);
-        leadMsg.textContent = '¡Listo! En breve recibes la clase en tu correo.';
-        leadMsg.className = 'lead-msg lead-msg--ok';
-        leadForm.reset();
-        fireConversion();
-      } catch (err) {
-        leadMsg.textContent = 'Ups, algo falló. Escríbenos por WhatsApp y te la enviamos.';
-        leadMsg.className = 'lead-msg lead-msg--error';
-      } finally {
-        if (submitBtn) submitBtn.disabled = false;
-      }
+    videoEl.addEventListener('play', () => trackVid('video_play'));
+    videoEl.addEventListener('timeupdate', () => {
+      if (videoEl.duration && videoEl.currentTime / videoEl.duration >= 0.5) trackVid('video_50');
     });
+    videoEl.addEventListener('ended', () => trackVid('video_complete'));
   }
 
   // ── Scroll Progress Bar ──

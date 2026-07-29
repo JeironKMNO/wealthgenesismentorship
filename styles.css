@@ -50,7 +50,7 @@
   --sp-sm:  1rem;
   --sp-md:  2rem;
   --sp-lg:  4rem;
-  --sp-xl:  7rem;
+  --sp-xl:  5rem;
   --sp-2xl: 11rem;
 
   /* Layout */
@@ -388,10 +388,9 @@ summary:focus-visible,
 
 /* ── Hero ── */
 .hero {
-  padding: clamp(4rem, 9vw, 7rem) 0 clamp(5rem, 9vw, 8rem);
+  padding: clamp(1.75rem, 3.5vw, 3rem) 0 clamp(2.5rem, 5vw, 4rem);
   position: relative;
   overflow: hidden;
-  min-height: calc(100vh - 112px);
   display: flex;
   align-items: center;
 }
@@ -429,7 +428,7 @@ summary:focus-visible,
 .top-brand-banner {
   width: 100%;
   text-align: center;
-  padding: 2.2rem 1rem 1.4rem;
+  padding: 0.6rem 1rem 0.5rem;
   position: relative;
   z-index: 10;
   overflow: hidden;
@@ -477,7 +476,7 @@ summary:focus-visible,
 
 .top-brand-banner span {
   font-family: var(--f-display);
-  font-size: clamp(2.4rem, 6vw, 5rem);
+  font-size: clamp(1rem, 3vw, 1.5rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -538,12 +537,12 @@ summary:focus-visible,
 
 .hero-headline {
   font-family: var(--f-display);
-  font-size: clamp(4rem, 9vw, 7.5rem);
+  font-size: clamp(2.6rem, 6vw, 4.6rem);
   font-weight: 700;
-  line-height: 0.92;
+  line-height: 0.95;
   letter-spacing: -0.02em;
   color: var(--cream);
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .hero-headline em {
@@ -782,7 +781,7 @@ summary:focus-visible,
   background: linear-gradient(90deg, transparent, var(--border), transparent);
 }
 
-.section-header { margin-bottom: 4rem; }
+.section-header { margin-bottom: 2.5rem; }
 
 /* Editorial numbered grid — not uniform cards */
 .features-grid {
@@ -1495,6 +1494,70 @@ summary:focus-visible,
   .steps-grid { grid-template-columns: 1fr; }
 }
 
+/* ── Pricestrip (franja precio temprana) ── */
+.pricestrip-section {
+  padding: 2.5rem 0;
+  background: var(--bg-alt);
+  position: relative;
+}
+
+.pricestrip-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+.pricestrip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem 2rem;
+  border: 1px solid var(--gold-border);
+  background: var(--gold-dim);
+  padding: 1.5rem 2rem;
+}
+
+.pricestrip-price { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.pricestrip-amount {
+  font-family: var(--f-display);
+  font-size: clamp(2rem, 4vw, 2.7rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--cream);
+}
+
+.pricestrip-cur { color: var(--gold-light); font-size: 0.6em; vertical-align: super; }
+.pricestrip-per { font-family: var(--f-ui); font-size: 0.38em; font-weight: 500; color: var(--cream-70); letter-spacing: 0.04em; }
+
+.pricestrip-label {
+  font-family: var(--f-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.pricestrip-trust {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  color: var(--cream-70);
+}
+
+.pricestrip-trust li { display: flex; align-items: center; gap: 0.5rem; }
+.pricestrip-trust li::before { content: '✦'; color: var(--gold); font-size: 0.7em; }
+
+@media (max-width: 768px) {
+  .pricestrip { flex-direction: column; align-items: flex-start; }
+  .pricestrip .btn-primary { width: 100%; justify-content: center; }
+}
+
 /* ── Pricing Section ── */
 .pricing-section {
   padding: var(--sp-xl) 0;
@@ -2097,15 +2160,16 @@ summary:focus-visible,
   }
 
   .hero-headline {
-    font-size: clamp(3.5rem, 10vw, 5.5rem);
+    font-size: clamp(2.6rem, 8vw, 4rem);
   }
 
+  /* Móvil: texto primero, toro parcial debajo (más chico) */
   .hero-visual {
-    order: -1;
+    order: 2;
   }
 
   .hero-frame {
-    max-width: 360px;
+    max-width: 280px;
     margin: 0 auto;
   }
 
@@ -2127,7 +2191,7 @@ summary:focus-visible,
 /* ── Responsive — 768px ── */
 @media (max-width: 768px) {
   :root {
-    --sp-xl: 5rem;
+    --sp-xl: 3.5rem;
   }
 
   .nav-links { display: none; }
@@ -2212,8 +2276,8 @@ summary:focus-visible,
 /* ── Responsive — 480px ── */
 @media (max-width: 480px) {
   /* Headline y títulos un pelín más chicos para no desbordar en ~375px */
-  .hero-headline { font-size: clamp(2.9rem, 13vw, 3.6rem); }
-  .top-brand-banner span { font-size: clamp(2rem, 9vw, 2.8rem); }
+  .hero-headline { font-size: clamp(2.3rem, 10vw, 3.1rem); }
+  .top-brand-banner span { font-size: clamp(0.95rem, 4.5vw, 1.25rem); }
 
   .hero-ctas {
     flex-direction: column;
