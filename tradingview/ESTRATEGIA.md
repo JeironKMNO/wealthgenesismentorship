@@ -12,7 +12,7 @@ aproximaciones que hay que refinar con el mentor.
   pero los valores por defecto (márgenes en puntos) están pensados para oro.
 - **Temporalidad de ejecución:** 15m / 5m / 1m (la del gráfico).
 - **Temporalidad de contexto:** 1H por defecto, configurable a 4H (input "Temporalidad del sesgo").
-- **Sesiones operables:** Nueva York (08:30–11:30 NY) y Asia (19:00–23:00 NY),
+- **Sesiones operables:** Nueva York (08:30–11:30 NY) y Asia (19:00–00:00 NY),
   ambas configurables y activables por separado. 🔧 Confirmar horarios exactos.
 
 ## 2. Sesgo / dirección ✅🔧
@@ -26,8 +26,12 @@ aproximaciones que hay que refinar con el mentor.
 ## 3. Modelos de entrada ✅🔧
 
 ### Modelo A — Fib premium/descuento + manipulación + confirmación (implementado)
-1. Se define el rango con los últimos swings mayores (liquidez externa:
-   high y low del rango).
+1. Se define el rango con los últimos swings mayores de la **temporalidad del
+   rango** (1H por defecto, configurable a 4H), independiente de la temporalidad
+   del gráfico: el fib se tira sobre la estructura de 1H aunque se ejecute en
+   1m/5m/15m. (Corregido tras la señal perdida del 25-ago: antes el rango se
+   calculaba con pivotes del propio gráfico y en 1m no representaba la
+   estructura real.)
 2. **Fibonacci sobre el rango**: rango alcista → fib de low a high, se busca
    entrada en la zona de descuento 61.8%–88.6% (mínimo y máximo configurables:
    61.8 / 70.5 / 78.6 / 88.6). Rango bajista → espejo en premium.

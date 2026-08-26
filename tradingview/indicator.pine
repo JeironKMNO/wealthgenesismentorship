@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v0.6)
+// Wealth Genesis — Señales SMC Oro (v0.7)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md):
 //   • Sesgo en temporalidad mayor (4H/1H); entradas en 15m/5m/1m.
@@ -14,7 +14,7 @@
 //   • Gráfico limpio: solo entrada / SL / TPs. FVGs, sesiones y zona fib son
 //     cálculos internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v0.6]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v0.7]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -24,7 +24,7 @@ useSessions  = input.bool(true, "Operar solo en sesiones", group = grpF)
 useNY        = input.bool(true, "Sesión Nueva York", group = grpF)
 sessNY       = input.session("0830-1130", "Horario NY (hora NY)", group = grpF)
 useAsia      = input.bool(true, "Sesión Asia", group = grpF)
-sessAsia     = input.session("1900-2300", "Horario Asia (hora NY)", group = grpF)
+sessAsia     = input.session("1900-0000", "Horario Asia (hora NY)", group = grpF)
 tzNY         = "America/New_York"
 allowLongs   = input.bool(true, "Permitir compras", group = grpF)
 allowShorts  = input.bool(true, "Permitir ventas", group = grpF)
@@ -71,17 +71,24 @@ biasOKShort = not requireBias or htfBias == -1
 // 3) ESTRUCTURA / RANGO — liquidez externa e interna (cálculo interno, sin dibujo)
 // ─────────────────────────────────────────────────────────────────────────────
 grpR = "Rango / liquidez"
-extLen = input.int(10, "Fuerza swings EXTERNOS (rango)", minval = 3, group = grpR)
-intLen = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
+rangeTF = input.timeframe("60", "Temporalidad del RANGO (fib)", group = grpR, tooltip = "El rango estructural — y el fib que se calcula sobre él — se toma de esta temporalidad, aunque el gráfico esté en 1m/5m. 60 = 1H, 240 = 4H")
+extLen  = input.int(10, "Fuerza swings EXTERNOS (rango)", minval = 3, group = grpR)
+intLen  = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
 
-phE = ta.pivothigh(extLen, extLen)
-plE = ta.pivotlow(extLen, extLen)
-var float rangeHigh = na
-var float rangeLow  = na
-if not na(phE)
-    rangeHigh := phE
-if not na(plE)
-    rangeLow := plE
+// El rango (liquidez externa) viene de la temporalidad mayor: es la estructura
+// sobre la que se tira el Fibonacci. La manipulación se busca en el gráfico.
+f_range(_len) =>
+    ph = ta.pivothigh(_len, _len)
+    pl = ta.pivotlow(_len, _len)
+    var float rh = na
+    var float rl = na
+    if not na(ph)
+        rh := ph
+    if not na(pl)
+        rl := pl
+    [rh, rl]
+
+[rangeHigh, rangeLow] = request.security(syminfo.tickerid, rangeTF, f_range(extLen), lookahead = barmerge.lookahead_off)
 
 phI = ta.pivothigh(intLen, intLen)
 plI = ta.pivotlow(intLen, intLen)
