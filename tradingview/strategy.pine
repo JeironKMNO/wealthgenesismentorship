@@ -1,0 +1,256 @@
+//@version=6
+// =============================================================================
+// Wealth Genesis — Backtest SMC Oro (v0.5)
+// -----------------------------------------------------------------------------
+// Clon en modo strategy() del indicador (indicator.pine, misma versión) para
+// backtest automático: win rate, profit factor, drawdown, R por operación.
+// La lógica de señal es IDÉNTICA al indicador — si se cambia una regla allí,
+// debe replicarse aquí. Los TPs reparten la posición en partes iguales y el
+// stop cubre siempre el remanente.
+// =============================================================================
+strategy("WG SMC — Backtest Oro [v0.5]", overlay = true, initial_capital = 10000, default_qty_type = strategy.fixed, default_qty_value = 1, process_orders_on_close = true, calc_on_every_tick = false, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1) FILTROS
+// ─────────────────────────────────────────────────────────────────────────────
+grpF = "Filtros"
+useSessions = input.bool(true, "Operar solo en sesiones", group = grpF)
+useNY       = input.bool(true, "Sesión Nueva York", group = grpF)
+sessNY      = input.session("0830-1130", "Horario NY (hora NY)", group = grpF)
+useAsia     = input.bool(true, "Sesión Asia", group = grpF)
+sessAsia    = input.session("1900-2300", "Horario Asia (hora NY)", group = grpF)
+tzNY        = "America/New_York"
+allowLongs  = input.bool(true, "Permitir compras", group = grpF)
+allowShorts = input.bool(true, "Permitir ventas", group = grpF)
+maxPerDay   = input.int(4, "Máx. señales por día", minval = 1, group = grpF)
+
+inNY      = useNY and not na(time(timeframe.period, sessNY, tzNY))
+inAsia    = useAsia and not na(time(timeframe.period, sessAsia, tzNY))
+inSession = not useSessions or inNY or inAsia
+
+var int signalsToday = 0
+if timeframe.change("D")
+    signalsToday := 0
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2) SESGO HTF
+// ─────────────────────────────────────────────────────────────────────────────
+grpH = "Sesgo (temporalidad mayor)"
+htfTF       = input.timeframe("60", "Temporalidad del sesgo", group = grpH)
+htfPivotLen = input.int(5, "Fuerza de swings HTF", minval = 2, group = grpH)
+requireBias = input.bool(true, "Exigir sesgo a favor", group = grpH)
+
+f_bias(_len) =>
+    ph = ta.pivothigh(_len, _len)
+    pl = ta.pivotlow(_len, _len)
+    var float lastPH = na
+    var float lastPL = na
+    if not na(ph)
+        lastPH := ph
+    if not na(pl)
+        lastPL := pl
+    var int b = 0
+    if not na(lastPH) and close > lastPH
+        b := 1
+    if not na(lastPL) and close < lastPL
+        b := -1
+    b
+
+htfBias = request.security(syminfo.tickerid, htfTF, f_bias(htfPivotLen), lookahead = barmerge.lookahead_off)
+biasOKLong  = not requireBias or htfBias == 1
+biasOKShort = not requireBias or htfBias == -1
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3) ESTRUCTURA / RANGO
+// ─────────────────────────────────────────────────────────────────────────────
+grpR = "Rango / liquidez"
+extLen = input.int(10, "Fuerza swings EXTERNOS (rango)", minval = 3, group = grpR)
+intLen = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
+
+phE = ta.pivothigh(extLen, extLen)
+plE = ta.pivotlow(extLen, extLen)
+var float rangeHigh = na
+var float rangeLow  = na
+if not na(phE)
+    rangeHigh := phE
+if not na(plE)
+    rangeLow := plE
+
+phI = ta.pivothigh(intLen, intLen)
+plI = ta.pivotlow(intLen, intLen)
+var float intHigh = na
+var float intLow  = na
+if not na(phI)
+    intHigh := phI
+if not na(plI)
+    intLow := plI
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4) FIBONACCI — zona de retroceso premium/descuento
+// ─────────────────────────────────────────────────────────────────────────────
+grpFib = "Fibonacci"
+useFib     = input.bool(true, "Exigir retroceso Fibonacci", group = grpFib)
+fibShallow = input.float(0.618, "Retroceso mínimo", minval = 0.3, maxval = 0.95, step = 0.001, group = grpFib)
+fibDeep    = input.float(0.886, "Retroceso máximo", minval = 0.4, maxval = 1.0, step = 0.001, group = grpFib)
+
+rangeSize  = rangeHigh - rangeLow
+fibTopLong = rangeHigh - rangeSize * fibShallow
+fibBotLong = rangeHigh - rangeSize * fibDeep
+inFibLong  = not useFib or (not na(rangeSize) and low <= fibTopLong and close >= fibBotLong)
+fibBotShort = rangeLow + rangeSize * fibShallow
+fibTopShort = rangeLow + rangeSize * fibDeep
+inFibShort  = not useFib or (not na(rangeSize) and high >= fibBotShort and close <= fibTopShort)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5) IMBALANCES (FVG)
+// ─────────────────────────────────────────────────────────────────────────────
+grpV = "Imbalances (FVG)"
+maxFVG = input.int(20, "Máx. FVGs en memoria", minval = 1, maxval = 60, group = grpV)
+
+var array<box> bullFVG = array.new<box>()
+var array<box> bearFVG = array.new<box>()
+colHide = color.new(color.gray, 100)
+
+newBullFVG = low > high[2]
+newBearFVG = high < low[2]
+if newBullFVG
+    array.push(bullFVG, box.new(bar_index - 2, low, bar_index, high[2], border_color = colHide, bgcolor = colHide))
+    if array.size(bullFVG) > maxFVG
+        box.delete(array.shift(bullFVG))
+if newBearFVG
+    array.push(bearFVG, box.new(bar_index - 2, low[2], bar_index, high, border_color = colHide, bgcolor = colHide))
+    if array.size(bearFVG) > maxFVG
+        box.delete(array.shift(bearFVG))
+
+f_scanFVG(_arr, _isBull) =>
+    tapped = false
+    if array.size(_arr) > 0
+        for i = array.size(_arr) - 1 to 0
+            bx  = array.get(_arr, i)
+            top = box.get_top(bx)
+            bot = box.get_bottom(bx)
+            filled = _isBull ? close < bot : close > top
+            if filled
+                box.delete(array.remove(_arr, i))
+            else if _isBull ? (low <= top and close > bot) : (high >= bot and close < top)
+                tapped := true
+    tapped
+
+tapFVGLong  = f_scanFVG(bullFVG, true)
+tapFVGShort = f_scanFVG(bearFVG, false)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6) MODELO DE ENTRADA
+// ─────────────────────────────────────────────────────────────────────────────
+grpC = "Confirmación"
+needConfirm = input.bool(true, "Exigir confirmación", group = grpC)
+useEngulf   = input.bool(true, "· Vela envolvente", group = grpC)
+useChoch    = input.bool(true, "· Cambio de estructura (CHoCH)", group = grpC)
+useFVGconf  = input.bool(true, "· Nuevo imbalance a favor", group = grpC)
+manipWindow = input.int(5, "Velas máx. entre manipulación y confirmación", minval = 1, maxval = 20, group = grpC)
+
+manipLong  = (not na(intLow) and low < intLow and close > intLow and (na(rangeLow) or low > rangeLow)) or tapFVGLong
+manipShort = (not na(intHigh) and high > intHigh and close < intHigh and (na(rangeHigh) or high < rangeHigh)) or tapFVGShort
+manipRecentLong  = ta.barssince(manipLong) <= manipWindow
+manipRecentShort = ta.barssince(manipShort) <= manipWindow
+
+engulfBull = close > open and close[1] < open[1] and close >= open[1] and open <= close[1]
+engulfBear = close < open and close[1] > open[1] and close <= open[1] and open >= close[1]
+chochBull  = not na(intHigh) and close > intHigh and close[1] <= intHigh
+chochBear  = not na(intLow) and close < intLow and close[1] >= intLow
+fvgConfBull = newBullFVG and close > open
+fvgConfBear = newBearFVG and close < open
+
+confirmLong  = not needConfirm or (useEngulf and engulfBull) or (useChoch and chochBull) or (useFVGconf and fvgConfBull)
+confirmShort = not needConfirm or (useEngulf and engulfBear) or (useChoch and chochBear) or (useFVGconf and fvgConfBear)
+
+longRaw  = manipRecentLong and confirmLong and inFibLong and (na(rangeHigh) or close < rangeHigh)
+shortRaw = manipRecentShort and confirmShort and inFibShort and (na(rangeLow) or close > rangeLow)
+
+longCandidate  = longRaw and biasOKLong and allowLongs and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+shortCandidate = shortRaw and biasOKShort and allowShorts and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7) GESTIÓN Y ÓRDENES — TP1 = liquidez externa, TP2..TP4 = extensiones fib
+// ─────────────────────────────────────────────────────────────────────────────
+grpG = "Gestión"
+tpMode   = input.string("Liquidez externa + extensiones fib", "Take profit", options = ["Liquidez externa + extensiones fib", "Ratio R fijo"], group = grpG)
+numTPs   = input.int(2, "Número de take profits", minval = 1, maxval = 4, group = grpG)
+ext1     = input.float(0.146, "Extensión TP2 (-14.6%)", minval = 0.01, step = 0.001, group = grpG)
+ext2     = input.float(0.272, "Extensión TP3 (-27.2%)", minval = 0.01, step = 0.001, group = grpG)
+ext3     = input.float(0.414, "Extensión TP4 (-41.4%)", minval = 0.01, step = 0.001, group = grpG)
+rr1      = input.float(1.0, "TP1 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
+rr2      = input.float(2.0, "TP2 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
+rr3      = input.float(3.0, "TP3 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
+rr4      = input.float(4.0, "TP4 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
+minRR    = input.float(1.0, "RR mínimo hasta la liquidez externa", minval = 0.1, step = 0.1, group = grpG)
+slBuffer = input.float(0.5, "Margen extra del SL (puntos)", minval = 0.0, step = 0.1, group = grpG)
+tpExtMode = tpMode == "Liquidez externa + extensiones fib"
+
+f_tpsLong(_e, _risk) =>
+    a = array.new<float>()
+    if tpExtMode
+        array.push(a, rangeHigh)
+        if numTPs >= 2
+            array.push(a, rangeHigh + rangeSize * ext1)
+        if numTPs >= 3
+            array.push(a, rangeHigh + rangeSize * ext2)
+        if numTPs == 4
+            array.push(a, rangeHigh + rangeSize * ext3)
+    else
+        array.push(a, _e + _risk * rr1)
+        if numTPs >= 2
+            array.push(a, _e + _risk * rr2)
+        if numTPs >= 3
+            array.push(a, _e + _risk * rr3)
+        if numTPs == 4
+            array.push(a, _e + _risk * rr4)
+    a
+
+f_tpsShort(_e, _risk) =>
+    a = array.new<float>()
+    if tpExtMode
+        array.push(a, rangeLow)
+        if numTPs >= 2
+            array.push(a, rangeLow - rangeSize * ext1)
+        if numTPs >= 3
+            array.push(a, rangeLow - rangeSize * ext2)
+        if numTPs == 4
+            array.push(a, rangeLow - rangeSize * ext3)
+    else
+        array.push(a, _e - _risk * rr1)
+        if numTPs >= 2
+            array.push(a, _e - _risk * rr2)
+        if numTPs >= 3
+            array.push(a, _e - _risk * rr3)
+        if numTPs == 4
+            array.push(a, _e - _risk * rr4)
+    a
+
+if longCandidate and strategy.position_size == 0
+    e = close
+    s = low - slBuffer
+    risk = e - s
+    rewCheck = tpExtMode ? rangeHigh - e : risk * rr1
+    if risk > 0 and not na(rewCheck) and rewCheck > 0 and (not tpExtMode or rewCheck / risk >= minRR)
+        tpsL = f_tpsLong(e, risk)
+        n = array.size(tpsL)
+        signalsToday += 1
+        strategy.entry("Long", strategy.long)
+        for i = 0 to n - 1
+            pct = i == n - 1 ? 100.0 : 100.0 / n
+            strategy.exit("L-TP" + str.tostring(i + 1), from_entry = "Long", stop = s, limit = array.get(tpsL, i), qty_percent = pct)
+
+if shortCandidate and strategy.position_size == 0 and not longCandidate
+    e = close
+    s = high + slBuffer
+    risk = s - e
+    rewCheck = tpExtMode ? e - rangeLow : risk * rr1
+    if risk > 0 and not na(rewCheck) and rewCheck > 0 and (not tpExtMode or rewCheck / risk >= minRR)
+        tpsS = f_tpsShort(e, risk)
+        n = array.size(tpsS)
+        signalsToday += 1
+        strategy.entry("Short", strategy.short)
+        for i = 0 to n - 1
+            pct = i == n - 1 ? 100.0 : 100.0 / n
+            strategy.exit("S-TP" + str.tostring(i + 1), from_entry = "Short", stop = s, limit = array.get(tpsS, i), qty_percent = pct)
