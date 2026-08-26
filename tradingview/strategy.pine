@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Backtest SMC Oro (v1.1)
+// Wealth Genesis — Backtest SMC Oro (v1.2)
 // -----------------------------------------------------------------------------
 // Clon en modo strategy() del indicador (indicator.pine, misma versión) para
 // backtest automático: win rate, profit factor, drawdown, R por operación.
@@ -8,7 +8,7 @@
 // debe replicarse aquí. Los TPs reparten la posición en partes iguales y el
 // stop cubre siempre el remanente.
 // =============================================================================
-strategy("WG SMC — Backtest Oro [v1.1]", overlay = true, initial_capital = 10000, default_qty_type = strategy.fixed, default_qty_value = 1, process_orders_on_close = true, calc_on_every_tick = false, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+strategy("WG SMC — Backtest Oro [v1.2]", overlay = true, initial_capital = 10000, default_qty_type = strategy.fixed, default_qty_value = 1, process_orders_on_close = true, calc_on_every_tick = false, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS
@@ -109,6 +109,56 @@ legBear   = noRepaint ? bearPrev : bearNow
 legOKLong  = not useLegDir or not legBear
 legOKShort = not useLegDir or legBear
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 3b) FRACTALIDAD — estructura anidada (ver ESTRATEGIA.md §0b)
+// ─────────────────────────────────────────────────────────────────────────────
+grpX = "Fractalidad (estructura anidada)"
+useStruct    = input.bool(true, "Exigir confluencia con la TF estructural", group = grpX)
+structTF     = input.timeframe("60", "Temporalidad estructural", group = grpX)
+structLen    = input.int(5, "Fuerza swings estructurales", minval = 2, group = grpX)
+useStructFVG = input.bool(false, "· Exigir imbalance de la TF estructural", group = grpX)
+usePDsweep   = input.bool(false, "· Exigir manipulación del alto/bajo del día anterior", group = grpX)
+
+[sHighN, sLowN, sBearN, sHighP, sLowP, sBearP] = request.security(syminfo.tickerid, structTF, f_leg(structLen), lookahead = barmerge.lookahead_off)
+structHigh = noRepaint ? sHighP : sHighN
+structLow  = noRepaint ? sLowP  : sLowN
+structBear = noRepaint ? sBearP : sBearN
+
+f_htfFVG() =>
+    var float bullTop = na
+    var float bullBot = na
+    var float bearTop = na
+    var float bearBot = na
+    if low > high[2]
+        bullTop := low
+        bullBot := high[2]
+    if high < low[2]
+        bearTop := low[2]
+        bearBot := high
+    if not na(bullBot) and close < bullBot
+        bullTop := na
+        bullBot := na
+    if not na(bearTop) and close > bearTop
+        bearTop := na
+        bearBot := na
+    [bullTop, bullBot, bearTop, bearBot]
+
+[hBullTop, hBullBot, hBearTop, hBearBot] = request.security(syminfo.tickerid, structTF, f_htfFVG(), lookahead = barmerge.lookahead_off)
+inStructFVGShort = not na(hBearTop) and high >= hBearBot and close <= hBearTop
+inStructFVGLong  = not na(hBullTop) and low <= hBullTop and close >= hBullBot
+
+pdHigh = request.security(syminfo.tickerid, "D", high[1], lookahead = barmerge.lookahead_off)
+pdLow  = request.security(syminfo.tickerid, "D", low[1], lookahead = barmerge.lookahead_off)
+var bool pdHighSwept = false
+var bool pdLowSwept  = false
+if timeframe.change("D")
+    pdHighSwept := false
+    pdLowSwept  := false
+if not na(pdHigh) and high > pdHigh
+    pdHighSwept := true
+if not na(pdLow) and low < pdLow
+    pdLowSwept := true
+
 phI = ta.pivothigh(intLen, intLen)
 plI = ta.pivotlow(intLen, intLen)
 var float intHigh = na
@@ -142,6 +192,17 @@ inFibLong  = not useFib or (not na(rangeSize) and low <= fibTopLong and close >=
 fibBotShort = rangeLow + rangeSize * fibShallow
 fibTopShort = rangeLow + rangeSize * fibDeep
 inFibShort  = not useFib or (not na(rangeSize) and high >= fibBotShort and close <= fibTopShort)
+
+structSize      = structHigh - structLow
+sFibTopLong     = structHigh - structSize * fibShallow
+sFibBotLong     = structHigh - structSize * fibDeep
+sFibBotShort    = structLow + structSize * fibShallow
+sFibTopShort    = structLow + structSize * fibDeep
+inStructFibLong  = not na(structSize) and low <= sFibTopLong and close >= sFibBotLong
+inStructFibShort = not na(structSize) and high >= sFibBotShort and close <= sFibTopShort
+
+fractalLong  = (not useStruct or (inStructFibLong and not structBear)) and (not useStructFVG or inStructFVGLong) and (not usePDsweep or pdLowSwept)
+fractalShort = (not useStruct or (inStructFibShort and structBear)) and (not useStructFVG or inStructFVGShort) and (not usePDsweep or pdHighSwept)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 5) IMBALANCES (FVG)
@@ -252,8 +313,8 @@ confirmShort = not needConfirm or modelShort
 longRaw  = manipRecentLong and confirmLong and inFibLong and (na(rangeHigh) or close < rangeHigh)
 shortRaw = manipRecentShort and confirmShort and inFibShort and (na(rangeLow) or close > rangeLow)
 
-longCandidate  = longRaw and biasOKLong and legOKLong and allowLongs and inSession and signalsToday < maxPerDay and barstate.isconfirmed
-shortCandidate = shortRaw and biasOKShort and legOKShort and allowShorts and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+longCandidate  = longRaw and biasOKLong and legOKLong and fractalLong and allowLongs and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+shortCandidate = shortRaw and biasOKShort and legOKShort and fractalShort and allowShorts and inSession and signalsToday < maxPerDay and barstate.isconfirmed
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 7) GESTIÓN Y ÓRDENES — TP1 = liquidez externa, TP2..TP4 = extensiones fib

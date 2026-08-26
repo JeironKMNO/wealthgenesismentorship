@@ -1,6 +1,6 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v1.1** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v1.2** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
@@ -41,6 +41,43 @@ Ejemplo registrado (25-ago-2026, XAUUSD): zona de interés = premium 78–88% de
 rango bajista de 1H, con imbalance de 15m. En 1m se vio manipulación al alza
 dejando imbalance alcista, luego vela envolvente bajista, retroceso, e imbalance
 bajista que invalidó el alcista → **ahí** estaba la entrada.
+
+---
+
+## 0b. Fractalidad — por qué un tramo es válido
+
+> **Un tramo pequeño no vale por sí solo. Vale si está anidado dentro de una
+> estructura mayor que apunta al mismo sitio.**
+
+Caso de referencia (XAUUSD, 25–26 ago 2026 — ver capturas de 1H):
+
+1. **Diario — manipulación de liquidez.** El precio venía en estructura alcista
+   y perfora con fuerza el **alto del día anterior**. Eso barre liquidez, pero
+   por sí solo no dice nada todavía.
+2. **1H — la manipulación se revela.** El precio vuelve rápido dejando un
+   **imbalance bajista** que **invalida los imbalances alcistas**. Ese impulso
+   por encima del alto anterior era manipulación, no expansión real.
+3. **1H — quiebre de estructura.** La estructura pasa de alcista a bajista.
+   Se tira el fib del **high de la manipulación (100%)** al **low que creó el
+   rango bajista (0%)**. El imbalance de 1H que quedó arriba **confluye con el
+   71% de premium**.
+4. **15m — dentro de esa zona**, nuevo quiebre de estructura. **Ese** es el
+   tramo que se usa para la venta.
+
+Por eso el rango de 15m era válido: no era un tramo cualquiera, era el tramo
+que aparece dentro del premium de una estructura de 1H que nació de una
+manipulación diaria.
+
+**Implementado (v1.2)** — sección "Fractalidad (estructura anidada)":
+
+| Filtro | Por defecto | Qué exige |
+|---|---|---|
+| Confluencia con la TF estructural | ✅ ON | El precio debe estar en premium/descuento del tramo de 1H (no solo del de 15m) **y** la estructura de 1H debe ir en la misma dirección |
+| Imbalance de la TF estructural | ⬜ OFF | Además, el precio dentro de un imbalance de 1H sin mitigar (el naranja del ejemplo) |
+| Manipulación del alto/bajo del día anterior | ⬜ OFF | Solo ventas si ya se barrió el alto del día anterior (y viceversa). Es el escenario A+ |
+
+El panel del gráfico muestra la cadena completa de arriba abajo:
+**día → estructura (1H) → tramo de ejecución (15m) → estado operativo**.
 
 ---
 
