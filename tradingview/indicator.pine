@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v0.3)
+// Wealth Genesis — Señales SMC Oro (v0.4)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md):
 //   • Sesgo en temporalidad mayor (4H/1H); entradas en 15m/5m/1m.
@@ -13,7 +13,7 @@
 //   • Gráfico limpio: solo entrada / SL / TPs. FVGs, sesiones y zona fib son
 //     cálculos internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v0.3]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v0.4]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -208,16 +208,27 @@ var int   dirNow  = 0      // 1 = long, -1 = short, 0 = sin setup
 var array<float> tps = array.new<float>()
 var int   tpsHit  = 0
 
+// Dibujo del setup ACTIVO: se guarda para poder borrarlo al resolverse la
+// operación (solo quedan como rastro la flecha BUY/SELL y la marca ✔/✘).
+var array<line>  actLines  = array.new<line>()
+var array<label> actLabels = array.new<label>()
+
+f_clearLevels() =>
+    while array.size(actLines) > 0
+        line.delete(array.pop(actLines))
+    while array.size(actLabels) > 0
+        label.delete(array.pop(actLabels))
+
 f_drawLevels() =>
-    line.new(bar_index, entryPx, bar_index + 20, entryPx, color = color.gray, width = 2)
-    line.new(bar_index, slPx, bar_index + 20, slPx, color = color.red, width = 2)
-    label.new(bar_index + 20, entryPx, "Entrada " + str.tostring(entryPx, format.mintick), style = label.style_label_left, color = color.new(color.gray, 70), textcolor = chart.fg_color, size = size.small)
-    label.new(bar_index + 20, slPx, "SL " + str.tostring(slPx, format.mintick), style = label.style_label_left, color = color.new(color.red, 70), textcolor = chart.fg_color, size = size.small)
+    array.push(actLines, line.new(bar_index, entryPx, bar_index + 1, entryPx, color = color.gray, width = 2))
+    array.push(actLines, line.new(bar_index, slPx, bar_index + 1, slPx, color = color.red, width = 2))
+    array.push(actLabels, label.new(bar_index + 1, entryPx, "Entrada " + str.tostring(entryPx, format.mintick), style = label.style_label_left, color = color.new(color.gray, 70), textcolor = chart.fg_color, size = size.small))
+    array.push(actLabels, label.new(bar_index + 1, slPx, "SL " + str.tostring(slPx, format.mintick), style = label.style_label_left, color = color.new(color.red, 70), textcolor = chart.fg_color, size = size.small))
     if array.size(tps) > 0
         for i = 0 to array.size(tps) - 1
             tpv = array.get(tps, i)
-            line.new(bar_index, tpv, bar_index + 20, tpv, color = color.green, width = 2)
-            label.new(bar_index + 20, tpv, "TP" + str.tostring(i + 1) + " " + str.tostring(tpv, format.mintick), style = label.style_label_left, color = color.new(color.green, 70), textcolor = chart.fg_color, size = size.small)
+            array.push(actLines, line.new(bar_index, tpv, bar_index + 1, tpv, color = color.green, width = 2))
+            array.push(actLabels, label.new(bar_index + 1, tpv, "TP" + str.tostring(i + 1) + " " + str.tostring(tpv, format.mintick), style = label.style_label_left, color = color.new(color.green, 70), textcolor = chart.fg_color, size = size.small))
 
 f_tpString() =>
     s = ""
@@ -289,13 +300,25 @@ if shortCandidate and dirNow == 0 and not newLong
         newShort := true
         f_drawLevels()
 
-// Resolución: SL cierra el setup; los TPs se van marcando en orden
+// Mientras la operación siga viva, las líneas y etiquetas acompañan al precio
+if dirNow != 0
+    if array.size(actLines) > 0
+        for ln in actLines
+            line.set_x2(ln, bar_index + 1)
+    if array.size(actLabels) > 0
+        for lb in actLabels
+            label.set_x(lb, bar_index + 1)
+
+// Resolución: SL cierra el setup; los TPs se van marcando en orden.
+// Al completarse la operación se borra su dibujo — solo quedan como rastro
+// la flecha BUY/SELL de la entrada y las marcas ✔ TP / ✘ SL.
 if dirNow != 0 and not newLong and not newShort
     hitSL = dirNow == 1 ? low <= slPx : high >= slPx
     if hitSL
         label.new(bar_index, slPx, "✘ SL", style = dirNow == 1 ? label.style_label_up : label.style_label_down, color = color.red, textcolor = color.white, size = size.small)
         alert("✘ SL tocado " + syminfo.ticker, alert.freq_once_per_bar_close)
         dirNow := 0
+        f_clearLevels()
     else
         while tpsHit < array.size(tps) and (dirNow == 1 ? high >= array.get(tps, tpsHit) : low <= array.get(tps, tpsHit))
             tpsHit += 1
@@ -304,6 +327,7 @@ if dirNow != 0 and not newLong and not newShort
             alert("✔ TP" + str.tostring(tpsHit) + " alcanzado " + syminfo.ticker, alert.freq_once_per_bar_close)
         if tpsHit >= array.size(tps)
             dirNow := 0
+            f_clearLevels()
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 8) DIBUJO Y ALERTAS — solo lo esencial
