@@ -1,20 +1,26 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v0.8)
+// Wealth Genesis — Señales SMC Oro (v0.9)
 // -----------------------------------------------------------------------------
-// Estrategia (ver ESTRATEGIA.md):
-//   • Sesgo en temporalidad mayor (4H/1H); entradas en 15m/5m/1m.
-//   • Rango estructural: el precio debe retroceder a la zona Fibonacci de
-//     premium/descuento (61.8%–88.6% del rango) antes de buscar entrada.
-//   • En esa zona se espera confluencia con imbalance y una manipulación,
-//     seguida de confirmación: vela envolvente, cambio de estructura (CHoCH)
-//     o un nuevo imbalance a favor de la dirección.
+// Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
+//
+//   CAPA ALTA (4H / 1H / 15m) → DÓNDE y HACIA DÓNDE
+//     Sesgo direccional y rango estructural. Sobre ese rango se tira el fib:
+//     la zona de premium/descuento (61.8%–88.6%) es una ZONA DE INTERÉS,
+//     un lugar donde el precio puede reaccionar. Nada más.
+//
+//   CAPA BAJA (5m / 2m / 1m) → SI SE ENTRA O NO
+//     En la zona tiene que verse el modelo: manipulación, imbalance, y el
+//     cambio de dirección que invalida los imbalances contrarios.
+//
+//   REGLA: una zona de interés NO es una entrada. Si la temporalidad menor
+//   no confirma el movimiento, no hay operación.
 //   • TP: liquidez externa del rango (0% del fib) y expansión en las
 //     extensiones -14.6% / -27.2% / -41.4% (hasta 4 take profits).
 //   • Gráfico limpio: solo entrada / SL / TPs. FVGs, sesiones y zona fib son
 //     cálculos internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v0.8]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v0.9]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -172,15 +178,26 @@ tapFVGLong  = f_scanFVG(bullFVG, true)
 tapFVGShort = f_scanFVG(bearFVG, false)
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6) MODELO DE ENTRADA
-//    Zona fib (+ confluencia FVG) → manipulación → confirmación:
-//    vela envolvente, CHoCH o nuevo imbalance a favor.
+// 6) MODELO DE ENTRADA — dos capas separadas
+//
+//    CAPA ALTA (4H/1H/15m): dónde. Define el rango, el fib y la dirección.
+//    Marca una ZONA DE INTERÉS, nada más.
+//    CAPA BAJA (5m/2m/1m):  si se entra o no. Ahí tiene que verse el modelo:
+//    manipulación → imbalance → cambio de dirección que invalida los
+//    imbalances contrarios.
+//
+//    Regla del mentor: una zona de interés NO es una entrada. Si la
+//    temporalidad menor no confirma el movimiento, no hay operación.
 // ─────────────────────────────────────────────────────────────────────────────
 grpC = "Confirmación"
-needConfirm = input.bool(true, "Exigir confirmación", group = grpC)
+needConfirm = input.bool(true, "Exigir confirmación (zona ≠ entrada)", group = grpC, tooltip = "Si se desactiva, basta con la zona de interés. NO recomendado: es lo que produce entradas prematuras.")
+useLTF      = input.bool(true, "Confirmar en temporalidad MENOR", group = grpC, tooltip = "El modelo de entrada se busca en una temporalidad menor a la del gráfico (ej. gráfico 15m, confirmación en 1m)")
+ltfTF       = input.timeframe("1", "Temporalidad de confirmación", group = grpC, tooltip = "1 = 1m, 2 = 2m, 5 = 5m. Debe ser menor que la del gráfico; si no, se confirma en el propio gráfico")
 useEngulf   = input.bool(true, "· Vela envolvente", group = grpC)
 useChoch    = input.bool(true, "· Cambio de estructura (CHoCH)", group = grpC)
 useFVGconf  = input.bool(true, "· Nuevo imbalance a favor", group = grpC)
+useInval    = input.bool(true, "· Invalidación de imbalance contrario", group = grpC, tooltip = "El precio cierra atravesando un imbalance de la dirección opuesta: señal de que el otro lado perdió el control")
+invLookback = input.int(15, "Velas para buscar imbalances contrarios", minval = 3, maxval = 40, group = grpC)
 manipWindow = input.int(5, "Velas máx. entre manipulación y confirmación", minval = 1, maxval = 20, group = grpC)
 
 // Manipulación: barrido de un swing interno, barrido de highs/lows iguales
@@ -192,16 +209,64 @@ manipShort = (not na(intHigh) and high > intHigh and close < intHigh and (na(ran
 manipRecentLong  = ta.barssince(manipLong) <= manipWindow
 manipRecentShort = ta.barssince(manipShort) <= manipWindow
 
-// Confirmaciones
-engulfBull = close > open and close[1] < open[1] and close >= open[1] and open <= close[1]
-engulfBear = close < open and close[1] > open[1] and close <= open[1] and open >= close[1]
-chochBull  = not na(intHigh) and close > intHigh and close[1] <= intHigh
-chochBear  = not na(intLow) and close < intLow and close[1] >= intLow
-fvgConfBull = newBullFVG and close > open
-fvgConfBear = newBearFVG and close < open
+// --- Modelo de confirmación (se evalúa en la temporalidad menor o, si no
+//     procede, en la del propio gráfico). Devuelve [confirmaLargo, confirmaCorto]
+f_confirmModel() =>
+    engBull = close > open and close[1] < open[1] and close >= open[1] and open <= close[1]
+    engBear = close < open and close[1] > open[1] and close <= open[1] and open >= close[1]
+    fvgBull = low > high[2] and close > open
+    fvgBear = high < low[2] and close < open
+    // CHoCH: rotura del último swing menor
+    ph = ta.pivothigh(2, 2)
+    pl = ta.pivotlow(2, 2)
+    var float sh = na
+    var float sl = na
+    if not na(ph)
+        sh := ph
+    if not na(pl)
+        sl := pl
+    chBull = not na(sh) and close > sh and close[1] <= sh
+    chBear = not na(sl) and close < sl and close[1] >= sl
+    // Invalidación de imbalances contrarios: el precio cierra atravesando un
+    // FVG del bando opuesto → ese lado perdió el control
+    invalBull = false   // se invalidó un FVG alcista → presión bajista
+    invalBear = false   // se invalidó un FVG bajista → presión alcista
+    for i = 1 to invLookback
+        if low[i] > high[i + 2] and close < high[i + 2]
+            invalBull := true
+        if high[i] < low[i + 2] and close > low[i + 2]
+            invalBear := true
+    cLong  = (useEngulf and engBull) or (useChoch and chBull) or (useFVGconf and fvgBull) or (useInval and invalBear)
+    cShort = (useEngulf and engBear) or (useChoch and chBear) or (useFVGconf and fvgBear) or (useInval and invalBull)
+    [cLong, cShort]
 
-confirmLong  = not needConfirm or (useEngulf and engulfBull) or (useChoch and chochBull) or (useFVGconf and fvgConfBull)
-confirmShort = not needConfirm or (useEngulf and engulfBear) or (useChoch and chochBear) or (useFVGconf and fvgConfBear)
+f_anyTrue(_arr) =>
+    r = false
+    if not na(_arr) and array.size(_arr) > 0
+        for v in _arr
+            if v
+                r := true
+    r
+
+// Solo se puede confirmar en temporalidad menor si realmente es menor que la
+// del gráfico; si no, el modelo se busca en el propio gráfico.
+ltfValid = useLTF and timeframe.in_seconds(ltfTF) < timeframe.in_seconds(timeframe.period)
+
+[cLongChart, cShortChart] = f_confirmModel()
+[cLongArr, cShortArr] = request.security_lower_tf(syminfo.tickerid, ltfValid ? ltfTF : timeframe.period, f_confirmModel())
+
+modelLong  = ltfValid ? f_anyTrue(cLongArr) : cLongChart
+modelShort = ltfValid ? f_anyTrue(cShortArr) : cShortChart
+
+confirmLong  = not needConfirm or modelLong
+confirmShort = not needConfirm or modelShort
+
+// ZONA DE INTERÉS (capa alta): el precio está donde nos interesa y a favor del
+// sesgo. Es condición NECESARIA pero NO SUFICIENTE — sin el modelo confirmado
+// en la temporalidad menor, no hay entrada.
+zoneLong  = inFibLong and biasOKLong and allowLongs and (na(rangeHigh) or close < rangeHigh)
+zoneShort = inFibShort and biasOKShort and allowShorts and (na(rangeLow) or close > rangeLow)
+inZone    = zoneLong or zoneShort
 
 longRaw  = manipRecentLong and confirmLong and inFibLong and (na(rangeHigh) or close < rangeHigh)
 shortRaw = manipRecentShort and confirmShort and inFibShort and (na(rangeLow) or close > rangeLow)
@@ -379,11 +444,16 @@ plotshape(newLong,  "Compra", shape.triangleup,   location.belowbar, color.green
 plotshape(newShort, "Venta",  shape.triangledown, location.abovebar, color.red,   size = size.small, text = "SELL")
 bgcolor(shadeSessions and useSessions and inNY ? color.new(color.blue, 96) : shadeSessions and useSessions and inAsia ? color.new(color.purple, 96) : na, title = "Sesiones")
 
-var table tb = table.new(position.top_right, 1, 1)
+// Panel de estado: sesgo (capa alta) y si estamos en zona de interés esperando
+// que la temporalidad menor confirme el modelo (capa baja)
+var table tb = table.new(position.top_right, 1, 2)
 if barstate.islast
     biasTxt = htfBias == 1 ? "ALCISTA ▲" : htfBias == -1 ? "BAJISTA ▼" : "NEUTRO —"
     biasCol = htfBias == 1 ? color.new(color.green, 30) : htfBias == -1 ? color.new(color.red, 30) : color.new(color.gray, 30)
-    table.cell(tb, 0, 0, "Sesgo " + htfTF + "m: " + biasTxt, bgcolor = biasCol, text_color = color.white, text_size = size.small)
+    table.cell(tb, 0, 0, "Sesgo " + htfTF + " · Rango " + rangeTF + ": " + biasTxt, bgcolor = biasCol, text_color = color.white, text_size = size.small)
+    zoneTxt = dirNow != 0 ? "OPERACIÓN ACTIVA" : inZone ? "EN ZONA — esperando confirmación " + (ltfValid ? ltfTF : timeframe.period) : "Fuera de zona"
+    zoneCol = dirNow != 0 ? color.new(color.blue, 30) : inZone ? color.new(color.orange, 30) : color.new(color.gray, 55)
+    table.cell(tb, 0, 1, zoneTxt, bgcolor = zoneCol, text_color = color.white, text_size = size.small)
 
 if newLong
     alert("🟢 COMPRA " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)

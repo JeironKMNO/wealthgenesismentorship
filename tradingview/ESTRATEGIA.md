@@ -1,8 +1,31 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v0.3** — SMC + Fibonacci, gráfico limpio (solo entrada/SL/TPs), confirmación por envolvente/CHoCH/imbalance, hasta 3 take profits. Las secciones marcadas
-✅ están implementadas en `indicator.pine`; las marcadas 🔧 son
-aproximaciones que hay que refinar con el mentor.
+Estado: **v0.9** — arquitectura de dos capas (zona en temporalidad mayor,
+confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
+Las secciones marcadas ✅ están implementadas en `indicator.pine`;
+las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
+
+---
+
+## 0. Principio rector — las dos capas
+
+> **Una zona de interés NO es una entrada.**
+
+- **Capa alta (4H / 1H / 15m) — dónde y hacia dónde.** Define la dirección del
+  precio y el rango estructural. Sobre ese rango se tira el Fibonacci: la zona
+  de premium/descuento (61.8%–88.6%) señala **dónde puede reaccionar el
+  precio**. Es una referencia, no una orden.
+- **Capa baja (5m / 2m / 1m) — si se entra o no.** Dentro de la zona tiene que
+  aparecer el modelo completo: manipulación (barrido de liquidez), imbalance, y
+  el cambio de dirección que **invalida los imbalances del bando contrario**.
+- **Si la temporalidad menor no confirma, no hay operación** — por buena que
+  parezca la zona. Este es el filtro que separa las entradas prematuras
+  (las que fallaron el 25-ago en el 61.8/71%) de las válidas.
+
+Ejemplo registrado (25-ago-2026, XAUUSD): zona de interés = premium 78–88% del
+rango bajista de 1H, con imbalance de 15m. En 1m se vio manipulación al alza
+dejando imbalance alcista, luego vela envolvente bajista, retroceso, e imbalance
+bajista que invalidó el alcista → **ahí** estaba la entrada.
 
 ---
 
@@ -42,16 +65,21 @@ aproximaciones que hay que refinar con el mentor.
    Nota del mentor (25-ago-2026): el nivel más óptimo es el **78.6% cuando
    confluye con un imbalance grande** — las entradas en el 61.8/71% pueden
    ser prematuras si aún queda liquidez por manipular más arriba/abajo.
-4. **Confirmación** (en las N velas siguientes a la manipulación, N=5 por defecto):
-   vela envolvente a favor, cambio de estructura (CHoCH) o un nuevo imbalance
-   a favor de la dirección. Cada confirmación se puede activar/desactivar.
+4. **Confirmación en TEMPORALIDAD MENOR** (desde v0.9; input "Temporalidad de
+   confirmación", 1m por defecto). En las N velas siguientes a la manipulación
+   (N=5), el modelo debe aparecer en la temporalidad menor. Cuatro señales,
+   cada una activable por separado:
+   - vela envolvente a favor,
+   - cambio de estructura (CHoCH),
+   - nuevo imbalance a favor,
+   - **invalidación de imbalance contrario** — el precio cierra atravesando un
+     FVG del bando opuesto: el otro lado perdió el control.
+   Si la temporalidad de confirmación no es menor que la del gráfico, el modelo
+   se busca en el propio gráfico (comportamiento anterior).
 5. Objetivo: la liquidez **externa** del lado opuesto del rango.
 
 - Los imbalances se tratan como liquidez: zona de entrada cuando el precio
   los tapa a favor del sesgo, y quedan invalidados cuando se rellenan por completo.
-- 🔧 Refinar: ¿la manipulación debe verse en una temporalidad menor a la del
-  gráfico (ej. señal en 15m con confirmación en 5m/1m)? Hoy todo ocurre en la
-  temporalidad del gráfico.
 
 ## 4. Stop Loss ✅🔧
 
