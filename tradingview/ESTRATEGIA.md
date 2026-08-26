@@ -1,66 +1,74 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Rellena este documento con las reglas exactas de tu estrategia. Cada sección
-alimenta directamente una parte del código del indicador (`indicator.pine`).
-Cuanto más precisa sea la regla (números, no adjetivos), más fiel será la señal.
+Estado: **v0.2** — primera versión SMC funcional. Las secciones marcadas
+✅ están implementadas en `indicator.pine`; las marcadas 🔧 son
+aproximaciones que hay que refinar con el mentor.
 
 ---
 
-## 1. Contexto general
+## 1. Contexto general ✅
 
-- **Instrumento(s):** (ej. NQ / MNQ futuros, CFD US100…)
-- **Temporalidad de ejecución:** (ej. 1m, 5m, 15m — la del gráfico donde salen las señales)
-- **Temporalidad(es) superior(es) de contexto:** (ej. sesgo en 1H/4H, niveles del diario)
-- **Sesiones operables:** (ej. solo Nueva York 9:30–11:00 ET; ¿se opera Londres? ¿Asia?)
-- **Días excluidos:** (ej. no operar viernes tarde, días de noticias rojas/FOMC…)
+- **Instrumento:** Oro (XAUUSD / GC). El indicador funciona en cualquier símbolo,
+  pero los valores por defecto (márgenes en puntos) están pensados para oro.
+- **Temporalidad de ejecución:** 15m / 5m / 1m (la del gráfico).
+- **Temporalidad de contexto:** 1H por defecto, configurable a 4H (input "Temporalidad del sesgo").
+- **Sesiones operables:** Nueva York (08:30–11:30 NY) y Asia (19:00–23:00 NY),
+  ambas configurables y activables por separado. 🔧 Confirmar horarios exactos.
 
-## 2. Sesgo / dirección (filtro)
+## 2. Sesgo / dirección ✅🔧
 
-¿Qué determina si solo se buscan compras, solo ventas, o ambas?
+- Implementado: estructura en la temporalidad mayor. Si el cierre HTF rompe el
+  último swing high → sesgo alcista (solo compras); si rompe el último swing
+  low → bajista (solo ventas). Se muestra en la esquina superior derecha.
+- 🔧 Refinar: ¿el sesgo se define solo por rotura de estructura o también por
+  premium/discount, open diario/semanal, o FVGs de HTF sin mitigar?
 
-- Regla exacta: (ej. "precio por encima del open diario = solo largos",
-  "estructura alcista en 15m = solo largos", "barrido del high/low de Asia define dirección contraria"…)
+## 3. Modelos de entrada ✅🔧
 
-## 3. Modelos de entrada
+### Modelo A — Manipulación interna → liquidez externa (implementado)
+1. Se define el rango con los últimos swings mayores (liquidez externa:
+   high y low del rango).
+2. Dentro del rango, el precio **manipula liquidez interna**: barre un swing
+   menor interno, o tapa un imbalance (FVG) a favor del sesgo.
+3. Confirmación actual: cierre de vela a favor tras la manipulación. 🔧 Refinar:
+   ¿se exige CHoCH/desplazamiento en el LTF? ¿Entrada al 50% del FVG o al toque?
+4. Objetivo: la liquidez **externa** del lado opuesto del rango.
 
-Describe **cada modelo por separado**, con condiciones verificables barra a barra.
-Ejemplo de formato:
+- Los imbalances se tratan como liquidez: zona de entrada cuando el precio
+  los tapa a favor del sesgo, y quedan invalidados cuando se rellenan por completo.
 
-### Modelo A — (nombre, ej. "Barrido + FVG")
-1. Condición previa: (ej. se barre un low de sesión / liquidez marcada)
-2. Confirmación: (ej. vela de 5m cierra por encima de X / cambio de carácter (CHoCH) / FVG creado)
-3. Gatillo de entrada: (ej. retroceso al 50% del FVG, entrada al toque / cierre de vela en la zona)
+## 4. Stop Loss ✅🔧
 
-### Modelo B — …
+- Implementado: extremo de la vela de manipulación ± margen configurable
+  (0.5 puntos por defecto).
+- 🔧 Refinar: ¿bajo el low del barrido, bajo el extremo del FVG, o bajo el
+  swing completo?
 
-## 4. Stop Loss
+## 5. Take Profit ✅🔧
 
-- Regla exacta: (ej. "bajo el low del barrido + 5 ticks", "extremo del FVG",
-  "X puntos fijos", "bajo el último swing low")
+- Implementado: la liquidez externa del rango (modo por defecto), con filtro de
+  **RR mínimo** (si el objetivo queda demasiado cerca, la señal se descarta).
+  Modo alternativo: ratio R fijo.
+- 🔧 Refinar: ¿parciales? ¿break-even? ¿TP en FVGs de HTF sin mitigar?
 
-## 5. Take Profit
+## 6. Invalidaciones / filtros extra ✅🔧
 
-- ¿TP fijo por ratio (ej. 1:2, 1:3), por nivel (liquidez opuesta, high/low previo), o parciales?
-- Si hay parciales: niveles y porcentajes (ej. 50% en 1:1, resto en 1:3)
-- ¿Break-even? ¿Cuándo se mueve el stop?
+- Implementado: máximo de señales por día (4 por defecto), un solo setup activo
+  a la vez, señal solo al cierre de vela confirmada.
+- 🔧 Refinar: días/noticias excluidos, caducidad de una zona de entrada.
 
-## 6. Invalidaciones / filtros extra
+## 7. Alertas ✅
 
-- ¿Qué cancela una señal ya formada? (ej. si pasan N velas sin ejecutar, si sale noticia…)
-- Máximo de operaciones por día / por sesión:
-
-## 7. Alertas deseadas
-
-- [ ] Alerta al formarse la señal (con dirección, entrada, SL, TP en el mensaje)
-- [ ] Alerta al tocar TP / SL
-- ¿Formato del mensaje? (útil si luego se conecta a Discord/Telegram vía webhook)
+- Al formarse la señal: dirección + entrada + SL + TP (formato listo para
+  webhook a Discord/Telegram).
+- Al resolverse: ✔ TP alcanzado / ✘ SL tocado.
 
 ---
 
-## Flujo de trabajo acordado
+## Flujo de trabajo
 
-1. **Especificación** — se rellena este documento (reglas exactas, con ejemplos en gráfico si es posible: capturas con fecha/hora ayudan a validar).
-2. **Traducción a Pine** — cada modelo se codifica como un módulo dentro de `indicator.pine` (v6).
-3. **Validación visual** — se carga en TradingView y se compara contra los ejemplos reales que diste: ¿marca las mismas entradas que tú marcarías?
-4. **Versión `strategy()`** — clon del indicador como estrategia para backtest automático (win rate, drawdown, R medio) sin cambiar la lógica.
-5. **Iteración** — se ajustan reglas/filtros según lo que muestre el backtest y tu criterio.
+1. **Especificación** — este documento (reglas exactas; capturas con fecha/hora ayudan a validar).
+2. **Traducción a Pine** — cada modelo como módulo dentro de `indicator.pine` (v6).
+3. **Validación visual** — cargar en TradingView sobre oro y comparar contra entradas reales del mentor: ¿marca las mismas?
+4. **Versión `strategy()`** — clon para backtest (win rate, drawdown, R medio).
+5. **Iteración** — refinar los puntos 🔧 uno a uno.

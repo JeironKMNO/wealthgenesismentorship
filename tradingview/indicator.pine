@@ -1,76 +1,173 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Indicador de señales (esqueleto v0.1)
+// Wealth Genesis — Señales SMC Oro (v0.2)
 // -----------------------------------------------------------------------------
-// Arquitectura en 4 capas, para que los modelos de entrada de la estrategia
-// se conecten sin tocar el resto:
-//   1) FILTROS      — sesión, sesgo/dirección, límites por día
-//   2) MODELOS      — cada modelo de entrada produce una señal long/short
-//                     (aquí hay UN modelo de ejemplo; se reemplaza por los reales)
-//   3) GESTIÓN      — cálculo de entrada, stop loss y take profit
-//   4) PRESENTACIÓN — dibujo en el gráfico + alertas
+// Estrategia base (ver ESTRATEGIA.md):
+//   • Smart Money Concepts. Los imbalances (FVG) actúan como liquidez:
+//     sirven de zona de entrada y de objetivo.
+//   • Sesgo en temporalidad mayor (4H/1H); entradas en 15m/5m/1m.
+//   • Modelo principal: rango estructural → el precio manipula liquidez
+//     INTERNA del rango → entrada hacia la liquidez EXTERNA del rango (TP).
+//   • Instrumento principal: oro. Sesiones: Nueva York y Asia.
+//
+// Capas: 1) FILTROS  2) SESGO HTF  3) ESTRUCTURA/RANGO  4) IMBALANCES (FVG)
+//        5) MODELO DE ENTRADA  6) GESTIÓN (entrada/SL/TP)  7) DIBUJO + ALERTAS
 // =============================================================================
-indicator("WG Señales [esqueleto]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 100)
+indicator("WG SMC — Señales Oro [v0.2]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1) FILTROS
+// 1) FILTROS — sesiones NY y Asia (horas de Nueva York), límite diario
 // ─────────────────────────────────────────────────────────────────────────────
 grpF = "Filtros"
-useSession   = input.bool(true, "Operar solo en sesión", group = grpF)
-sessNY       = input.session("0930-1100", "Sesión (hora NY)", group = grpF)
-tzNY         = "America/New_York"
-allowLongs   = input.bool(true, "Permitir compras", group = grpF)
-allowShorts  = input.bool(true, "Permitir ventas", group = grpF)
-maxPerDay    = input.int(3, "Máx. señales por día", minval = 1, group = grpF)
+useSessions = input.bool(true, "Operar solo en sesiones", group = grpF)
+useNY       = input.bool(true, "Sesión Nueva York", group = grpF)
+sessNY      = input.session("0830-1130", "Horario NY (hora NY)", group = grpF)
+useAsia     = input.bool(true, "Sesión Asia", group = grpF)
+sessAsia    = input.session("1900-2300", "Horario Asia (hora NY)", group = grpF)
+tzNY        = "America/New_York"
+allowLongs  = input.bool(true, "Permitir compras", group = grpF)
+allowShorts = input.bool(true, "Permitir ventas", group = grpF)
+maxPerDay   = input.int(4, "Máx. señales por día", minval = 1, group = grpF)
 
-inSession = not useSession or not na(time(timeframe.period, sessNY, tzNY))
+inNY      = useNY and not na(time(timeframe.period, sessNY, tzNY))
+inAsia    = useAsia and not na(time(timeframe.period, sessAsia, tzNY))
+inSession = not useSessions or inNY or inAsia
 
 var int signalsToday = 0
-if ta.change(time("D")) != 0
+if timeframe.change("D")
     signalsToday := 0
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2) MODELOS DE ENTRADA
-//    ⚠ PLACEHOLDER: barrido del low/high de las últimas N velas con cierre de
-//    reversión. Se sustituye por los modelos reales definidos en ESTRATEGIA.md.
-//    Cada modelo real será un bloque que termina en: modeloX_long / modeloX_short
+// 2) SESGO HTF — estructura en temporalidad mayor (rotura del último swing)
+//    Alcista si el cierre HTF rompe el último swing high; bajista si rompe
+//    el último swing low. Solo se opera a favor del sesgo.
 // ─────────────────────────────────────────────────────────────────────────────
-grpM = "Modelo ejemplo (placeholder)"
-lookback = input.int(20, "Velas para liquidez (N)", minval = 2, group = grpM)
+grpH = "Sesgo (temporalidad mayor)"
+htfTF       = input.timeframe("60", "Temporalidad del sesgo", group = grpH, tooltip = "60 = 1H, 240 = 4H")
+htfPivotLen = input.int(5, "Fuerza de swings HTF", minval = 2, group = grpH)
+requireBias = input.bool(true, "Exigir sesgo a favor", group = grpH)
 
-prevLow  = ta.lowest(low[1], lookback)
-prevHigh = ta.highest(high[1], lookback)
+f_bias(_len) =>
+    ph = ta.pivothigh(_len, _len)
+    pl = ta.pivotlow(_len, _len)
+    var float lastPH = na
+    var float lastPL = na
+    if not na(ph)
+        lastPH := ph
+    if not na(pl)
+        lastPL := pl
+    var int b = 0
+    if not na(lastPH) and close > lastPH
+        b := 1
+    if not na(lastPL) and close < lastPL
+        b := -1
+    b
 
-// Barrido: la vela perfora la liquidez pero cierra de vuelta dentro
-sweepLong  = low < prevLow and close > prevLow and close > open
-sweepShort = high > prevHigh and close < prevHigh and close < open
-
-// Agregación de modelos (cuando haya varios, se combinan aquí con "or")
-rawLong  = sweepLong
-rawShort = sweepShort
-
-longSignal  = rawLong and inSession and allowLongs and signalsToday < maxPerDay and barstate.isconfirmed
-shortSignal = rawShort and inSession and allowShorts and signalsToday < maxPerDay and barstate.isconfirmed
+htfBias = request.security(syminfo.tickerid, htfTF, f_bias(htfPivotLen), lookahead = barmerge.lookahead_off)
+biasOKLong  = not requireBias or htfBias == 1
+biasOKShort = not requireBias or htfBias == -1
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3) GESTIÓN: entrada, stop loss, take profit
+// 3) ESTRUCTURA / RANGO — liquidez externa e interna
+//    Externa: últimos swings mayores (high/low del rango) → objetivo (TP).
+//    Interna: swings menores dentro del rango → lo que se manipula antes de entrar.
+// ─────────────────────────────────────────────────────────────────────────────
+grpR = "Rango / liquidez"
+extLen = input.int(10, "Fuerza swings EXTERNOS (rango)", minval = 3, group = grpR)
+intLen = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
+showRange = input.bool(true, "Mostrar rango (liquidez externa)", group = grpR)
+
+phE = ta.pivothigh(extLen, extLen)
+plE = ta.pivotlow(extLen, extLen)
+var float rangeHigh = na
+var float rangeLow  = na
+if not na(phE)
+    rangeHigh := phE
+if not na(plE)
+    rangeLow := plE
+
+phI = ta.pivothigh(intLen, intLen)
+plI = ta.pivotlow(intLen, intLen)
+var float intHigh = na
+var float intLow  = na
+if not na(phI)
+    intHigh := phI
+if not na(plI)
+    intLow := plI
+
+plot(showRange ? rangeHigh : na, "Liquidez externa (high)", color = color.new(color.red, 40), style = plot.style_linebr, linewidth = 1)
+plot(showRange ? rangeLow : na,  "Liquidez externa (low)",  color = color.new(color.teal, 40), style = plot.style_linebr, linewidth = 1)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4) IMBALANCES (FVG) — detección de 3 velas, zonas vivas hasta rellenarse
+// ─────────────────────────────────────────────────────────────────────────────
+grpV = "Imbalances (FVG)"
+showFVG = input.bool(true, "Mostrar FVGs", group = grpV)
+maxFVG  = input.int(20, "Máx. FVGs en memoria", minval = 1, maxval = 60, group = grpV)
+
+var array<box> bullFVG = array.new<box>()
+var array<box> bearFVG = array.new<box>()
+
+colBull   = showFVG ? color.new(color.teal, 82) : color.new(color.teal, 100)
+colBear   = showFVG ? color.new(color.red, 82) : color.new(color.red, 100)
+colBorder = showFVG ? color.new(color.gray, 60) : color.new(color.gray, 100)
+
+if low > high[2]   // FVG alcista: hueco entre high de la vela 1 y low de la vela 3
+    array.push(bullFVG, box.new(bar_index - 2, low, bar_index, high[2], border_color = colBorder, bgcolor = colBull, extend = extend.right))
+    if array.size(bullFVG) > maxFVG
+        box.delete(array.shift(bullFVG))
+if high < low[2]   // FVG bajista
+    array.push(bearFVG, box.new(bar_index - 2, low[2], bar_index, high, border_color = colBorder, bgcolor = colBear, extend = extend.right))
+    if array.size(bearFVG) > maxFVG
+        box.delete(array.shift(bearFVG))
+
+// Escanea las zonas: borra las rellenadas y devuelve si el precio tocó una
+// esta vela cerrando a favor (tap = posible entrada en el imbalance).
+f_scanFVG(_arr, _isBull) =>
+    tapped = false
+    if array.size(_arr) > 0
+        for i = array.size(_arr) - 1 to 0
+            bx  = array.get(_arr, i)
+            top = box.get_top(bx)
+            bot = box.get_bottom(bx)
+            filled = _isBull ? close < bot : close > top
+            if filled
+                box.delete(array.remove(_arr, i))
+            else if _isBull ? (low <= top and close > bot) : (high >= bot and close < top)
+                tapped := true
+    tapped
+
+tapFVGLong  = f_scanFVG(bullFVG, true)
+tapFVGShort = f_scanFVG(bearFVG, false)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5) MODELO DE ENTRADA — manipulación interna → objetivo en liquidez externa
+//    Compra: dentro del rango, el precio barre un low INTERNO (o tapa un FVG
+//    alcista) y cierra alcista de vuelta, con sesgo HTF alcista.
+//    Venta: espejo exacto.
+// ─────────────────────────────────────────────────────────────────────────────
+sweepIntLong  = not na(intLow) and low < intLow and close > intLow and (na(rangeLow) or low > rangeLow)
+sweepIntShort = not na(intHigh) and high > intHigh and close < intHigh and (na(rangeHigh) or high < rangeHigh)
+
+longRaw  = (sweepIntLong or tapFVGLong) and close > open and (na(rangeHigh) or close < rangeHigh)
+shortRaw = (sweepIntShort or tapFVGShort) and close < open and (na(rangeLow) or close > rangeLow)
+
+longCandidate  = longRaw and biasOKLong and allowLongs and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+shortCandidate = shortRaw and biasOKShort and allowShorts and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6) GESTIÓN — entrada al cierre, SL bajo la manipulación, TP en liquidez externa
 // ─────────────────────────────────────────────────────────────────────────────
 grpG = "Gestión"
-slMode    = input.string("Extremo de la vela", "Stop loss", options = ["Extremo de la vela", "Swing previo", "Puntos fijos"], group = grpG)
-slPoints  = input.float(20.0, "SL en puntos (si modo fijo)", minval = 0.25, step = 0.25, group = grpG)
-slBuffer  = input.float(1.0, "Margen extra del SL (puntos)", minval = 0.0, step = 0.25, group = grpG)
-rrRatio   = input.float(2.0, "Take profit (ratio R)", minval = 0.5, step = 0.5, group = grpG)
+tpMode   = input.string("Liquidez externa del rango", "Take profit", options = ["Liquidez externa del rango", "Ratio R fijo"], group = grpG)
+rrRatio  = input.float(2.0, "Ratio R (si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
+minRR    = input.float(1.0, "RR mínimo para validar señal", minval = 0.1, step = 0.1, group = grpG, tooltip = "Si la liquidez externa queda demasiado cerca (RR bajo), la señal se descarta")
+slBuffer = input.float(0.5, "Margen extra del SL (puntos)", minval = 0.0, step = 0.1, group = grpG)
 
-f_stopLong() =>
-    slMode == "Puntos fijos" ? close - slPoints : slMode == "Swing previo" ? prevLow - slBuffer : low - slBuffer
-f_stopShort() =>
-    slMode == "Puntos fijos" ? close + slPoints : slMode == "Swing previo" ? prevHigh + slBuffer : high + slBuffer
-
-// Estado del setup activo (uno a la vez; ampliable a varios)
-var float  entryPx = na
-var float  slPx    = na
-var float  tpPx    = na
-var int    dirNow  = 0      // 1 = long, -1 = short, 0 = sin setup
+var float entryPx = na
+var float slPx    = na
+var float tpPx    = na
+var int   dirNow  = 0      // 1 = long, -1 = short, 0 = sin setup
 
 f_drawLevels() =>
     line.new(bar_index, entryPx, bar_index + 20, entryPx, color = color.gray,  width = 2)
@@ -80,23 +177,38 @@ f_drawLevels() =>
     label.new(bar_index + 20, slPx,   "SL "      + str.tostring(slPx,    format.mintick), style = label.style_label_left, color = color.new(color.red, 70),   textcolor = chart.fg_color, size = size.small)
     label.new(bar_index + 20, tpPx,   "TP "      + str.tostring(tpPx,    format.mintick), style = label.style_label_left, color = color.new(color.green, 70), textcolor = chart.fg_color, size = size.small)
 
-newLong  = longSignal and dirNow == 0
-newShort = shortSignal and dirNow == 0 and not newLong
+bool newLong  = false
+bool newShort = false
 
-if newLong
-    entryPx := close
-    slPx    := f_stopLong()
-    tpPx    := entryPx + (entryPx - slPx) * rrRatio
-    dirNow  := 1
-    signalsToday += 1
-    f_drawLevels()
-if newShort
-    entryPx := close
-    slPx    := f_stopShort()
-    tpPx    := entryPx - (slPx - entryPx) * rrRatio
-    dirNow  := -1
-    signalsToday += 1
-    f_drawLevels()
+if longCandidate and dirNow == 0
+    e = close
+    s = low - slBuffer
+    t = tpMode == "Liquidez externa del rango" and not na(rangeHigh) ? rangeHigh : e + (e - s) * rrRatio
+    risk = e - s
+    rew  = t - e
+    if risk > 0 and rew > 0 and rew / risk >= (tpMode == "Liquidez externa del rango" ? minRR : 0.0)
+        entryPx := e
+        slPx    := s
+        tpPx    := t
+        dirNow  := 1
+        signalsToday += 1
+        newLong := true
+        f_drawLevels()
+
+if shortCandidate and dirNow == 0 and not newLong
+    e = close
+    s = high + slBuffer
+    t = tpMode == "Liquidez externa del rango" and not na(rangeLow) ? rangeLow : e - (s - e) * rrRatio
+    risk = s - e
+    rew  = e - t
+    if risk > 0 and rew > 0 and rew / risk >= (tpMode == "Liquidez externa del rango" ? minRR : 0.0)
+        entryPx := e
+        slPx    := s
+        tpPx    := t
+        dirNow  := -1
+        signalsToday += 1
+        newShort := true
+        f_drawLevels()
 
 // Resolución del setup activo (toque de TP o SL)
 tpHit = dirNow == 1 and high >= tpPx or dirNow == -1 and low <= tpPx
@@ -107,14 +219,20 @@ if setupClosed
     dirNow := 0
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4) PRESENTACIÓN Y ALERTAS
+// 7) DIBUJO Y ALERTAS
 // ─────────────────────────────────────────────────────────────────────────────
 plotshape(newLong,  "Compra", shape.triangleup,   location.belowbar, color.green, size = size.small, text = "BUY")
 plotshape(newShort, "Venta",  shape.triangledown, location.abovebar, color.red,   size = size.small, text = "SELL")
-bgcolor(useSession and inSession ? color.new(color.blue, 96) : na, title = "Sesión")
+bgcolor(useSessions and inNY ? color.new(color.blue, 96) : useSessions and inAsia ? color.new(color.purple, 96) : na, title = "Sesiones")
+
+var table tb = table.new(position.top_right, 1, 1)
+if barstate.islast
+    biasTxt = htfBias == 1 ? "ALCISTA ▲" : htfBias == -1 ? "BAJISTA ▼" : "NEUTRO —"
+    biasCol = htfBias == 1 ? color.new(color.green, 30) : htfBias == -1 ? color.new(color.red, 30) : color.new(color.gray, 30)
+    table.cell(tb, 0, 0, "Sesgo " + htfTF + "m: " + biasTxt, bgcolor = biasCol, text_color = color.white, text_size = size.small)
 
 f_alertMsg(_side) =>
-    _side + " " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + " | TP: " + str.tostring(tpPx, format.mintick) + " (R 1:" + str.tostring(rrRatio, "#.#") + ")"
+    _side + " " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + " | TP: " + str.tostring(tpPx, format.mintick)
 
 if newLong
     alert(f_alertMsg("🟢 COMPRA"), alert.freq_once_per_bar_close)
