@@ -55,10 +55,14 @@ aproximaciones que hay que refinar con el mentor.
 
 ## 4. Stop Loss ✅🔧
 
-- Implementado: extremo de la vela de manipulación ± margen configurable
-  (0.5 puntos por defecto).
-- 🔧 Refinar: ¿bajo el low del barrido, bajo el extremo del FVG, o bajo el
-  swing completo?
+- Implementado con 3 modos (input "Colocación del stop loss"):
+  1. **Extremo de la manipulación** (por defecto desde v0.8): el high/low más
+     extremo del tramo manipulación→señal — cubre toda la mecha del barrido.
+     (Cambiado tras feedback del 25-ago: el SL en la vela de señal quedaba
+     demasiado ajustado.)
+  2. Extremo de la vela de señal (el modo original, más agresivo).
+  3. Retroceso máximo del fib (detrás del 88.6%, el más conservador).
+- Margen extra configurable (0.5 puntos por defecto).
 
 ## 5. Take Profit ✅🔧
 

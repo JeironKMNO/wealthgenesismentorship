@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v0.7)
+// Wealth Genesis — Señales SMC Oro (v0.8)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md):
 //   • Sesgo en temporalidad mayor (4H/1H); entradas en 15m/5m/1m.
@@ -14,7 +14,7 @@
 //   • Gráfico limpio: solo entrada / SL / TPs. FVGs, sesiones y zona fib son
 //     cálculos internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v0.7]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v0.8]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -226,8 +226,20 @@ rr2      = input.float(2.0, "TP2 (R, si modo fijo)", minval = 0.5, step = 0.5, g
 rr3      = input.float(3.0, "TP3 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
 rr4      = input.float(4.0, "TP4 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
 minRR    = input.float(1.0, "RR mínimo hasta la liquidez externa", minval = 0.1, step = 0.1, group = grpG)
+slMode   = input.string("Extremo de la manipulación", "Colocación del stop loss", options = ["Extremo de la vela de señal", "Extremo de la manipulación", "Retroceso máximo del fib"], group = grpG, tooltip = "Extremo de la manipulación = el high/low más extremo desde la manipulación hasta la señal (cubre toda la mecha del barrido). Retroceso máximo del fib = detrás del 88.6%")
 slBuffer = input.float(0.5, "Margen extra del SL (puntos)", minval = 0.0, step = 0.1, group = grpG)
 tpExtMode = tpMode == "Liquidez externa + extensiones fib"
+
+// Extremos del tramo manipulación→señal (ventana de confirmación)
+manipHigh = ta.highest(high, manipWindow + 1)
+manipLow  = ta.lowest(low, manipWindow + 1)
+
+f_slLong() =>
+    base = slMode == "Extremo de la manipulación" ? manipLow : slMode == "Retroceso máximo del fib" and not na(rangeSize) ? fibBotLong : low
+    base - slBuffer
+f_slShort() =>
+    base = slMode == "Extremo de la manipulación" ? manipHigh : slMode == "Retroceso máximo del fib" and not na(rangeSize) ? fibTopShort : high
+    base + slBuffer
 
 var float entryPx = na
 var float slPx    = na
@@ -269,7 +281,7 @@ bool newShort = false
 
 if longCandidate and dirNow == 0
     e = close
-    s = low - slBuffer
+    s = f_slLong()
     risk = e - s
     rewCheck = tpExtMode ? rangeHigh - e : risk * rr1
     if risk > 0 and not na(rewCheck) and rewCheck > 0 and (not tpExtMode or rewCheck / risk >= minRR)
@@ -301,7 +313,7 @@ if longCandidate and dirNow == 0
 
 if shortCandidate and dirNow == 0 and not newLong
     e = close
-    s = high + slBuffer
+    s = f_slShort()
     risk = s - e
     rewCheck = tpExtMode ? e - rangeLow : risk * rr1
     if risk > 0 and not na(rewCheck) and rewCheck > 0 and (not tpExtMode or rewCheck / risk >= minRR)
