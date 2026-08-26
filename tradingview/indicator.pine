@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v0.5)
+// Wealth Genesis — Señales SMC Oro (v0.6)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md):
 //   • Sesgo en temporalidad mayor (4H/1H); entradas en 15m/5m/1m.
@@ -14,7 +14,7 @@
 //   • Gráfico limpio: solo entrada / SL / TPs. FVGs, sesiones y zona fib son
 //     cálculos internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v0.5]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v0.6]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -87,10 +87,20 @@ phI = ta.pivothigh(intLen, intLen)
 plI = ta.pivotlow(intLen, intLen)
 var float intHigh = na
 var float intLow  = na
+var float intHighPrev = na
+var float intLowPrev  = na
 if not na(phI)
+    intHighPrev := intHigh
     intHigh := phI
 if not na(plI)
+    intLowPrev := intLow
     intLow := plI
+
+// Highs/lows iguales (EQH/EQL): dos swings internos al mismo nivel = bolsa de
+// liquidez que el precio suele manipular antes del movimiento real
+eqTol  = input.float(1.5, "Tolerancia highs/lows iguales (puntos)", minval = 0.0, step = 0.1, group = grpR)
+eqHigh = not na(intHigh) and not na(intHighPrev) and math.abs(intHigh - intHighPrev) <= eqTol ? math.max(intHigh, intHighPrev) : na
+eqLow  = not na(intLow) and not na(intLowPrev) and math.abs(intLow - intLowPrev) <= eqTol ? math.min(intLow, intLowPrev) : na
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 4) FIBONACCI — zona de retroceso (premium/descuento) sobre el rango
@@ -166,9 +176,12 @@ useChoch    = input.bool(true, "· Cambio de estructura (CHoCH)", group = grpC)
 useFVGconf  = input.bool(true, "· Nuevo imbalance a favor", group = grpC)
 manipWindow = input.int(5, "Velas máx. entre manipulación y confirmación", minval = 1, maxval = 20, group = grpC)
 
-// Manipulación: barrido de un swing interno o tap de un imbalance
-manipLong  = (not na(intLow) and low < intLow and close > intLow and (na(rangeLow) or low > rangeLow)) or tapFVGLong
-manipShort = (not na(intHigh) and high > intHigh and close < intHigh and (na(rangeHigh) or high < rangeHigh)) or tapFVGShort
+// Manipulación: barrido de un swing interno, barrido de highs/lows iguales
+// (EQH/EQL) o tap de un imbalance
+sweepEqLow  = not na(eqLow) and low < eqLow and close > eqLow and (na(rangeLow) or low > rangeLow)
+sweepEqHigh = not na(eqHigh) and high > eqHigh and close < eqHigh and (na(rangeHigh) or high < rangeHigh)
+manipLong  = (not na(intLow) and low < intLow and close > intLow and (na(rangeLow) or low > rangeLow)) or sweepEqLow or tapFVGLong
+manipShort = (not na(intHigh) and high > intHigh and close < intHigh and (na(rangeHigh) or high < rangeHigh)) or sweepEqHigh or tapFVGShort
 manipRecentLong  = ta.barssince(manipLong) <= manipWindow
 manipRecentShort = ta.barssince(manipShort) <= manipWindow
 

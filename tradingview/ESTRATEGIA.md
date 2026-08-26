@@ -31,8 +31,13 @@ aproximaciones que hay que refinar con el mentor.
 2. **Fibonacci sobre el rango**: rango alcista → fib de low a high, se busca
    entrada en la zona de descuento 61.8%–88.6% (mínimo y máximo configurables:
    61.8 / 70.5 / 78.6 / 88.6). Rango bajista → espejo en premium.
-3. En esa zona, **manipulación**: barrido de un swing interno o tap de un
-   imbalance a favor (los FVG se calculan internamente; confluyen con la zona fib).
+3. En esa zona, **manipulación**: barrido de un swing interno, barrido de
+   **highs/lows iguales** (EQH/EQL — dos swings al mismo nivel son una bolsa
+   de liquidez que se manipula antes del movimiento real; tolerancia
+   configurable, 1.5 puntos por defecto) o tap de un imbalance a favor.
+   Nota del mentor (25-ago-2026): el nivel más óptimo es el **78.6% cuando
+   confluye con un imbalance grande** — las entradas en el 61.8/71% pueden
+   ser prematuras si aún queda liquidez por manipular más arriba/abajo.
 4. **Confirmación** (en las N velas siguientes a la manipulación, N=5 por defecto):
    vela envolvente a favor, cambio de estructura (CHoCH) o un nuevo imbalance
    a favor de la dirección. Cada confirmación se puede activar/desactivar.
