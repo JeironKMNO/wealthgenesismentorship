@@ -15,10 +15,11 @@
 //
 //   REGLA: una zona de interés NO es una entrada. Si la temporalidad menor
 //   no confirma el movimiento, no hay operación.
-//   • TP: liquidez externa del rango (0% del fib) y expansión en las
-//     extensiones -14.6% / -27.2% / -41.4% (hasta 4 take profits).
-//   • Gráfico limpio: solo entrada / SL / TPs. FVGs, sesiones y zona fib son
-//     cálculos internos (se pueden mostrar con toggles, apagados por defecto).
+//
+//   TP: liquidez externa del rango (0% del fib) y expansión en las extensiones
+//   -14.6% / -27.2% / -41.4% (hasta 4 take profits).
+//   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
+//   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
 indicator("WG SMC — Señales Oro [v0.9]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
