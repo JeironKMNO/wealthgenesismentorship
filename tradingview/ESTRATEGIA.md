@@ -1,6 +1,6 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v0.2** — primera versión SMC funcional. Las secciones marcadas
+Estado: **v0.3** — SMC + Fibonacci, gráfico limpio (solo entrada/SL/TPs), confirmación por envolvente/CHoCH/imbalance, hasta 3 take profits. Las secciones marcadas
 ✅ están implementadas en `indicator.pine`; las marcadas 🔧 son
 aproximaciones que hay que refinar con el mentor.
 
@@ -25,17 +25,24 @@ aproximaciones que hay que refinar con el mentor.
 
 ## 3. Modelos de entrada ✅🔧
 
-### Modelo A — Manipulación interna → liquidez externa (implementado)
+### Modelo A — Fib premium/descuento + manipulación + confirmación (implementado)
 1. Se define el rango con los últimos swings mayores (liquidez externa:
    high y low del rango).
-2. Dentro del rango, el precio **manipula liquidez interna**: barre un swing
-   menor interno, o tapa un imbalance (FVG) a favor del sesgo.
-3. Confirmación actual: cierre de vela a favor tras la manipulación. 🔧 Refinar:
-   ¿se exige CHoCH/desplazamiento en el LTF? ¿Entrada al 50% del FVG o al toque?
-4. Objetivo: la liquidez **externa** del lado opuesto del rango.
+2. **Fibonacci sobre el rango**: rango alcista → fib de low a high, se busca
+   entrada en la zona de descuento 61.8%–88.6% (mínimo y máximo configurables:
+   61.8 / 70.5 / 78.6 / 88.6). Rango bajista → espejo en premium.
+3. En esa zona, **manipulación**: barrido de un swing interno o tap de un
+   imbalance a favor (los FVG se calculan internamente; confluyen con la zona fib).
+4. **Confirmación** (en las N velas siguientes a la manipulación, N=5 por defecto):
+   vela envolvente a favor, cambio de estructura (CHoCH) o un nuevo imbalance
+   a favor de la dirección. Cada confirmación se puede activar/desactivar.
+5. Objetivo: la liquidez **externa** del lado opuesto del rango.
 
 - Los imbalances se tratan como liquidez: zona de entrada cuando el precio
   los tapa a favor del sesgo, y quedan invalidados cuando se rellenan por completo.
+- 🔧 Refinar: ¿la manipulación debe verse en una temporalidad menor a la del
+  gráfico (ej. señal en 15m con confirmación en 5m/1m)? Hoy todo ocurre en la
+  temporalidad del gráfico.
 
 ## 4. Stop Loss ✅🔧
 
@@ -46,10 +53,12 @@ aproximaciones que hay que refinar con el mentor.
 
 ## 5. Take Profit ✅🔧
 
-- Implementado: la liquidez externa del rango (modo por defecto), con filtro de
-  **RR mínimo** (si el objetivo queda demasiado cerca, la señal se descarta).
-  Modo alternativo: ratio R fijo.
-- 🔧 Refinar: ¿parciales? ¿break-even? ¿TP en FVGs de HTF sin mitigar?
+- Implementado: hasta **3 take profits** (número configurable, 2 por defecto).
+  Modo "Liquidez externa": TP1 = equilibrio del rango (50%), TP2 = extremo
+  opuesto del rango, TP3 = extensión del 25% del rango. Modo alternativo:
+  múltiplos de R (1R / 2R / 3R configurables).
+- Filtro de **RR mínimo** hasta la liquidez externa (si queda muy cerca, se descarta).
+- 🔧 Refinar: porcentajes de cierre en cada TP, break-even, ¿TP en FVGs de HTF?
 
 ## 6. Invalidaciones / filtros extra ✅🔧
 
