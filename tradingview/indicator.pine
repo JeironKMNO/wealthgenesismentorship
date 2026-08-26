@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.2)
+// Wealth Genesis — Señales SMC Oro (v1.3)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.2]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.3]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -151,12 +151,18 @@ legOKShort = not useLegDir or legBear
 //   ESTRUCTURAL (no solo del de ejecución), idealmente sobre un imbalance de
 //   esa temporalidad, y con la liquidez diaria ya manipulada.
 // ─────────────────────────────────────────────────────────────────────────────
-grpX = "Fractalidad (estructura anidada)"
-useStruct   = input.bool(true, "Exigir confluencia con la TF estructural", group = grpX, tooltip = "El precio debe estar en la zona premium/descuento del tramo de la temporalidad estructural, no solo del tramo de ejecución. Es lo que hace válido al tramo pequeño.")
+//   Los modelos son MANERAS DE LEER EL MERCADO, no requisitos acumulativos.
+//   La manipulación del alto del día anterior es uno que ocurre a menudo, pero
+//   no es el único. Cada modelo se activa por separado y se elige si basta con
+//   que uno se cumpla o si deben cumplirse todos. Añadir un modelo nuevo =
+//   añadir su condición al bloque de abajo, sin tocar el resto del indicador.
+grpX = "Modelos de contexto (fractalidad)"
+combineMode = input.string("Basta con uno", "Cómo combinar los modelos", options = ["Basta con uno", "Exigir todos"], group = grpX, tooltip = "\"Basta con uno\": cualquier modelo activo que se cumpla da contexto válido (más señales, cada una etiquetada con su modelo). \"Exigir todos\": confluencia máxima, muchas menos señales.")
 structTF    = input.timeframe("60", "Temporalidad estructural", group = grpX, tooltip = "Donde ocurre el quiebre de estructura que da contexto. 60 = 1H, 240 = 4H")
 structLen   = input.int(5, "Fuerza swings estructurales", minval = 2, group = grpX)
-useStructFVG = input.bool(false, "· Exigir imbalance de la TF estructural", group = grpX, tooltip = "Además, el precio debe estar dentro de un imbalance sin mitigar de la temporalidad estructural (como el naranja del ejemplo). Más estricto: menos señales, mejor confluencia.")
-usePDsweep  = input.bool(false, "· Exigir manipulación del alto/bajo del día anterior", group = grpX, tooltip = "Solo ventas si ya se barrió el ALTO del día anterior; solo compras si se barrió el BAJO. Muy selectivo: es el escenario A+ del ejemplo.")
+useM1 = input.bool(true,  "M1 · Estructura anidada (premium/descuento de la TF mayor)", group = grpX, tooltip = "El precio está en la zona fib del tramo estructural y esa estructura va en la misma dirección. Es el modelo base.")
+useM2 = input.bool(false, "M2 · Manipulación del alto/bajo del día anterior", group = grpX, tooltip = "Se barrió el ALTO del día anterior → contexto bajista; el BAJO → contexto alcista. Frecuente, pero solo una manera más de leer el mercado.")
+useM3 = input.bool(false, "M3 · Imbalance de la TF estructural sin mitigar", group = grpX, tooltip = "El precio está dentro de un imbalance de la temporalidad estructural que aún no se ha rellenado (el naranja del ejemplo).")
 
 // Tramo estructural (misma lógica de tramo, en la TF de contexto)
 [sHighN, sLowN, sBearN, sHighP, sLowP, sBearP] = request.security(syminfo.tickerid, structTF, f_leg(structLen), lookahead = barmerge.lookahead_off)
@@ -252,10 +258,33 @@ sFibTopShort    = structLow + structSize * fibDeep
 inStructFibLong  = not na(structSize) and low <= sFibTopLong and close >= sFibBotLong
 inStructFibShort = not na(structSize) and high >= sFibBotShort and close <= sFibTopShort
 
-// Confluencia fractal completa: zona estructural + (opcional) imbalance de esa
-// TF + (opcional) liquidez diaria ya manipulada + estructura mayor a favor
-fractalLong  = (not useStruct or (inStructFibLong and not structBear)) and (not useStructFVG or inStructFVGLong) and (not usePDsweep or pdLowSwept)
-fractalShort = (not useStruct or (inStructFibShort and structBear)) and (not useStructFVG or inStructFVGShort) and (not usePDsweep or pdHighSwept)
+// --- MODELOS DE CONTEXTO ------------------------------------------------------
+// Cada modelo dice, a su manera, "el precio va hacia aquí". Se combinan según
+// el modo elegido. Para añadir un modelo nuevo: define mNLong / mNShort, su
+// input useMN, y súmalo a las tres líneas de abajo.
+m1Long  = inStructFibLong and not structBear     // estructura anidada
+m1Short = inStructFibShort and structBear
+m2Long  = pdLowSwept                             // manipulación de liquidez diaria
+m2Short = pdHighSwept
+m3Long  = inStructFVGLong                        // imbalance de la TF estructural
+m3Short = inStructFVGShort
+
+anyModel   = useM1 or useM2 or useM3
+requireAll = combineMode == "Exigir todos"
+
+fractalLong  = not anyModel ? true : requireAll ? ((not useM1 or m1Long) and (not useM2 or m2Long) and (not useM3 or m3Long)) : ((useM1 and m1Long) or (useM2 and m2Long) or (useM3 and m3Long))
+fractalShort = not anyModel ? true : requireAll ? ((not useM1 or m1Short) and (not useM2 or m2Short) and (not useM3 or m3Short)) : ((useM1 and m1Short) or (useM2 and m2Short) or (useM3 and m3Short))
+
+// Etiqueta de qué modelo(s) respaldan la señal — va en la alerta y el panel
+f_models(_isLong) =>
+    t = ""
+    if useM1 and (_isLong ? m1Long : m1Short)
+        t += "M1"
+    if useM2 and (_isLong ? m2Long : m2Short)
+        t += (t == "" ? "" : "+") + "M2"
+    if useM3 and (_isLong ? m3Long : m3Short)
+        t += (t == "" ? "" : "+") + "M3"
+    t == "" ? "—" : t
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 5) IMBALANCES (FVG) — cálculo interno; ocultos por defecto (gráfico limpio)
@@ -431,6 +460,7 @@ f_slShort() =>
 var float entryPx = na
 var float slPx    = na
 var int   dirNow  = 0      // 1 = long, -1 = short, 0 = sin setup
+var string modelTag = ""   // qué modelo(s) respaldaron la señal
 var array<float> tps = array.new<float>()
 var int   tpsHit  = 0
 
@@ -494,6 +524,7 @@ if longCandidate and dirNow == 0
         slPx    := s
         dirNow  := 1
         tpsHit  := 0
+        modelTag := f_models(true)
         signalsToday += 1
         newLong := true
         f_drawLevels()
@@ -526,6 +557,7 @@ if shortCandidate and dirNow == 0 and not newLong
         slPx    := s
         dirNow  := -1
         tpsHit  := 0
+        modelTag := f_models(false)
         signalsToday += 1
         newShort := true
         f_drawLevels()
@@ -576,9 +608,11 @@ bgcolor(shadeSessions and useSessions and inNY ? color.new(color.blue, 96) : sha
 var table tb = table.new(position.top_right, 1, 4, border_width = 1)
 if barstate.islast
     // Fila 1 — liquidez diaria manipulada
-    pdTxt = "Día: " + (pdHighSwept and pdLowSwept ? "ambos extremos barridos" : pdHighSwept ? "ALTO anterior barrido ▼" : pdLowSwept ? "BAJO anterior barrido ▲" : "sin manipular")
-    pdCol = pdHighSwept or pdLowSwept ? color.new(color.purple, 35) : color.new(color.gray, 60)
-    table.cell(tb, 0, 0, pdTxt, bgcolor = pdCol, text_color = color.white, text_size = size.small)
+    mLongTxt  = f_models(true)
+    mShortTxt = f_models(false)
+    modTxt = "Modelos ▲ " + mLongTxt + "   ▼ " + mShortTxt + (pdHighSwept ? "   · alto día barrido" : pdLowSwept ? "   · bajo día barrido" : "")
+    modCol = mLongTxt != "—" or mShortTxt != "—" ? color.new(color.purple, 35) : color.new(color.gray, 60)
+    table.cell(tb, 0, 0, modTxt, bgcolor = modCol, text_color = color.white, text_size = size.small)
     // Fila 2 — estructura mayor
     structTxt = na(structHigh) ? structTF + ": sin tramo" : structTF + ": " + (structBear ? "▼" : "▲") + " " + str.tostring(structBear ? structHigh : structLow, format.mintick) + "→" + str.tostring(structBear ? structLow : structHigh, format.mintick) + (inStructFibShort or inStructFibLong ? "  ✓ en zona" : "")
     structCol = structBear ? color.new(color.red, 35) : color.new(color.green, 35)
@@ -593,6 +627,6 @@ if barstate.islast
     table.cell(tb, 0, 3, zoneTxt, bgcolor = zoneCol, text_color = color.white, text_size = size.small)
 
 if newLong
-    alert("🟢 COMPRA " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)
+    alert("🟢 COMPRA [" + modelTag + "] " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)
 if newShort
-    alert("🔴 VENTA " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)
+    alert("🔴 VENTA [" + modelTag + "] " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)

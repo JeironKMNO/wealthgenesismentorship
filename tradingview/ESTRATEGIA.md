@@ -1,6 +1,6 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v1.2** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v1.3** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
@@ -44,7 +44,7 @@ bajista que invalidó el alcista → **ahí** estaba la entrada.
 
 ---
 
-## 0b. Fractalidad — por qué un tramo es válido
+## 0b. Fractalidad y modelos de contexto
 
 > **Un tramo pequeño no vale por sí solo. Vale si está anidado dentro de una
 > estructura mayor que apunta al mismo sitio.**
@@ -68,16 +68,32 @@ Por eso el rango de 15m era válido: no era un tramo cualquiera, era el tramo
 que aparece dentro del premium de una estructura de 1H que nació de una
 manipulación diaria.
 
-**Implementado (v1.2)** — sección "Fractalidad (estructura anidada)":
+### Modelos de contexto (v1.3)
 
-| Filtro | Por defecto | Qué exige |
+> Los modelos son **maneras de leer el mercado**, no requisitos acumulativos.
+> La manipulación del alto del día anterior ocurre a menudo, pero es uno más.
+
+| Modelo | Por defecto | Qué reconoce |
 |---|---|---|
-| Confluencia con la TF estructural | ✅ ON | El precio debe estar en premium/descuento del tramo de 1H (no solo del de 15m) **y** la estructura de 1H debe ir en la misma dirección |
-| Imbalance de la TF estructural | ⬜ OFF | Además, el precio dentro de un imbalance de 1H sin mitigar (el naranja del ejemplo) |
-| Manipulación del alto/bajo del día anterior | ⬜ OFF | Solo ventas si ya se barrió el alto del día anterior (y viceversa). Es el escenario A+ |
+| **M1 · Estructura anidada** | ✅ ON | El precio está en premium/descuento del tramo de la TF estructural (1H) **y** esa estructura va en la misma dirección. Modelo base. |
+| **M2 · Manipulación diaria** | ⬜ OFF | Se barrió el alto del día anterior → contexto bajista; el bajo → alcista. |
+| **M3 · Imbalance estructural** | ⬜ OFF | El precio está dentro de un imbalance de 1H sin mitigar (el naranja del ejemplo). |
+
+**Cómo combinarlos** (input "Cómo combinar los modelos"):
+- *Basta con uno* (por defecto): cualquier modelo activo que se cumpla da
+  contexto válido. Más señales, cada una etiquetada con el modelo que la produjo.
+- *Exigir todos*: confluencia máxima, muchas menos señales. El caso del 26-ago
+  cumplía M1+M2+M3 a la vez — por eso era un escenario A+.
+
+Cada señal (flecha y alerta) lleva la etiqueta del modelo: `🔴 VENTA [M1+M2]`.
+Así, al registrar operaciones, se puede medir **qué modelo funciona mejor**.
+
+**Para añadir un modelo nuevo** basta con definir `mNLong` / `mNShort`, su input
+`useMN`, y sumarlo a las tres líneas de combinación. El resto del indicador
+(fib, manipulación, confirmación, gestión, dibujo) no se toca.
 
 El panel del gráfico muestra la cadena completa de arriba abajo:
-**día → estructura (1H) → tramo de ejecución (15m) → estado operativo**.
+**modelos cumplidos → estructura (1H) → tramo de ejecución (15m) → estado operativo**.
 
 ---
 

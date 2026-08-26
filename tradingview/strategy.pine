@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Backtest SMC Oro (v1.2)
+// Wealth Genesis — Backtest SMC Oro (v1.3)
 // -----------------------------------------------------------------------------
 // Clon en modo strategy() del indicador (indicator.pine, misma versión) para
 // backtest automático: win rate, profit factor, drawdown, R por operación.
@@ -8,7 +8,7 @@
 // debe replicarse aquí. Los TPs reparten la posición en partes iguales y el
 // stop cubre siempre el remanente.
 // =============================================================================
-strategy("WG SMC — Backtest Oro [v1.2]", overlay = true, initial_capital = 10000, default_qty_type = strategy.fixed, default_qty_value = 1, process_orders_on_close = true, calc_on_every_tick = false, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+strategy("WG SMC — Backtest Oro [v1.3]", overlay = true, initial_capital = 10000, default_qty_type = strategy.fixed, default_qty_value = 1, process_orders_on_close = true, calc_on_every_tick = false, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS
@@ -112,12 +112,13 @@ legOKShort = not useLegDir or legBear
 // ─────────────────────────────────────────────────────────────────────────────
 // 3b) FRACTALIDAD — estructura anidada (ver ESTRATEGIA.md §0b)
 // ─────────────────────────────────────────────────────────────────────────────
-grpX = "Fractalidad (estructura anidada)"
-useStruct    = input.bool(true, "Exigir confluencia con la TF estructural", group = grpX)
-structTF     = input.timeframe("60", "Temporalidad estructural", group = grpX)
-structLen    = input.int(5, "Fuerza swings estructurales", minval = 2, group = grpX)
-useStructFVG = input.bool(false, "· Exigir imbalance de la TF estructural", group = grpX)
-usePDsweep   = input.bool(false, "· Exigir manipulación del alto/bajo del día anterior", group = grpX)
+grpX = "Modelos de contexto (fractalidad)"
+combineMode = input.string("Basta con uno", "Cómo combinar los modelos", options = ["Basta con uno", "Exigir todos"], group = grpX)
+structTF    = input.timeframe("60", "Temporalidad estructural", group = grpX)
+structLen   = input.int(5, "Fuerza swings estructurales", minval = 2, group = grpX)
+useM1 = input.bool(true,  "M1 · Estructura anidada (premium/descuento de la TF mayor)", group = grpX)
+useM2 = input.bool(false, "M2 · Manipulación del alto/bajo del día anterior", group = grpX)
+useM3 = input.bool(false, "M3 · Imbalance de la TF estructural sin mitigar", group = grpX)
 
 [sHighN, sLowN, sBearN, sHighP, sLowP, sBearP] = request.security(syminfo.tickerid, structTF, f_leg(structLen), lookahead = barmerge.lookahead_off)
 structHigh = noRepaint ? sHighP : sHighN
@@ -201,8 +202,18 @@ sFibTopShort    = structLow + structSize * fibDeep
 inStructFibLong  = not na(structSize) and low <= sFibTopLong and close >= sFibBotLong
 inStructFibShort = not na(structSize) and high >= sFibBotShort and close <= sFibTopShort
 
-fractalLong  = (not useStruct or (inStructFibLong and not structBear)) and (not useStructFVG or inStructFVGLong) and (not usePDsweep or pdLowSwept)
-fractalShort = (not useStruct or (inStructFibShort and structBear)) and (not useStructFVG or inStructFVGShort) and (not usePDsweep or pdHighSwept)
+m1Long  = inStructFibLong and not structBear
+m1Short = inStructFibShort and structBear
+m2Long  = pdLowSwept
+m2Short = pdHighSwept
+m3Long  = inStructFVGLong
+m3Short = inStructFVGShort
+
+anyModel   = useM1 or useM2 or useM3
+requireAll = combineMode == "Exigir todos"
+
+fractalLong  = not anyModel ? true : requireAll ? ((not useM1 or m1Long) and (not useM2 or m2Long) and (not useM3 or m3Long)) : ((useM1 and m1Long) or (useM2 and m2Long) or (useM3 and m3Long))
+fractalShort = not anyModel ? true : requireAll ? ((not useM1 or m1Short) and (not useM2 or m2Short) and (not useM3 or m3Short)) : ((useM1 and m1Short) or (useM2 and m2Short) or (useM3 and m3Short))
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 5) IMBALANCES (FVG)
