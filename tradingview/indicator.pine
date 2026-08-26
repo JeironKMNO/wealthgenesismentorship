@@ -1,0 +1,124 @@
+//@version=6
+// =============================================================================
+// Wealth Genesis — Indicador de señales (esqueleto v0.1)
+// -----------------------------------------------------------------------------
+// Arquitectura en 4 capas, para que los modelos de entrada de la estrategia
+// se conecten sin tocar el resto:
+//   1) FILTROS      — sesión, sesgo/dirección, límites por día
+//   2) MODELOS      — cada modelo de entrada produce una señal long/short
+//                     (aquí hay UN modelo de ejemplo; se reemplaza por los reales)
+//   3) GESTIÓN      — cálculo de entrada, stop loss y take profit
+//   4) PRESENTACIÓN — dibujo en el gráfico + alertas
+// =============================================================================
+indicator("WG Señales [esqueleto]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 100)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1) FILTROS
+// ─────────────────────────────────────────────────────────────────────────────
+grpF = "Filtros"
+useSession   = input.bool(true, "Operar solo en sesión", group = grpF)
+sessNY       = input.session("0930-1100", "Sesión (hora NY)", group = grpF)
+tzNY         = "America/New_York"
+allowLongs   = input.bool(true, "Permitir compras", group = grpF)
+allowShorts  = input.bool(true, "Permitir ventas", group = grpF)
+maxPerDay    = input.int(3, "Máx. señales por día", minval = 1, group = grpF)
+
+inSession = not useSession or not na(time(timeframe.period, sessNY, tzNY))
+
+var int signalsToday = 0
+if ta.change(time("D")) != 0
+    signalsToday := 0
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2) MODELOS DE ENTRADA
+//    ⚠ PLACEHOLDER: barrido del low/high de las últimas N velas con cierre de
+//    reversión. Se sustituye por los modelos reales definidos en ESTRATEGIA.md.
+//    Cada modelo real será un bloque que termina en: modeloX_long / modeloX_short
+// ─────────────────────────────────────────────────────────────────────────────
+grpM = "Modelo ejemplo (placeholder)"
+lookback = input.int(20, "Velas para liquidez (N)", minval = 2, group = grpM)
+
+prevLow  = ta.lowest(low[1], lookback)
+prevHigh = ta.highest(high[1], lookback)
+
+// Barrido: la vela perfora la liquidez pero cierra de vuelta dentro
+sweepLong  = low < prevLow and close > prevLow and close > open
+sweepShort = high > prevHigh and close < prevHigh and close < open
+
+// Agregación de modelos (cuando haya varios, se combinan aquí con "or")
+rawLong  = sweepLong
+rawShort = sweepShort
+
+longSignal  = rawLong and inSession and allowLongs and signalsToday < maxPerDay and barstate.isconfirmed
+shortSignal = rawShort and inSession and allowShorts and signalsToday < maxPerDay and barstate.isconfirmed
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3) GESTIÓN: entrada, stop loss, take profit
+// ─────────────────────────────────────────────────────────────────────────────
+grpG = "Gestión"
+slMode    = input.string("Extremo de la vela", "Stop loss", options = ["Extremo de la vela", "Swing previo", "Puntos fijos"], group = grpG)
+slPoints  = input.float(20.0, "SL en puntos (si modo fijo)", minval = 0.25, step = 0.25, group = grpG)
+slBuffer  = input.float(1.0, "Margen extra del SL (puntos)", minval = 0.0, step = 0.25, group = grpG)
+rrRatio   = input.float(2.0, "Take profit (ratio R)", minval = 0.5, step = 0.5, group = grpG)
+
+f_stopLong() =>
+    slMode == "Puntos fijos" ? close - slPoints : slMode == "Swing previo" ? prevLow - slBuffer : low - slBuffer
+f_stopShort() =>
+    slMode == "Puntos fijos" ? close + slPoints : slMode == "Swing previo" ? prevHigh + slBuffer : high + slBuffer
+
+// Estado del setup activo (uno a la vez; ampliable a varios)
+var float  entryPx = na
+var float  slPx    = na
+var float  tpPx    = na
+var int    dirNow  = 0      // 1 = long, -1 = short, 0 = sin setup
+
+f_drawLevels() =>
+    line.new(bar_index, entryPx, bar_index + 20, entryPx, color = color.gray,  width = 2)
+    line.new(bar_index, slPx,   bar_index + 20, slPx,   color = color.red,   width = 2)
+    line.new(bar_index, tpPx,   bar_index + 20, tpPx,   color = color.green, width = 2)
+    label.new(bar_index + 20, entryPx, "Entrada " + str.tostring(entryPx, format.mintick), style = label.style_label_left, color = color.new(color.gray, 70),  textcolor = chart.fg_color, size = size.small)
+    label.new(bar_index + 20, slPx,   "SL "      + str.tostring(slPx,    format.mintick), style = label.style_label_left, color = color.new(color.red, 70),   textcolor = chart.fg_color, size = size.small)
+    label.new(bar_index + 20, tpPx,   "TP "      + str.tostring(tpPx,    format.mintick), style = label.style_label_left, color = color.new(color.green, 70), textcolor = chart.fg_color, size = size.small)
+
+newLong  = longSignal and dirNow == 0
+newShort = shortSignal and dirNow == 0 and not newLong
+
+if newLong
+    entryPx := close
+    slPx    := f_stopLong()
+    tpPx    := entryPx + (entryPx - slPx) * rrRatio
+    dirNow  := 1
+    signalsToday += 1
+    f_drawLevels()
+if newShort
+    entryPx := close
+    slPx    := f_stopShort()
+    tpPx    := entryPx - (slPx - entryPx) * rrRatio
+    dirNow  := -1
+    signalsToday += 1
+    f_drawLevels()
+
+// Resolución del setup activo (toque de TP o SL)
+tpHit = dirNow == 1 and high >= tpPx or dirNow == -1 and low <= tpPx
+slHit = dirNow == 1 and low <= slPx or dirNow == -1 and high >= slPx
+setupClosed = dirNow != 0 and not newLong and not newShort and (tpHit or slHit)
+if setupClosed
+    label.new(bar_index, tpHit ? tpPx : slPx, tpHit ? "✔ TP" : "✘ SL", style = tpHit ? label.style_label_down : label.style_label_up, color = tpHit ? color.green : color.red, textcolor = color.white, size = size.small)
+    dirNow := 0
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4) PRESENTACIÓN Y ALERTAS
+// ─────────────────────────────────────────────────────────────────────────────
+plotshape(newLong,  "Compra", shape.triangleup,   location.belowbar, color.green, size = size.small, text = "BUY")
+plotshape(newShort, "Venta",  shape.triangledown, location.abovebar, color.red,   size = size.small, text = "SELL")
+bgcolor(useSession and inSession ? color.new(color.blue, 96) : na, title = "Sesión")
+
+f_alertMsg(_side) =>
+    _side + " " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + " | TP: " + str.tostring(tpPx, format.mintick) + " (R 1:" + str.tostring(rrRatio, "#.#") + ")"
+
+if newLong
+    alert(f_alertMsg("🟢 COMPRA"), alert.freq_once_per_bar_close)
+if newShort
+    alert(f_alertMsg("🔴 VENTA"), alert.freq_once_per_bar_close)
+if setupClosed
+    alert((tpHit ? "✔ TP alcanzado " : "✘ SL tocado ") + syminfo.ticker, alert.freq_once_per_bar_close)
