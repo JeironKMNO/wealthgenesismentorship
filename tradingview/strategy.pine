@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Backtest SMC Oro (v1.0)
+// Wealth Genesis — Backtest SMC Oro (v1.1)
 // -----------------------------------------------------------------------------
 // Clon en modo strategy() del indicador (indicator.pine, misma versión) para
 // backtest automático: win rate, profit factor, drawdown, R por operación.
@@ -8,7 +8,7 @@
 // debe replicarse aquí. Los TPs reparten la posición en partes iguales y el
 // stop cubre siempre el remanente.
 // =============================================================================
-strategy("WG SMC — Backtest Oro [v1.0]", overlay = true, initial_capital = 10000, default_qty_type = strategy.fixed, default_qty_value = 1, process_orders_on_close = true, calc_on_every_tick = false, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+strategy("WG SMC — Backtest Oro [v1.1]", overlay = true, initial_capital = 10000, default_qty_type = strategy.fixed, default_qty_value = 1, process_orders_on_close = true, calc_on_every_tick = false, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS
@@ -68,6 +68,7 @@ rangeTF  = input.timeframe("15", "Temporalidad del RANGO (fib)", group = grpR)
 extLen   = input.int(5, "Fuerza swings EXTERNOS (rango)", minval = 2, group = grpR)
 intLen   = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
 useLegDir = input.bool(true, "Solo operar a favor del tramo", group = grpR)
+noRepaint = input.bool(true, "Sin repintado (tramo ya cerrado)", group = grpR)
 
 // El tramo (impulso): los DOS últimos pivotes consecutivos — high→low o
 // low→high. Es lo que se marca al tirar el fib a mano.
@@ -96,9 +97,15 @@ f_leg(_len) =>
     rh = na(p0) or na(p1) ? na : math.max(p0, p1)
     rl = na(p0) or na(p1) ? na : math.min(p0, p1)
     bear = not p1High
-    [rh, rl, bear]
+    [rh, rl, bear, rh[1], rl[1], bear[1]]
 
-[rangeHigh, rangeLow, legBear] = request.security(syminfo.tickerid, rangeTF, f_leg(extLen), lookahead = barmerge.lookahead_off)
+[rhNow, rlNow, bearNow, rhPrev, rlPrev, bearPrev] = request.security(syminfo.tickerid, rangeTF, f_leg(extLen), lookahead = barmerge.lookahead_off)
+
+// Sin repintado: usa el tramo de la vela CERRADA de la temporalidad mayor, para
+// que el backtest refleje lo que el indicador mostraba en vivo.
+rangeHigh = noRepaint ? rhPrev : rhNow
+rangeLow  = noRepaint ? rlPrev : rlNow
+legBear   = noRepaint ? bearPrev : bearNow
 legOKLong  = not useLegDir or not legBear
 legOKShort = not useLegDir or legBear
 

@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.0)
+// Wealth Genesis — Señales SMC Oro (v1.1)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.0]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.1]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -83,6 +83,7 @@ extLen   = input.int(5, "Fuerza swings EXTERNOS (rango)", minval = 2, group = gr
 intLen   = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
 useLegDir = input.bool(true, "Solo operar a favor del tramo", group = grpR, tooltip = "Tramo bajista (high→low) → solo ventas en premium. Tramo alcista (low→high) → solo compras en descuento.")
 showRange = input.bool(false, "Mostrar niveles del rango (calibración)", group = grpR, tooltip = "Dibuja el 100% y el 0% del tramo detectado para compararlos con tu fib manual. Apágalo cuando ya coincidan.")
+noRepaint = input.bool(true, "Sin repintado (tramo ya cerrado)", group = grpR, tooltip = "Usa el tramo de la vela CERRADA de la temporalidad mayor. Las señales quedan fijas: al recargar el gráfico salen en el mismo sitio y con el mismo SL. Desactívalo solo si quieres la reacción más inmediata a costa de que las señales se muevan.")
 
 // EL TRAMO (impulso): los DOS últimos pivotes consecutivos de la temporalidad
 // mayor — high→low o low→high. Es exactamente lo que se marca al tirar el fib
@@ -114,9 +115,20 @@ f_leg(_len) =>
     rl = na(p0) or na(p1) ? na : math.min(p0, p1)
     // Tramo bajista = el último pivote es un low (el precio vino de un high)
     bear = not p1High
-    [rh, rl, bear]
+    // Se devuelve tambien el valor de la vela anterior de la temporalidad mayor:
+    // es el que se usa en modo "sin repintado" (ver abajo)
+    [rh, rl, bear, rh[1], rl[1], bear[1]]
 
-[rangeHigh, rangeLow, legBear] = request.security(syminfo.tickerid, rangeTF, f_leg(extLen), lookahead = barmerge.lookahead_off)
+[rhNow, rlNow, bearNow, rhPrev, rlPrev, bearPrev] = request.security(syminfo.tickerid, rangeTF, f_leg(extLen), lookahead = barmerge.lookahead_off)
+
+// SIN REPINTADO: en vivo, la vela de la temporalidad mayor aun se esta formando,
+// asi que el tramo puede cambiar mientras corre. Al recargar el grafico, Pine
+// recalcula con velas ya cerradas y las senales historicas salen en otro sitio
+// (con otro SL). Usando el valor de la vela mayor ya CERRADA, lo que ves en vivo
+// es lo mismo que veras manana: las senales quedan fijas.
+rangeHigh = noRepaint ? rhPrev : rhNow
+rangeLow  = noRepaint ? rlPrev : rlNow
+legBear   = noRepaint ? bearPrev : bearNow
 legOKLong  = not useLegDir or not legBear
 legOKShort = not useLegDir or legBear
 

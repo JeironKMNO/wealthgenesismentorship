@@ -1,9 +1,24 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v0.9** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v1.1** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
+
+---
+
+## Registro de operaciones (validación en vivo)
+
+Casos reales usados para calibrar el indicador. Sirven de referencia didáctica
+y de control de calidad: cada versión debe seguir marcando los ✅.
+
+| Fecha | Activo / TF | Modelo | Resultado | Qué enseñó |
+|---|---|---|---|---|
+| 25-ago-2026 | XAUUSD 5m | Entrada en 71% del fib | ✘ SL | Entrada prematura: quedaba liquidez (highs iguales) por manipular arriba. → v0.6 añade EQH/EQL |
+| 25-ago-2026 | XAUUSD 1m | Zona 78–88% + manipulación + imbalance contrario | Señal NO marcada | El rango se calculaba en la TF del gráfico. → v0.7 rango en TF mayor |
+| 25-ago-2026 | XAUUSD 5m | Manipulación → confirmación en zona fib | ✅ 1:3 corriendo | Modelo correcto; SL demasiado ajustado. → v0.8 SL al extremo de la manipulación |
+| 25-ago-2026 | XAUUSD 5m | TPs desplazados respecto al fib manual | Niveles incorrectos | Rango tomado de pivotes no consecutivos. → v1.0 tramo real (dos pivotes seguidos) |
+| **26-ago-2026** | **XAUUSD 5m** | **Venta en premium del tramo bajista → expansión completa** | **✅ TP1 + TP2** | **Trade modelo: entrada en zona fib, salida en 0% y −14.6%. Cumplió todo lo requerido.** |
 
 ---
 
