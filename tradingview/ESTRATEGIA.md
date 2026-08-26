@@ -53,12 +53,12 @@ aproximaciones que hay que refinar con el mentor.
 
 ## 5. Take Profit ✅🔧
 
-- Implementado: hasta **3 take profits** (número configurable, 2 por defecto).
-  Modo "Liquidez externa": TP1 = equilibrio del rango (50%), TP2 = extremo
-  opuesto del rango, TP3 = extensión del 25% del rango. Modo alternativo:
-  múltiplos de R (1R / 2R / 3R configurables).
+- Implementado según el fib del mentor (captura XAUUSD 15m, 25-ago-2026):
+  hasta **4 take profits**. TP1 = liquidez externa del rango (0% del fib);
+  TP2/TP3/TP4 = extensiones **-14.6% / -27.2% / -41.4%** del rango (la zona de
+  expansión), porcentajes configurables. Modo alternativo: múltiplos de R.
 - Filtro de **RR mínimo** hasta la liquidez externa (si queda muy cerca, se descarta).
-- 🔧 Refinar: porcentajes de cierre en cada TP, break-even, ¿TP en FVGs de HTF?
+- 🔧 Refinar: porcentajes de cierre en cada TP, break-even, papel del 38.2%.
 
 ## 6. Invalidaciones / filtros extra ✅🔧
 

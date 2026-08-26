@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v0.4)
+// Wealth Genesis — Señales SMC Oro (v0.5)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md):
 //   • Sesgo en temporalidad mayor (4H/1H); entradas en 15m/5m/1m.
@@ -9,11 +9,12 @@
 //   • En esa zona se espera confluencia con imbalance y una manipulación,
 //     seguida de confirmación: vela envolvente, cambio de estructura (CHoCH)
 //     o un nuevo imbalance a favor de la dirección.
-//   • TP: liquidez externa del rango, con opción de varios take profits.
+//   • TP: liquidez externa del rango (0% del fib) y expansión en las
+//     extensiones -14.6% / -27.2% / -41.4% (hasta 4 take profits).
 //   • Gráfico limpio: solo entrada / SL / TPs. FVGs, sesiones y zona fib son
 //     cálculos internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v0.4]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v0.5]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -189,18 +190,24 @@ longCandidate  = longRaw and biasOKLong and allowLongs and inSession and signals
 shortCandidate = shortRaw and biasOKShort and allowShorts and inSession and signalsToday < maxPerDay and barstate.isconfirmed
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7) GESTIÓN — entrada, SL y hasta 3 take profits
-//    Modo "Liquidez externa": TP1 = equilibrio (50%), TP2 = extremo del rango,
-//    TP3 = extensión del 25% del rango. Modo "Ratio R fijo": múltiplos de R.
+// 7) GESTIÓN — entrada, SL y hasta 4 take profits
+//    Modo "Liquidez externa + extensiones fib": TP1 = extremo del rango (0%),
+//    TP2 = extensión -14.6%, TP3 = -27.2%, TP4 = -41.4% (configurables).
+//    Modo "Ratio R fijo": múltiplos de R.
 // ─────────────────────────────────────────────────────────────────────────────
 grpG = "Gestión"
-tpMode   = input.string("Liquidez externa del rango", "Take profit", options = ["Liquidez externa del rango", "Ratio R fijo"], group = grpG)
-numTPs   = input.int(2, "Número de take profits", minval = 1, maxval = 3, group = grpG)
+tpMode   = input.string("Liquidez externa + extensiones fib", "Take profit", options = ["Liquidez externa + extensiones fib", "Ratio R fijo"], group = grpG)
+numTPs   = input.int(2, "Número de take profits", minval = 1, maxval = 4, group = grpG, tooltip = "TP1 = liquidez externa (0% del fib). TP2/TP3/TP4 = extensiones del rango")
+ext1     = input.float(0.146, "Extensión TP2 (-14.6%)", minval = 0.01, step = 0.001, group = grpG)
+ext2     = input.float(0.272, "Extensión TP3 (-27.2%)", minval = 0.01, step = 0.001, group = grpG)
+ext3     = input.float(0.414, "Extensión TP4 (-41.4%)", minval = 0.01, step = 0.001, group = grpG)
 rr1      = input.float(1.0, "TP1 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
 rr2      = input.float(2.0, "TP2 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
 rr3      = input.float(3.0, "TP3 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
+rr4      = input.float(4.0, "TP4 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
 minRR    = input.float(1.0, "RR mínimo hasta la liquidez externa", minval = 0.1, step = 0.1, group = grpG)
 slBuffer = input.float(0.5, "Margen extra del SL (puntos)", minval = 0.0, step = 0.1, group = grpG)
+tpExtMode = tpMode == "Liquidez externa + extensiones fib"
 
 var float entryPx = na
 var float slPx    = na
@@ -244,24 +251,26 @@ if longCandidate and dirNow == 0
     e = close
     s = low - slBuffer
     risk = e - s
-    rewCheck = tpMode == "Liquidez externa del rango" ? rangeHigh - e : risk * rr1
-    if risk > 0 and not na(rewCheck) and rewCheck > 0 and (tpMode != "Liquidez externa del rango" or rewCheck / risk >= minRR)
+    rewCheck = tpExtMode ? rangeHigh - e : risk * rr1
+    if risk > 0 and not na(rewCheck) and rewCheck > 0 and (not tpExtMode or rewCheck / risk >= minRR)
         array.clear(tps)
-        if tpMode == "Liquidez externa del rango"
-            eq = (rangeHigh + rangeLow) / 2
-            if numTPs == 1
-                array.push(tps, rangeHigh)
-            else
-                array.push(tps, eq > e ? eq : (e + rangeHigh) / 2)
-                array.push(tps, rangeHigh)
-                if numTPs == 3
-                    array.push(tps, rangeHigh + rangeSize * 0.25)
+        if tpExtMode
+            // TP1 = liquidez externa (0% del fib); TP2..TP4 = extensiones del rango
+            array.push(tps, rangeHigh)
+            if numTPs >= 2
+                array.push(tps, rangeHigh + rangeSize * ext1)
+            if numTPs >= 3
+                array.push(tps, rangeHigh + rangeSize * ext2)
+            if numTPs == 4
+                array.push(tps, rangeHigh + rangeSize * ext3)
         else
             array.push(tps, e + risk * rr1)
             if numTPs >= 2
                 array.push(tps, e + risk * rr2)
-            if numTPs == 3
+            if numTPs >= 3
                 array.push(tps, e + risk * rr3)
+            if numTPs == 4
+                array.push(tps, e + risk * rr4)
         entryPx := e
         slPx    := s
         dirNow  := 1
@@ -274,24 +283,26 @@ if shortCandidate and dirNow == 0 and not newLong
     e = close
     s = high + slBuffer
     risk = s - e
-    rewCheck = tpMode == "Liquidez externa del rango" ? e - rangeLow : risk * rr1
-    if risk > 0 and not na(rewCheck) and rewCheck > 0 and (tpMode != "Liquidez externa del rango" or rewCheck / risk >= minRR)
+    rewCheck = tpExtMode ? e - rangeLow : risk * rr1
+    if risk > 0 and not na(rewCheck) and rewCheck > 0 and (not tpExtMode or rewCheck / risk >= minRR)
         array.clear(tps)
-        if tpMode == "Liquidez externa del rango"
-            eq = (rangeHigh + rangeLow) / 2
-            if numTPs == 1
-                array.push(tps, rangeLow)
-            else
-                array.push(tps, eq < e ? eq : (e + rangeLow) / 2)
-                array.push(tps, rangeLow)
-                if numTPs == 3
-                    array.push(tps, rangeLow - rangeSize * 0.25)
+        if tpExtMode
+            // TP1 = liquidez externa (0% del fib); TP2..TP4 = extensiones del rango
+            array.push(tps, rangeLow)
+            if numTPs >= 2
+                array.push(tps, rangeLow - rangeSize * ext1)
+            if numTPs >= 3
+                array.push(tps, rangeLow - rangeSize * ext2)
+            if numTPs == 4
+                array.push(tps, rangeLow - rangeSize * ext3)
         else
             array.push(tps, e - risk * rr1)
             if numTPs >= 2
                 array.push(tps, e - risk * rr2)
-            if numTPs == 3
+            if numTPs >= 3
                 array.push(tps, e - risk * rr3)
+            if numTPs == 4
+                array.push(tps, e - risk * rr4)
         entryPx := e
         slPx    := s
         dirNow  := -1
