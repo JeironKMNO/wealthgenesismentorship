@@ -49,12 +49,17 @@ bajista que invalidó el alcista → **ahí** estaba la entrada.
 ## 3. Modelos de entrada ✅🔧
 
 ### Modelo A — Fib premium/descuento + manipulación + confirmación (implementado)
-1. Se define el rango con los últimos swings mayores de la **temporalidad del
-   rango** (1H por defecto, configurable a 4H), independiente de la temporalidad
-   del gráfico: el fib se tira sobre la estructura de 1H aunque se ejecute en
-   1m/5m/15m. (Corregido tras la señal perdida del 25-ago: antes el rango se
-   calculaba con pivotes del propio gráfico y en 1m no representaba la
-   estructura real.)
+1. Se define el **tramo** (impulso) en la temporalidad del rango: los DOS
+   últimos pivotes consecutivos — high→low (tramo bajista) o low→high (tramo
+   alcista). Es exactamente lo que se marca al tirar el fib a mano. Por defecto
+   15m, configurable a 1H/4H, independiente de la temporalidad del gráfico.
+   - Corregido el 25-ago (v0.7): antes el rango se calculaba con pivotes del
+     propio gráfico y en 1m no representaba la estructura real.
+   - Corregido de nuevo (v1.0): se tomaban "el último high" y "el último low"
+     por separado, que pueden ser de momentos distintos y no forman ningún
+     tramo — eso desplazaba el 0% y con él todos los TPs.
+   - Filtro añadido: solo se opera **a favor del tramo** (tramo bajista → solo
+     ventas en premium; tramo alcista → solo compras en descuento).
 2. **Fibonacci sobre el rango**: rango alcista → fib de low a high, se busca
    entrada en la zona de descuento 61.8%–88.6% (mínimo y máximo configurables:
    61.8 / 70.5 / 78.6 / 88.6). Rango bajista → espejo en premium.

@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v0.9)
+// Wealth Genesis — Señales SMC Oro (v1.0)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v0.9]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.0]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -78,24 +78,47 @@ biasOKShort = not requireBias or htfBias == -1
 // 3) ESTRUCTURA / RANGO — liquidez externa e interna (cálculo interno, sin dibujo)
 // ─────────────────────────────────────────────────────────────────────────────
 grpR = "Rango / liquidez"
-rangeTF = input.timeframe("60", "Temporalidad del RANGO (fib)", group = grpR, tooltip = "El rango estructural — y el fib que se calcula sobre él — se toma de esta temporalidad, aunque el gráfico esté en 1m/5m. 60 = 1H, 240 = 4H")
-extLen  = input.int(10, "Fuerza swings EXTERNOS (rango)", minval = 3, group = grpR)
-intLen  = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
+rangeTF  = input.timeframe("15", "Temporalidad del RANGO (fib)", group = grpR, tooltip = "El tramo sobre el que se tira el fib se toma de esta temporalidad, aunque el gráfico esté en 1m/5m. 15 = 15m, 60 = 1H, 240 = 4H")
+extLen   = input.int(5, "Fuerza swings EXTERNOS (rango)", minval = 2, group = grpR, tooltip = "Sube este valor para tramos más grandes, bájalo para tramos más recientes. Ajústalo hasta que el 100%/0% coincidan con el fib que dibujas a mano")
+intLen   = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
+useLegDir = input.bool(true, "Solo operar a favor del tramo", group = grpR, tooltip = "Tramo bajista (high→low) → solo ventas en premium. Tramo alcista (low→high) → solo compras en descuento.")
+showRange = input.bool(false, "Mostrar niveles del rango (calibración)", group = grpR, tooltip = "Dibuja el 100% y el 0% del tramo detectado para compararlos con tu fib manual. Apágalo cuando ya coincidan.")
 
-// El rango (liquidez externa) viene de la temporalidad mayor: es la estructura
-// sobre la que se tira el Fibonacci. La manipulación se busca en el gráfico.
-f_range(_len) =>
+// EL TRAMO (impulso): los DOS últimos pivotes consecutivos de la temporalidad
+// mayor — high→low o low→high. Es exactamente lo que se marca al tirar el fib
+// a mano. No sirve tomar "el último high" y "el último low" por separado:
+// pueden ser de momentos distintos y no forman ningún tramo real.
+f_leg(_len) =>
     ph = ta.pivothigh(_len, _len)
     pl = ta.pivotlow(_len, _len)
-    var float rh = na
-    var float rl = na
+    var float p1     = na      // pivote más reciente (extremo del tramo)
+    var bool  p1High = false
+    var float p0     = na      // pivote anterior (origen del tramo)
     if not na(ph)
-        rh := ph
+        if p1High and not na(p1)
+            if ph > p1        // el tramo alcista sigue: se extiende el extremo
+                p1 := ph
+        else
+            p0 := p1
+            p1 := ph
+            p1High := true
     if not na(pl)
-        rl := pl
-    [rh, rl]
+        if not p1High and not na(p1)
+            if pl < p1        // el tramo bajista sigue: se extiende el extremo
+                p1 := pl
+        else
+            p0 := p1
+            p1 := pl
+            p1High := false
+    rh = na(p0) or na(p1) ? na : math.max(p0, p1)
+    rl = na(p0) or na(p1) ? na : math.min(p0, p1)
+    // Tramo bajista = el último pivote es un low (el precio vino de un high)
+    bear = not p1High
+    [rh, rl, bear]
 
-[rangeHigh, rangeLow] = request.security(syminfo.tickerid, rangeTF, f_range(extLen), lookahead = barmerge.lookahead_off)
+[rangeHigh, rangeLow, legBear] = request.security(syminfo.tickerid, rangeTF, f_leg(extLen), lookahead = barmerge.lookahead_off)
+legOKLong  = not useLegDir or not legBear
+legOKShort = not useLegDir or legBear
 
 phI = ta.pivothigh(intLen, intLen)
 plI = ta.pivotlow(intLen, intLen)
@@ -265,15 +288,15 @@ confirmShort = not needConfirm or modelShort
 // ZONA DE INTERÉS (capa alta): el precio está donde nos interesa y a favor del
 // sesgo. Es condición NECESARIA pero NO SUFICIENTE — sin el modelo confirmado
 // en la temporalidad menor, no hay entrada.
-zoneLong  = inFibLong and biasOKLong and allowLongs and (na(rangeHigh) or close < rangeHigh)
-zoneShort = inFibShort and biasOKShort and allowShorts and (na(rangeLow) or close > rangeLow)
+zoneLong  = inFibLong and biasOKLong and legOKLong and allowLongs and (na(rangeHigh) or close < rangeHigh)
+zoneShort = inFibShort and biasOKShort and legOKShort and allowShorts and (na(rangeLow) or close > rangeLow)
 inZone    = zoneLong or zoneShort
 
 longRaw  = manipRecentLong and confirmLong and inFibLong and (na(rangeHigh) or close < rangeHigh)
 shortRaw = manipRecentShort and confirmShort and inFibShort and (na(rangeLow) or close > rangeLow)
 
-longCandidate  = longRaw and biasOKLong and allowLongs and inSession and signalsToday < maxPerDay and barstate.isconfirmed
-shortCandidate = shortRaw and biasOKShort and allowShorts and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+longCandidate  = longRaw and biasOKLong and legOKLong and allowLongs and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+shortCandidate = shortRaw and biasOKShort and legOKShort and allowShorts and inSession and signalsToday < maxPerDay and barstate.isconfirmed
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 7) GESTIÓN — entrada, SL y hasta 4 take profits
@@ -443,6 +466,10 @@ if dirNow != 0 and not newLong and not newShort
 // ─────────────────────────────────────────────────────────────────────────────
 plotshape(newLong,  "Compra", shape.triangleup,   location.belowbar, color.green, size = size.small, text = "BUY")
 plotshape(newShort, "Venta",  shape.triangledown, location.abovebar, color.red,   size = size.small, text = "SELL")
+
+// Calibración: 100% y 0% del tramo detectado, para compararlos con el fib manual
+plot(showRange ? (legBear ? rangeHigh : rangeLow) : na, "Tramo 100%", color = color.new(color.orange, 20), style = plot.style_linebr, linewidth = 1)
+plot(showRange ? (legBear ? rangeLow : rangeHigh) : na, "Tramo 0%",   color = color.new(color.blue, 20),   style = plot.style_linebr, linewidth = 1)
 bgcolor(shadeSessions and useSessions and inNY ? color.new(color.blue, 96) : shadeSessions and useSessions and inAsia ? color.new(color.purple, 96) : na, title = "Sesiones")
 
 // Panel de estado: sesgo (capa alta) y si estamos en zona de interés esperando
@@ -451,7 +478,8 @@ var table tb = table.new(position.top_right, 1, 2)
 if barstate.islast
     biasTxt = htfBias == 1 ? "ALCISTA ▲" : htfBias == -1 ? "BAJISTA ▼" : "NEUTRO —"
     biasCol = htfBias == 1 ? color.new(color.green, 30) : htfBias == -1 ? color.new(color.red, 30) : color.new(color.gray, 30)
-    table.cell(tb, 0, 0, "Sesgo " + htfTF + " · Rango " + rangeTF + ": " + biasTxt, bgcolor = biasCol, text_color = color.white, text_size = size.small)
+    legTxt = na(rangeHigh) ? "sin tramo" : (legBear ? "tramo ▼" : "tramo ▲") + " " + str.tostring(legBear ? rangeHigh : rangeLow, format.mintick) + "→" + str.tostring(legBear ? rangeLow : rangeHigh, format.mintick)
+    table.cell(tb, 0, 0, "Sesgo " + htfTF + ": " + biasTxt + "  ·  " + rangeTF + " " + legTxt, bgcolor = biasCol, text_color = color.white, text_size = size.small)
     zoneTxt = dirNow != 0 ? "OPERACIÓN ACTIVA" : inZone ? "EN ZONA — esperando confirmación " + (ltfValid ? ltfTF : timeframe.period) : "Fuera de zona"
     zoneCol = dirNow != 0 ? color.new(color.blue, 30) : inZone ? color.new(color.orange, 30) : color.new(color.gray, 55)
     table.cell(tb, 0, 1, zoneTxt, bgcolor = zoneCol, text_color = color.white, text_size = size.small)

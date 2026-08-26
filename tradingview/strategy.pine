@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Backtest SMC Oro (v0.9)
+// Wealth Genesis — Backtest SMC Oro (v1.0)
 // -----------------------------------------------------------------------------
 // Clon en modo strategy() del indicador (indicator.pine, misma versión) para
 // backtest automático: win rate, profit factor, drawdown, R por operación.
@@ -8,7 +8,7 @@
 // debe replicarse aquí. Los TPs reparten la posición en partes iguales y el
 // stop cubre siempre el remanente.
 // =============================================================================
-strategy("WG SMC — Backtest Oro [v0.9]", overlay = true, initial_capital = 10000, default_qty_type = strategy.fixed, default_qty_value = 1, process_orders_on_close = true, calc_on_every_tick = false, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+strategy("WG SMC — Backtest Oro [v1.0]", overlay = true, initial_capital = 10000, default_qty_type = strategy.fixed, default_qty_value = 1, process_orders_on_close = true, calc_on_every_tick = false, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS
@@ -64,22 +64,43 @@ biasOKShort = not requireBias or htfBias == -1
 // 3) ESTRUCTURA / RANGO
 // ─────────────────────────────────────────────────────────────────────────────
 grpR = "Rango / liquidez"
-rangeTF = input.timeframe("60", "Temporalidad del RANGO (fib)", group = grpR)
-extLen  = input.int(10, "Fuerza swings EXTERNOS (rango)", minval = 3, group = grpR)
-intLen  = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
+rangeTF  = input.timeframe("15", "Temporalidad del RANGO (fib)", group = grpR)
+extLen   = input.int(5, "Fuerza swings EXTERNOS (rango)", minval = 2, group = grpR)
+intLen   = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
+useLegDir = input.bool(true, "Solo operar a favor del tramo", group = grpR)
 
-f_range(_len) =>
+// El tramo (impulso): los DOS últimos pivotes consecutivos — high→low o
+// low→high. Es lo que se marca al tirar el fib a mano.
+f_leg(_len) =>
     ph = ta.pivothigh(_len, _len)
     pl = ta.pivotlow(_len, _len)
-    var float rh = na
-    var float rl = na
+    var float p1     = na
+    var bool  p1High = false
+    var float p0     = na
     if not na(ph)
-        rh := ph
+        if p1High and not na(p1)
+            if ph > p1
+                p1 := ph
+        else
+            p0 := p1
+            p1 := ph
+            p1High := true
     if not na(pl)
-        rl := pl
-    [rh, rl]
+        if not p1High and not na(p1)
+            if pl < p1
+                p1 := pl
+        else
+            p0 := p1
+            p1 := pl
+            p1High := false
+    rh = na(p0) or na(p1) ? na : math.max(p0, p1)
+    rl = na(p0) or na(p1) ? na : math.min(p0, p1)
+    bear = not p1High
+    [rh, rl, bear]
 
-[rangeHigh, rangeLow] = request.security(syminfo.tickerid, rangeTF, f_range(extLen), lookahead = barmerge.lookahead_off)
+[rangeHigh, rangeLow, legBear] = request.security(syminfo.tickerid, rangeTF, f_leg(extLen), lookahead = barmerge.lookahead_off)
+legOKLong  = not useLegDir or not legBear
+legOKShort = not useLegDir or legBear
 
 phI = ta.pivothigh(intLen, intLen)
 plI = ta.pivotlow(intLen, intLen)
@@ -224,8 +245,8 @@ confirmShort = not needConfirm or modelShort
 longRaw  = manipRecentLong and confirmLong and inFibLong and (na(rangeHigh) or close < rangeHigh)
 shortRaw = manipRecentShort and confirmShort and inFibShort and (na(rangeLow) or close > rangeLow)
 
-longCandidate  = longRaw and biasOKLong and allowLongs and inSession and signalsToday < maxPerDay and barstate.isconfirmed
-shortCandidate = shortRaw and biasOKShort and allowShorts and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+longCandidate  = longRaw and biasOKLong and legOKLong and allowLongs and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+shortCandidate = shortRaw and biasOKShort and legOKShort and allowShorts and inSession and signalsToday < maxPerDay and barstate.isconfirmed
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 7) GESTIÓN Y ÓRDENES — TP1 = liquidez externa, TP2..TP4 = extensiones fib
