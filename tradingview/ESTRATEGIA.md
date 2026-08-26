@@ -1,9 +1,49 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v1.3** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v1.4** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
+
+---
+
+## Métricas automáticas (v1.4)
+
+El indicador lleva su propio registro. Todo se mide en **R** (múltiplos del
+riesgo inicial), que es la única unidad comparable entre operaciones de
+distinto tamaño.
+
+**Cómo se calcula la R de una operación con varios TPs:** la posición se reparte
+en partes iguales entre los TPs configurados. Cada TP alcanzado suma la R de su
+fracción; si después salta el SL, la fracción que seguía abierta pierde −1R.
+Ejemplo con 2 TPs: TP1 a 1.5R y TP2 a 3R → si ambos se alcanzan, +2.25R; si tras
+TP1 salta el SL, 0.5×1.5 − 0.5×1 = **+0.25R**.
+
+**Panel de rendimiento** (esquina configurable):
+
+| Métrica | Qué dice |
+|---|---|
+| Ops / Aciertos | Nº de operaciones cerradas y % de ganadoras |
+| R neta / R media | Rentabilidad total y por operación |
+| Profit factor | Ganancia bruta ÷ pérdida bruta. <1 pierde, 1–1.5 frágil, >1.5 sólido |
+| Racha adversa | Peor caída desde el pico de R (drawdown) |
+| Desglose por modelo | Las mismas cifras para M1, M2 y M3 por separado |
+
+**Bitácora**: las últimas 12 operaciones con fecha, dirección, **modelo que la
+produjo**, cómo cerró (TP completo / SL / SL tras TP1) y su R.
+
+**Alertas de cierre**: cada operación cerrada emite
+`📊 CIERRE VENTA [M1+M2] XAUUSD | TP2 completo | R: 2.25`, lista para webhook a
+Discord/Telegram y para volcar a una hoja de cálculo.
+
+> Las cifras son de las señales visibles en el histórico del gráfico: al cambiar
+> de temporalidad o de rango de fechas se recalculan. Para estadísticas sobre
+> períodos largos, usa `strategy.pine` en el Probador de estrategias.
+
+**Cómo usar esto para mejorar**: si M2 tiene 60% de aciertos y M1 40%, se opera
+M2 o se endurece M1. Si el profit factor es alto pero la racha adversa duele,
+el problema es el tamaño de posición, no la estrategia. Si muchas cierran como
+"SL tras TP1", conviene mover a break-even tras el primer parcial.
 
 ---
 

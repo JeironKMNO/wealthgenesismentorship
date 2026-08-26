@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.3)
+// Wealth Genesis — Señales SMC Oro (v1.4)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.3]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.4]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -37,6 +37,11 @@ allowLongs   = input.bool(true, "Permitir compras", group = grpF)
 allowShorts  = input.bool(true, "Permitir ventas", group = grpF)
 maxPerDay    = input.int(4, "Máx. señales por día", minval = 1, group = grpF)
 shadeSessions = input.bool(false, "Sombrear sesiones en el gráfico", group = grpF)
+
+grpJ = "Registro de operaciones"
+showStats = input.bool(true,  "Mostrar estadísticas", group = grpJ, tooltip = "Aciertos, profit factor, R neto y drawdown de todas las señales del gráfico, con desglose por modelo.")
+showLog   = input.bool(true,  "Mostrar últimas operaciones", group = grpJ, tooltip = "Historial con fecha, dirección, modelo que la produjo, cómo cerró y su resultado en R.")
+statsPos  = input.string("Abajo derecha", "Posición de los paneles", options = ["Abajo derecha", "Abajo izquierda", "Arriba izquierda"], group = grpJ)
 
 inNY      = useNY and not na(time(timeframe.period, sessNY, tzNY))
 inAsia    = useAsia and not na(time(timeframe.period, sessAsia, tzNY))
@@ -461,6 +466,31 @@ var float entryPx = na
 var float slPx    = na
 var int   dirNow  = 0      // 1 = long, -1 = short, 0 = sin setup
 var string modelTag = ""   // qué modelo(s) respaldaron la señal
+
+// --- REGISTRO DE OPERACIONES -------------------------------------------------
+// Cada operación se mide en R (múltiplos del riesgo inicial). Con varios TPs la
+// posición se reparte en partes iguales: cada TP alcanzado suma su fracción,
+// y si después salta el SL, lo que quede abierto pierde -1R de su fracción.
+var float riskPts   = 0.0     // distancia entrada→SL de la operación en curso
+var float tradeR    = 0.0     // R acumulada de la operación en curso
+var float qtyLeft   = 1.0     // fracción de posición aún abierta
+var bool  usedM1    = false
+var bool  usedM2    = false
+var bool  usedM3    = false
+
+var int   nTrades = 0
+var int   nWins   = 0
+var float sumWin  = 0.0       // suma de R de las ganadoras
+var float sumLoss = 0.0       // suma de |R| de las perdedoras
+var float netR    = 0.0
+var float maxR    = 0.0       // pico de R acumulada (para el drawdown)
+var float ddR     = 0.0       // peor caída desde el pico, en R
+
+var array<int>   mTrades = array.from(0, 0, 0)
+var array<int>   mWins   = array.from(0, 0, 0)
+var array<float> mNetR   = array.from(0.0, 0.0, 0.0)
+
+var array<string> logRows = array.new<string>()
 var array<float> tps = array.new<float>()
 var int   tpsHit  = 0
 
@@ -525,6 +555,12 @@ if longCandidate and dirNow == 0
         dirNow  := 1
         tpsHit  := 0
         modelTag := f_models(true)
+        riskPts := risk
+        tradeR  := 0.0
+        qtyLeft := 1.0
+        usedM1  := useM1 and m1Long
+        usedM2  := useM2 and m2Long
+        usedM3  := useM3 and m3Long
         signalsToday += 1
         newLong := true
         f_drawLevels()
@@ -558,6 +594,12 @@ if shortCandidate and dirNow == 0 and not newLong
         dirNow  := -1
         tpsHit  := 0
         modelTag := f_models(false)
+        riskPts := risk
+        tradeR  := 0.0
+        qtyLeft := 1.0
+        usedM1  := useM1 and m1Short
+        usedM2  := useM2 and m2Short
+        usedM3  := useM3 and m3Short
         signalsToday += 1
         newShort := true
         f_drawLevels()
@@ -574,22 +616,73 @@ if dirNow != 0
 // Resolución: SL cierra el setup; los TPs se van marcando en orden.
 // Al completarse la operación se borra su dibujo — solo quedan como rastro
 // la flecha BUY/SELL de la entrada y las marcas ✔ TP / ✘ SL.
+bool  tradeClosed = false
+float closedR     = 0.0
+int   closedDir   = 0
+string closedWhy  = ""
+
 if dirNow != 0 and not newLong and not newShort
     hitSL = dirNow == 1 ? low <= slPx : high >= slPx
     if hitSL
         label.new(bar_index, slPx, "✘ SL", style = dirNow == 1 ? label.style_label_up : label.style_label_down, color = color.red, textcolor = color.white, size = size.small)
         alert("✘ SL tocado " + syminfo.ticker, alert.freq_once_per_bar_close)
+        tradeR := tradeR - qtyLeft          // lo que queda abierto pierde 1R de su fracción
+        qtyLeft := 0.0
+        tradeClosed := true
+        closedR   := tradeR
+        closedDir := dirNow
+        closedWhy := tpsHit > 0 ? "SL tras TP" + str.tostring(tpsHit) : "SL"
         dirNow := 0
         f_clearLevels()
     else
         while tpsHit < array.size(tps) and (dirNow == 1 ? high >= array.get(tps, tpsHit) : low <= array.get(tps, tpsHit))
             tpsHit += 1
             tpv = array.get(tps, tpsHit - 1)
+            frac = 1.0 / array.size(tps)
+            rMult = riskPts > 0 ? (dirNow == 1 ? tpv - entryPx : entryPx - tpv) / riskPts : 0.0
+            tradeR := tradeR + frac * rMult
+            qtyLeft := math.max(0.0, qtyLeft - frac)
             label.new(bar_index, tpv, "✔ TP" + str.tostring(tpsHit), style = dirNow == 1 ? label.style_label_down : label.style_label_up, color = color.green, textcolor = color.white, size = size.small)
             alert("✔ TP" + str.tostring(tpsHit) + " alcanzado " + syminfo.ticker, alert.freq_once_per_bar_close)
         if tpsHit >= array.size(tps)
+            tradeClosed := true
+            closedR   := tradeR
+            closedDir := dirNow
+            closedWhy := "TP" + str.tostring(tpsHit) + " completo"
             dirNow := 0
             f_clearLevels()
+
+// --- Actualización del registro al cerrarse una operación --------------------
+if tradeClosed
+    nTrades += 1
+    netR += closedR
+    if closedR > 0
+        nWins += 1
+        sumWin += closedR
+    else
+        sumLoss += math.abs(closedR)
+    maxR := math.max(maxR, netR)
+    ddR  := math.max(ddR, maxR - netR)
+    if usedM1
+        array.set(mTrades, 0, array.get(mTrades, 0) + 1)
+        array.set(mNetR,   0, array.get(mNetR, 0) + closedR)
+        if closedR > 0
+            array.set(mWins, 0, array.get(mWins, 0) + 1)
+    if usedM2
+        array.set(mTrades, 1, array.get(mTrades, 1) + 1)
+        array.set(mNetR,   1, array.get(mNetR, 1) + closedR)
+        if closedR > 0
+            array.set(mWins, 1, array.get(mWins, 1) + 1)
+    if usedM3
+        array.set(mTrades, 2, array.get(mTrades, 2) + 1)
+        array.set(mNetR,   2, array.get(mNetR, 2) + closedR)
+        if closedR > 0
+            array.set(mWins, 2, array.get(mWins, 2) + 1)
+    array.push(logRows, str.format_time(time, "dd/MM HH:mm", tzNY) + "  " + (closedDir == 1 ? "▲" : "▼") + "  " + modelTag + "  " + closedWhy + "  " + (closedR >= 0 ? "+" : "") + str.tostring(closedR, "#.##") + "R")
+    if array.size(logRows) > 12
+        array.shift(logRows)
+    // Alerta con el resultado, para llevar el registro también fuera de TradingView
+    alert("📊 CIERRE " + (closedDir == 1 ? "COMPRA" : "VENTA") + " [" + modelTag + "] " + syminfo.ticker + " | " + closedWhy + " | R: " + str.tostring(closedR, "#.##"), alert.freq_once_per_bar_close)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 8) DIBUJO Y ALERTAS — solo lo esencial
@@ -630,3 +723,71 @@ if newLong
     alert("🟢 COMPRA [" + modelTag + "] " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)
 if newShort
     alert("🔴 VENTA [" + modelTag + "] " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 9) REGISTRO — estadísticas y bitácora de operaciones
+//
+//    Todo se mide en R (múltiplos del riesgo). Las cifras corresponden a las
+//    señales visibles en el histórico del gráfico: si cambias de temporalidad
+//    o de rango de fechas, se recalculan.
+// ─────────────────────────────────────────────────────────────────────────────
+posStats = statsPos == "Abajo izquierda" ? position.bottom_left : statsPos == "Arriba izquierda" ? position.top_left : position.bottom_right
+
+var table st = table.new(posStats, 5, 7, border_width = 1)
+if barstate.islast and showStats
+    table.clear(st, 0, 0, 4, 6)
+    cHead = color.new(color.gray, 20)
+    cBody = color.new(color.black, 55)
+    winRate = nTrades > 0 ? 100.0 * nWins / nTrades : 0.0
+    pf      = sumLoss > 0 ? sumWin / sumLoss : (sumWin > 0 ? 999.0 : 0.0)
+    avgR    = nTrades > 0 ? netR / nTrades : 0.0
+    pfTxt   = sumLoss > 0 ? str.tostring(pf, "#.##") : (sumWin > 0 ? "∞" : "—")
+    // Cabecera
+    table.cell(st, 0, 0, "RENDIMIENTO", bgcolor = cHead, text_color = color.white, text_size = size.small)
+    table.cell(st, 1, 0, "Ops",      bgcolor = cHead, text_color = color.white, text_size = size.small)
+    table.cell(st, 2, 0, "Aciertos", bgcolor = cHead, text_color = color.white, text_size = size.small)
+    table.cell(st, 3, 0, "R neta",   bgcolor = cHead, text_color = color.white, text_size = size.small)
+    table.cell(st, 4, 0, "R media",  bgcolor = cHead, text_color = color.white, text_size = size.small)
+    // Global
+    netCol = netR > 0 ? color.new(color.green, 45) : netR < 0 ? color.new(color.red, 45) : cBody
+    table.cell(st, 0, 1, "TOTAL", bgcolor = netCol, text_color = color.white, text_size = size.small)
+    table.cell(st, 1, 1, str.tostring(nTrades), bgcolor = netCol, text_color = color.white, text_size = size.small)
+    table.cell(st, 2, 1, str.tostring(winRate, "#.#") + "%", bgcolor = netCol, text_color = color.white, text_size = size.small)
+    table.cell(st, 3, 1, (netR >= 0 ? "+" : "") + str.tostring(netR, "#.##"), bgcolor = netCol, text_color = color.white, text_size = size.small)
+    table.cell(st, 4, 1, (avgR >= 0 ? "+" : "") + str.tostring(avgR, "#.##"), bgcolor = netCol, text_color = color.white, text_size = size.small)
+    // Profit factor y drawdown
+    table.cell(st, 0, 2, "Profit factor", bgcolor = cBody, text_color = color.white, text_size = size.small)
+    table.cell(st, 1, 2, pfTxt, bgcolor = pf >= 1.5 ? color.new(color.green, 45) : pf >= 1.0 ? color.new(color.orange, 45) : color.new(color.red, 45), text_color = color.white, text_size = size.small)
+    table.cell(st, 2, 2, "Racha adversa", bgcolor = cBody, text_color = color.white, text_size = size.small)
+    table.cell(st, 3, 2, "-" + str.tostring(ddR, "#.##") + "R", bgcolor = cBody, text_color = color.white, text_size = size.small)
+    table.cell(st, 4, 2, "", bgcolor = cBody)
+    // Desglose por modelo
+    table.cell(st, 0, 3, "POR MODELO", bgcolor = cHead, text_color = color.white, text_size = size.small)
+    table.cell(st, 1, 3, "Ops",      bgcolor = cHead, text_color = color.white, text_size = size.small)
+    table.cell(st, 2, 3, "Aciertos", bgcolor = cHead, text_color = color.white, text_size = size.small)
+    table.cell(st, 3, 3, "R neta",   bgcolor = cHead, text_color = color.white, text_size = size.small)
+    table.cell(st, 4, 3, "R media",  bgcolor = cHead, text_color = color.white, text_size = size.small)
+    for i = 0 to 2
+        mt = array.get(mTrades, i)
+        mw = array.get(mWins, i)
+        mr = array.get(mNetR, i)
+        active = i == 0 ? useM1 : i == 1 ? useM2 : useM3
+        nameTxt = (i == 0 ? "M1 estructura" : i == 1 ? "M2 manip. diaria" : "M3 imbalance") + (active ? "" : " (off)")
+        rowCol = mt == 0 ? color.new(color.gray, 70) : mr > 0 ? color.new(color.green, 55) : color.new(color.red, 55)
+        table.cell(st, 0, 4 + i, nameTxt, bgcolor = rowCol, text_color = color.white, text_size = size.tiny)
+        table.cell(st, 1, 4 + i, str.tostring(mt), bgcolor = rowCol, text_color = color.white, text_size = size.tiny)
+        table.cell(st, 2, 4 + i, mt > 0 ? str.tostring(100.0 * mw / mt, "#.#") + "%" : "—", bgcolor = rowCol, text_color = color.white, text_size = size.tiny)
+        table.cell(st, 3, 4 + i, mt > 0 ? (mr >= 0 ? "+" : "") + str.tostring(mr, "#.##") : "—", bgcolor = rowCol, text_color = color.white, text_size = size.tiny)
+        table.cell(st, 4, 4 + i, mt > 0 ? (mr / mt >= 0 ? "+" : "") + str.tostring(mr / mt, "#.##") : "—", bgcolor = rowCol, text_color = color.white, text_size = size.tiny)
+
+// Bitácora: últimas operaciones con su razón
+var table lg = table.new(position.bottom_left, 1, 13, border_width = 1)
+if barstate.islast and showLog
+    table.clear(lg, 0, 0, 0, 12)
+    table.cell(lg, 0, 0, "ÚLTIMAS OPERACIONES  (fecha · dir · modelo · cierre · R)", bgcolor = color.new(color.gray, 20), text_color = color.white, text_size = size.tiny)
+    n = array.size(logRows)
+    if n > 0
+        for i = 0 to n - 1
+            txt = array.get(logRows, n - 1 - i)
+            neg = str.contains(txt, "-") and not str.contains(txt, "+")
+            table.cell(lg, 0, i + 1, txt, bgcolor = neg ? color.new(color.red, 65) : color.new(color.green, 65), text_color = color.white, text_size = size.tiny)
