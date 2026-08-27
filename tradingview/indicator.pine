@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.7)
+// Wealth Genesis — Señales SMC Oro (v1.7.1)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.7]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.7.1]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -928,13 +928,13 @@ if barstate.islast and showLog
 //    Cada fila es una compuerta que debe abrirse. La primera ✗ de una columna
 //    es lo que está bloqueando esa dirección en la vela actual.
 // ─────────────────────────────────────────────────────────────────────────────
+// Las funciones deben declararse en el nivel global, nunca dentro de un if
+f_c(_b) => _b ? "✓" : "✗"
+f_bg(_b) => _b ? color.new(color.green, 45) : color.new(color.red, 45)
+
 var table dg = table.new(position.middle_right, 3, 10, border_width = 1)
 if barstate.islast and showDiag
-    okC  = color.new(color.green, 45)
-    noC  = color.new(color.red, 45)
-    hdC  = color.new(color.gray, 25)
-    f_c(_b) => _b ? "✓" : "✗"
-    f_bg(_b) => _b ? okC : noC
+    hdC = color.new(color.gray, 25)
     table.cell(dg, 0, 0, "CONDICIÓN", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
     table.cell(dg, 1, 0, "COMPRA",    bgcolor = hdC, text_color = color.white, text_size = size.tiny)
     table.cell(dg, 2, 0, "VENTA",     bgcolor = hdC, text_color = color.white, text_size = size.tiny)
