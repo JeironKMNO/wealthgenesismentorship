@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.5)
+// Wealth Genesis — Señales SMC Oro (v1.6)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.5]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.6]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -205,6 +205,12 @@ structLen   = input.int(5, "Fuerza swings estructurales", minval = 2, group = gr
 useM1 = input.bool(true,  "M1 · Estructura anidada (premium/descuento de la TF mayor)", group = grpX, tooltip = "El precio está en la zona fib del tramo estructural y esa estructura va en la misma dirección. Es el modelo base.")
 useM2 = input.bool(false, "M2 · Manipulación del alto/bajo del día anterior", group = grpX, tooltip = "Se barrió el ALTO del día anterior → contexto bajista; el BAJO → contexto alcista. Frecuente, pero solo una manera más de leer el mercado.")
 useM3 = input.bool(false, "M3 · Imbalance de la TF estructural sin mitigar", group = grpX, tooltip = "El precio está dentro de un imbalance de la temporalidad estructural que aún no se ha rellenado (el naranja del ejemplo).")
+useM4 = input.bool(true,  "M4 · Imbalance DIARIO alcanzado (agotamiento de la expansión)", group = grpX, tooltip = "Tras una expansión completa, el precio llega a un imbalance de temporalidad superior sin mitigar. Ahí la expansión se agota y se busca el giro. Caso 26-ago Asia: nuevo bajo en 4H/1H entrando en imbalance diario.")
+dailyTF = input.timeframe("D", "Temporalidad del imbalance superior", group = grpX, tooltip = "D = diario, 240 = 4H")
+useM5 = input.bool(true,  "M5 · Nivel psicológico roto con fuerza y retesteado", group = grpX, tooltip = "El precio consolida bajo un número redondo (4600), lo rompe con desplazamiento creando un rango nuevo, y vuelve a testearlo. El nivel roto pasa a ser soporte/resistencia.")
+roundStep = input.float(50.0, "Separación de niveles psicológicos", minval = 1.0, step = 1.0, group = grpX, tooltip = "50 → 4550, 4600, 4650… Para oro suele ser 50 o 100.")
+roundTol  = input.float(4.0, "Tolerancia del retesteo (puntos)", minval = 0.5, step = 0.5, group = grpX)
+roundWin  = input.int(60, "Velas máx. desde el rompimiento", minval = 5, maxval = 300, group = grpX)
 
 // Tramo estructural (misma lógica de tramo, en la TF de contexto)
 [sHighN, sLowN, sBearN, sHighP, sLowP, sBearP] = request.security(syminfo.tickerid, structTF, f_leg(structLen), lookahead = barmerge.lookahead_off)
@@ -248,6 +254,38 @@ if not na(pdHigh) and high > pdHigh
     pdHighSwept := true
 if not na(pdLow) and low < pdLow
     pdLowSwept := true
+
+// M4 — imbalance de temporalidad superior (diario) sin mitigar. Cuando el
+// precio termina una expansión y aterriza aquí, la expansión se agota: es
+// donde se busca el giro, no la continuación.
+[dBullTop, dBullBot, dBearTop, dBearBot] = request.security(syminfo.tickerid, dailyTF, f_htfFVG(), lookahead = barmerge.lookahead_off)
+inDailyFVGLong  = not na(dBullTop) and low <= dBullTop and close >= dBullBot
+inDailyFVGShort = not na(dBearTop) and high >= dBearBot and close <= dBearTop
+
+// M5 — nivel psicológico (número redondo). El precio consolida contra él, lo
+// rompe CON FUERZA dejando un rango nuevo, y luego vuelve a testearlo: el nivel
+// roto cambia de papel. Caso 26-ago: consolidación bajo 4600 → ruptura al alza
+// con imbalance → retesteo de la zona → compra.
+f_round(_step, _mult) =>
+    lvl = math.round(close / _step) * _step
+    a = ta.atr(14)
+    strong = (high - low) > a * _mult or low > high[2] or high < low[2]
+    var float upLvl  = na
+    var float dnLvl  = na
+    var int   upBar  = -100000
+    var int   dnBar  = -100000
+    if close > lvl and close[1] <= lvl and strong
+        upLvl := lvl
+        upBar := bar_index
+    if close < lvl and close[1] >= lvl and strong
+        dnLvl := lvl
+        dnBar := bar_index
+    [upLvl, bar_index - upBar, dnLvl, bar_index - dnBar]
+
+[rUpLvl, rUpAge, rDnLvl, rDnAge] = request.security(syminfo.tickerid, rangeTF, f_round(roundStep, dispMult), lookahead = barmerge.lookahead_off)
+// Retesteo del nivel roto: el precio vuelve a él y lo respeta
+retestLong  = not na(rUpLvl) and rUpAge <= roundWin and low <= rUpLvl + roundTol and close >= rUpLvl - roundTol
+retestShort = not na(rDnLvl) and rDnAge <= roundWin and high >= rDnLvl - roundTol and close <= rDnLvl + roundTol
 
 phI = ta.pivothigh(intLen, intLen)
 plI = ta.pivotlow(intLen, intLen)
@@ -324,12 +362,16 @@ m2Long  = pdLowSwept                             // manipulación de liquidez di
 m2Short = pdHighSwept
 m3Long  = inStructFVGLong                        // imbalance de la TF estructural
 m3Short = inStructFVGShort
+m4Long  = inDailyFVGLong                         // imbalance diario: expansión agotada
+m4Short = inDailyFVGShort
+m5Long  = retestLong                             // nivel psicológico roto y retesteado
+m5Short = retestShort
 
-anyModel   = useM1 or useM2 or useM3
+anyModel   = useM1 or useM2 or useM3 or useM4 or useM5
 requireAll = combineMode == "Exigir todos"
 
-fractalLong  = not anyModel ? true : requireAll ? ((not useM1 or m1Long) and (not useM2 or m2Long) and (not useM3 or m3Long)) : ((useM1 and m1Long) or (useM2 and m2Long) or (useM3 and m3Long))
-fractalShort = not anyModel ? true : requireAll ? ((not useM1 or m1Short) and (not useM2 or m2Short) and (not useM3 or m3Short)) : ((useM1 and m1Short) or (useM2 and m2Short) or (useM3 and m3Short))
+fractalLong  = not anyModel ? true : requireAll ? ((not useM1 or m1Long) and (not useM2 or m2Long) and (not useM3 or m3Long) and (not useM4 or m4Long) and (not useM5 or m5Long)) : ((useM1 and m1Long) or (useM2 and m2Long) or (useM3 and m3Long) or (useM4 and m4Long) or (useM5 and m5Long))
+fractalShort = not anyModel ? true : requireAll ? ((not useM1 or m1Short) and (not useM2 or m2Short) and (not useM3 or m3Short) and (not useM4 or m4Short) and (not useM5 or m5Short)) : ((useM1 and m1Short) or (useM2 and m2Short) or (useM3 and m3Short) or (useM4 and m4Short) or (useM5 and m5Short))
 
 // Etiqueta de qué modelo(s) respaldan la señal — va en la alerta y el panel
 f_models(_isLong) =>
@@ -340,6 +382,10 @@ f_models(_isLong) =>
         t += (t == "" ? "" : "+") + "M2"
     if useM3 and (_isLong ? m3Long : m3Short)
         t += (t == "" ? "" : "+") + "M3"
+    if useM4 and (_isLong ? m4Long : m4Short)
+        t += (t == "" ? "" : "+") + "M4"
+    if useM5 and (_isLong ? m5Long : m5Short)
+        t += (t == "" ? "" : "+") + "M5"
     t == "" ? "—" : t
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -549,6 +595,8 @@ var float qtyLeft   = 1.0     // fracción de posición aún abierta
 var bool  usedM1    = false
 var bool  usedM2    = false
 var bool  usedM3    = false
+var bool  usedM4    = false
+var bool  usedM5    = false
 
 var int   nTrades = 0
 var int   nWins   = 0
@@ -558,9 +606,9 @@ var float netR    = 0.0
 var float maxR    = 0.0       // pico de R acumulada (para el drawdown)
 var float ddR     = 0.0       // peor caída desde el pico, en R
 
-var array<int>   mTrades = array.from(0, 0, 0)
-var array<int>   mWins   = array.from(0, 0, 0)
-var array<float> mNetR   = array.from(0.0, 0.0, 0.0)
+var array<int>   mTrades = array.from(0, 0, 0, 0, 0)
+var array<int>   mWins   = array.from(0, 0, 0, 0, 0)
+var array<float> mNetR   = array.from(0.0, 0.0, 0.0, 0.0, 0.0)
 
 var array<string> logRows = array.new<string>()
 var array<float> tps = array.new<float>()
@@ -633,6 +681,8 @@ if longCandidate and dirNow == 0
         usedM1  := useM1 and m1Long
         usedM2  := useM2 and m2Long
         usedM3  := useM3 and m3Long
+        usedM4  := useM4 and m4Long
+        usedM5  := useM5 and m5Long
         signalsToday += 1
         newLong := true
         f_drawLevels()
@@ -672,6 +722,8 @@ if shortCandidate and dirNow == 0 and not newLong
         usedM1  := useM1 and m1Short
         usedM2  := useM2 and m2Short
         usedM3  := useM3 and m3Short
+        usedM4  := useM4 and m4Short
+        usedM5  := useM5 and m5Short
         signalsToday += 1
         newShort := true
         f_drawLevels()
@@ -735,21 +787,13 @@ if tradeClosed
         sumLoss += math.abs(closedR)
     maxR := math.max(maxR, netR)
     ddR  := math.max(ddR, maxR - netR)
-    if usedM1
-        array.set(mTrades, 0, array.get(mTrades, 0) + 1)
-        array.set(mNetR,   0, array.get(mNetR, 0) + closedR)
-        if closedR > 0
-            array.set(mWins, 0, array.get(mWins, 0) + 1)
-    if usedM2
-        array.set(mTrades, 1, array.get(mTrades, 1) + 1)
-        array.set(mNetR,   1, array.get(mNetR, 1) + closedR)
-        if closedR > 0
-            array.set(mWins, 1, array.get(mWins, 1) + 1)
-    if usedM3
-        array.set(mTrades, 2, array.get(mTrades, 2) + 1)
-        array.set(mNetR,   2, array.get(mNetR, 2) + closedR)
-        if closedR > 0
-            array.set(mWins, 2, array.get(mWins, 2) + 1)
+    for mi = 0 to 4
+        hit = mi == 0 ? usedM1 : mi == 1 ? usedM2 : mi == 2 ? usedM3 : mi == 3 ? usedM4 : usedM5
+        if hit
+            array.set(mTrades, mi, array.get(mTrades, mi) + 1)
+            array.set(mNetR,   mi, array.get(mNetR, mi) + closedR)
+            if closedR > 0
+                array.set(mWins, mi, array.get(mWins, mi) + 1)
     array.push(logRows, str.format_time(time, "dd/MM HH:mm", tzNY) + "  " + (closedDir == 1 ? "▲" : "▼") + "  " + modelTag + "  " + closedWhy + "  " + (closedR >= 0 ? "+" : "") + str.tostring(closedR, "#.##") + "R")
     if array.size(logRows) > 12
         array.shift(logRows)
@@ -805,9 +849,9 @@ if newShort
 // ─────────────────────────────────────────────────────────────────────────────
 posStats = statsPos == "Abajo izquierda" ? position.bottom_left : statsPos == "Arriba izquierda" ? position.top_left : position.bottom_right
 
-var table st = table.new(posStats, 5, 7, border_width = 1)
+var table st = table.new(posStats, 5, 9, border_width = 1)
 if barstate.islast and showStats
-    table.clear(st, 0, 0, 4, 6)
+    table.clear(st, 0, 0, 4, 8)
     cHead = color.new(color.gray, 20)
     cBody = color.new(color.black, 55)
     winRate = nTrades > 0 ? 100.0 * nWins / nTrades : 0.0
@@ -839,12 +883,12 @@ if barstate.islast and showStats
     table.cell(st, 2, 3, "Aciertos", bgcolor = cHead, text_color = color.white, text_size = size.small)
     table.cell(st, 3, 3, "R neta",   bgcolor = cHead, text_color = color.white, text_size = size.small)
     table.cell(st, 4, 3, "R media",  bgcolor = cHead, text_color = color.white, text_size = size.small)
-    for i = 0 to 2
+    for i = 0 to 4
         mt = array.get(mTrades, i)
         mw = array.get(mWins, i)
         mr = array.get(mNetR, i)
-        active = i == 0 ? useM1 : i == 1 ? useM2 : useM3
-        nameTxt = (i == 0 ? "M1 estructura" : i == 1 ? "M2 manip. diaria" : "M3 imbalance") + (active ? "" : " (off)")
+        active = i == 0 ? useM1 : i == 1 ? useM2 : i == 2 ? useM3 : i == 3 ? useM4 : useM5
+        nameTxt = (i == 0 ? "M1 estructura" : i == 1 ? "M2 manip. diaria" : i == 2 ? "M3 imbal. estruct." : i == 3 ? "M4 imbal. diario" : "M5 nivel psicológico") + (active ? "" : " (off)")
         rowCol = mt == 0 ? color.new(color.gray, 70) : mr > 0 ? color.new(color.green, 55) : color.new(color.red, 55)
         table.cell(st, 0, 4 + i, nameTxt, bgcolor = rowCol, text_color = color.white, text_size = size.tiny)
         table.cell(st, 1, 4 + i, str.tostring(mt), bgcolor = rowCol, text_color = color.white, text_size = size.tiny)

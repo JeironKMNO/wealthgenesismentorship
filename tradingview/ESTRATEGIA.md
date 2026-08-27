@@ -1,6 +1,6 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v1.5** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v1.6** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
@@ -109,7 +109,7 @@ Por eso el rango de 15m era válido: no era un tramo cualquiera, era el tramo
 que aparece dentro del premium de una estructura de 1H que nació de una
 manipulación diaria.
 
-### Modelos de contexto (v1.3)
+### Modelos de contexto (v1.6)
 
 > Los modelos son **maneras de leer el mercado**, no requisitos acumulativos.
 > La manipulación del alto del día anterior ocurre a menudo, pero es uno más.
@@ -119,6 +119,20 @@ manipulación diaria.
 | **M1 · Estructura anidada** | ✅ ON | El precio está en premium/descuento del tramo de la TF estructural (1H) **y** esa estructura va en la misma dirección. Modelo base. |
 | **M2 · Manipulación diaria** | ⬜ OFF | Se barrió el alto del día anterior → contexto bajista; el bajo → alcista. |
 | **M3 · Imbalance estructural** | ⬜ OFF | El precio está dentro de un imbalance de 1H sin mitigar (el naranja del ejemplo). |
+| **M4 · Imbalance diario alcanzado** | ✅ ON | La expansión se agota: el precio llega a un imbalance de temporalidad superior (diaria) sin mitigar. Ahí se busca el **giro**, no la continuación. |
+| **M5 · Nivel psicológico** | ✅ ON | El precio consolida contra un número redondo (4600), lo rompe **con desplazamiento** creando un rango nuevo, y vuelve a testearlo. El nivel roto cambia de papel. |
+
+**Caso 26-ago (sesión de Asia, compra)** — los tres modelos nuevos en secuencia:
+1. El precio completó la expansión bajista, hizo nuevo bajo en 4H y 1H y
+   aterrizó en un **imbalance diario** → M4: la expansión se agotó.
+2. Consolidó bajo **4600** (nivel psicológico) y lo rompió al alza con fuerza,
+   dejando un imbalance y creando un rango alcista de 1H → M5.
+3. Retrocedió a ese imbalance barriendo la liquidez interna del nuevo rango y
+   llegando al **61.8% de descuento** → M1 (una vez el tramo gira, v1.5).
+4. En 1m: manipulación a la baja, barrido de liquidez, e **iFVG** (invalidación
+   de los imbalances bajistas) → confirmación y entrada.
+5. SL bajo el low estructural. TPs en −14.6 / −27.2 / −41.4%, con los **altos
+   iguales** de Nueva York confluyendo sobre el −14.6%.
 
 **Cómo combinarlos** (input "Cómo combinar los modelos"):
 - *Basta con uno* (por defecto): cualquier modelo activo que se cumpla da
