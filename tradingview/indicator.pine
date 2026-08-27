@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.4)
+// Wealth Genesis — Señales SMC Oro (v1.5)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.4]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.5]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -89,6 +89,9 @@ intLen   = input.int(3, "Fuerza swings INTERNOS", minval = 1, group = grpR)
 useLegDir = input.bool(true, "Solo operar a favor del tramo", group = grpR, tooltip = "Tramo bajista (high→low) → solo ventas en premium. Tramo alcista (low→high) → solo compras en descuento.")
 showRange = input.bool(false, "Mostrar niveles del rango (calibración)", group = grpR, tooltip = "Dibuja el 100% y el 0% del tramo detectado para compararlos con tu fib manual. Apágalo cuando ya coincidan.")
 noRepaint = input.bool(true, "Sin repintado (tramo ya cerrado)", group = grpR, tooltip = "Usa el tramo de la vela CERRADA de la temporalidad mayor. Las señales quedan fijas: al recargar el gráfico salen en el mismo sitio y con el mismo SL. Desactívalo solo si quieres la reacción más inmediata a costa de que las señales se muevan.")
+useBOS    = input.bool(true, "Girar el tramo al QUIEBRE de estructura", group = grpR, tooltip = "Sin esto, el tramo solo gira cuando se confirma un pivote — 5 velas de retraso (en 1H son 5 horas). Con esto, el tramo gira en cuanto el precio rompe el último swing CON FUERZA, que es como se lee en vivo.")
+bosLen    = input.int(2, "Fuerza del swing que se rompe", minval = 1, maxval = 6, group = grpR)
+dispMult  = input.float(1.5, "Desplazamiento mínimo (× ATR)", minval = 0.5, step = 0.1, group = grpR, tooltip = "El rompimiento debe venir con una vela grande o dejando imbalance. Así no gira con cualquier retroceso menor.")
 
 // EL TRAMO (impulso): los DOS últimos pivotes consecutivos de la temporalidad
 // mayor — high→low o low→high. Es exactamente lo que se marca al tirar el fib
@@ -116,6 +119,40 @@ f_leg(_len) =>
             p0 := p1
             p1 := pl
             p1High := false
+
+    // --- QUIEBRE DE ESTRUCTURA CON DESPLAZAMIENTO -----------------------------
+    // Esperar a que se confirme un pivote cuesta _len velas a cada lado: en 1H,
+    // cinco horas. Cuando el precio rompe el último swing CON FUERZA (vela
+    // grande o dejando imbalance), la estructura ya giró — así se lee en vivo.
+    // Sin este bloque, el 26-ago el tramo de 1H seguía marcado bajista mientras
+    // el precio ya construía el rango alcista sobre 4600, y la compra no salía.
+    sh = ta.pivothigh(bosLen, bosLen)
+    sl2 = ta.pivotlow(bosLen, bosLen)
+    var float lastSH = na
+    var float lastSL = na
+    if not na(sh)
+        lastSH := sh
+    if not na(sl2)
+        lastSL := sl2
+    atrLeg   = ta.atr(14)
+    bullDisp = close > open and ((high - low) > atrLeg * dispMult or low > high[2])
+    bearDisp = close < open and ((high - low) > atrLeg * dispMult or high < low[2])
+    if useBOS and not na(p1)
+        if not p1High and not na(lastSH) and close > lastSH and bullDisp
+            p0 := p1          // el low que se dejó atrás pasa a ser el origen
+            p1 := high        // el extremo del nuevo tramo alcista
+            p1High := true
+        else if p1High and not na(lastSL) and close < lastSL and bearDisp
+            p0 := p1
+            p1 := low
+            p1High := false
+    // el extremo del tramo vivo sigue al precio
+    if not na(p1)
+        if p1High and high > p1
+            p1 := high
+        else if not p1High and low < p1
+            p1 := low
+
     rh = na(p0) or na(p1) ? na : math.max(p0, p1)
     rl = na(p0) or na(p1) ? na : math.min(p0, p1)
     // Tramo bajista = el último pivote es un low (el precio vino de un high)
@@ -230,6 +267,20 @@ if not na(plI)
 eqTol  = input.float(1.5, "Tolerancia highs/lows iguales (puntos)", minval = 0.0, step = 0.1, group = grpR)
 eqHigh = not na(intHigh) and not na(intHighPrev) and math.abs(intHigh - intHighPrev) <= eqTol ? math.max(intHigh, intHighPrev) : na
 eqLow  = not na(intLow) and not na(intLowPrev) and math.abs(intLow - intLowPrev) <= eqTol ? math.min(intLow, intLowPrev) : na
+
+// Histórico de bolsas de liquidez: los altos/bajos iguales son liquidez, y
+// cuando coinciden con un nivel de expansión del fib marcan el mejor punto de
+// salida (26-ago: los altos iguales de Nueva York cayeron sobre el -14.6%).
+var array<float> eqHighs = array.new<float>()
+var array<float> eqLows  = array.new<float>()
+if not na(eqHigh) and (array.size(eqHighs) == 0 or array.get(eqHighs, array.size(eqHighs) - 1) != eqHigh)
+    array.push(eqHighs, eqHigh)
+    if array.size(eqHighs) > 25
+        array.shift(eqHighs)
+if not na(eqLow) and (array.size(eqLows) == 0 or array.get(eqLows, array.size(eqLows) - 1) != eqLow)
+    array.push(eqLows, eqLow)
+    if array.size(eqLows) > 25
+        array.shift(eqLows)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 4) FIBONACCI — zona de retroceso (premium/descuento) sobre el rango
@@ -449,11 +500,32 @@ rr4      = input.float(4.0, "TP4 (R, si modo fijo)", minval = 0.5, step = 0.5, g
 minRR    = input.float(1.0, "RR mínimo hasta la liquidez externa", minval = 0.1, step = 0.1, group = grpG)
 slMode   = input.string("Extremo de la manipulación", "Colocación del stop loss", options = ["Extremo de la vela de señal", "Extremo de la manipulación", "Retroceso máximo del fib"], group = grpG, tooltip = "Extremo de la manipulación = el high/low más extremo desde la manipulación hasta la señal (cubre toda la mecha del barrido). Retroceso máximo del fib = detrás del 88.6%")
 slBuffer = input.float(0.5, "Margen extra del SL (puntos)", minval = 0.0, step = 0.1, group = grpG)
+snapLiq  = input.bool(true, "Ajustar TPs a la liquidez cercana", group = grpG, tooltip = "Si hay altos/bajos iguales (liquidez) cerca de un nivel de expansión, el TP se coloca justo antes de esa liquidez. Los altos iguales sobre el -14.6% del 26-ago son el ejemplo.")
+snapTol  = input.float(3.0, "Distancia máx. para ajustar (puntos)", minval = 0.1, step = 0.1, group = grpG)
+snapBuf  = input.float(0.3, "Margen antes de la liquidez (puntos)", minval = 0.0, step = 0.1, group = grpG)
 tpExtMode = tpMode == "Liquidez externa + extensiones fib"
 
 // Extremos del tramo manipulación→señal (ventana de confirmación)
 manipHigh = ta.highest(high, manipWindow + 1)
 manipLow  = ta.lowest(low, manipWindow + 1)
+
+// Ajuste del TP a la liquidez: si hay altos/bajos iguales cerca del nivel de
+// expansión, se sale justo antes de esa bolsa de liquidez.
+f_snapTP(_tp, _isLong) =>
+    res = _tp
+    if snapLiq and not na(_tp)
+        arr = _isLong ? eqHighs : eqLows
+        float best = na
+        bestD = snapTol
+        if array.size(arr) > 0
+            for v in arr
+                d = math.abs(v - _tp)
+                if d <= bestD
+                    bestD := d
+                    best := v
+        if not na(best)
+            res := _isLong ? best - snapBuf : best + snapBuf
+    res
 
 f_slLong() =>
     base = slMode == "Extremo de la manipulación" ? manipLow : slMode == "Retroceso máximo del fib" and not na(rangeSize) ? fibBotLong : low
@@ -535,13 +607,13 @@ if longCandidate and dirNow == 0
         array.clear(tps)
         if tpExtMode
             // TP1 = liquidez externa (0% del fib); TP2..TP4 = extensiones del rango
-            array.push(tps, rangeHigh)
+            array.push(tps, f_snapTP(rangeHigh, true))
             if numTPs >= 2
-                array.push(tps, rangeHigh + rangeSize * ext1)
+                array.push(tps, f_snapTP(rangeHigh + rangeSize * ext1, true))
             if numTPs >= 3
-                array.push(tps, rangeHigh + rangeSize * ext2)
+                array.push(tps, f_snapTP(rangeHigh + rangeSize * ext2, true))
             if numTPs == 4
-                array.push(tps, rangeHigh + rangeSize * ext3)
+                array.push(tps, f_snapTP(rangeHigh + rangeSize * ext3, true))
         else
             array.push(tps, e + risk * rr1)
             if numTPs >= 2
@@ -574,13 +646,13 @@ if shortCandidate and dirNow == 0 and not newLong
         array.clear(tps)
         if tpExtMode
             // TP1 = liquidez externa (0% del fib); TP2..TP4 = extensiones del rango
-            array.push(tps, rangeLow)
+            array.push(tps, f_snapTP(rangeLow, false))
             if numTPs >= 2
-                array.push(tps, rangeLow - rangeSize * ext1)
+                array.push(tps, f_snapTP(rangeLow - rangeSize * ext1, false))
             if numTPs >= 3
-                array.push(tps, rangeLow - rangeSize * ext2)
+                array.push(tps, f_snapTP(rangeLow - rangeSize * ext2, false))
             if numTPs == 4
-                array.push(tps, rangeLow - rangeSize * ext3)
+                array.push(tps, f_snapTP(rangeLow - rangeSize * ext3, false))
         else
             array.push(tps, e - risk * rr1)
             if numTPs >= 2

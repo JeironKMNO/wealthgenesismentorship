@@ -1,6 +1,6 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v1.4** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v1.5** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
@@ -59,6 +59,7 @@ y de control de calidad: cada versión debe seguir marcando los ✅.
 | 25-ago-2026 | XAUUSD 5m | Manipulación → confirmación en zona fib | ✅ 1:3 corriendo | Modelo correcto; SL demasiado ajustado. → v0.8 SL al extremo de la manipulación |
 | 25-ago-2026 | XAUUSD 5m | TPs desplazados respecto al fib manual | Niveles incorrectos | Rango tomado de pivotes no consecutivos. → v1.0 tramo real (dos pivotes seguidos) |
 | **26-ago-2026** | **XAUUSD 5m** | **Venta en premium del tramo bajista → expansión completa** | **✅ TP1 + TP2** | **Trade modelo: entrada en zona fib, salida en 0% y −14.6%. Cumplió todo lo requerido.** |
+| 26-ago-2026 | XAUUSD 1m (Asia) | Compra: giro alcista sobre 4600, retroceso al 61.8% + iFVG | Señal NO marcada | El tramo de 1H seguía marcado bajista: los pivotes tardan 5 velas en confirmarse (5 h en 1H). → v1.5 gira el tramo al **quiebre de estructura con desplazamiento** |
 
 ---
 
@@ -193,6 +194,23 @@ El panel del gráfico muestra la cadena completa de arriba abajo:
 
 - Los imbalances se tratan como liquidez: zona de entrada cuando el precio
   los tapa a favor del sesgo, y quedan invalidados cuando se rellenan por completo.
+
+## 3b. Liquidez como objetivo — altos/bajos iguales ✅
+
+> **Altos iguales o bajos iguales = liquidez.** Cuando esa liquidez coincide con
+> un nivel de expansión del fib, ese es el punto de salida óptimo.
+
+Caso 26-ago (Asia→NY): los altos iguales creados en la sesión de Nueva York
+caían justo sobre el **−14.60%**. Doble razón para salir ahí: nivel de expansión
++ bolsa de liquidez que el precio va a buscar y donde suele reaccionar.
+
+**Implementado (v1.5)** — "Ajustar TPs a la liquidez cercana" (activado):
+si hay altos/bajos iguales dentro de la distancia configurada (3 puntos por
+defecto) de un nivel de expansión, el TP se mueve a **justo antes** de esa
+liquidez (margen de 0.3 puntos). Se sale antes que la multitud, no dentro de
+la bolsa.
+
+---
 
 ## 4. Stop Loss ✅🔧
 
