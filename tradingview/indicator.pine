@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.6)
+// Wealth Genesis — Señales SMC Oro (v1.7)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.6]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.7]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -42,6 +42,7 @@ grpJ = "Registro de operaciones"
 showStats = input.bool(true,  "Mostrar estadísticas", group = grpJ, tooltip = "Aciertos, profit factor, R neto y drawdown de todas las señales del gráfico, con desglose por modelo.")
 showLog   = input.bool(true,  "Mostrar últimas operaciones", group = grpJ, tooltip = "Historial con fecha, dirección, modelo que la produjo, cómo cerró y su resultado en R.")
 statsPos  = input.string("Abajo derecha", "Posición de los paneles", options = ["Abajo derecha", "Abajo izquierda", "Arriba izquierda"], group = grpJ)
+showDiag  = input.bool(true, "Mostrar diagnóstico de condiciones", group = grpJ, tooltip = "Muestra, para compras y ventas, qué condición se cumple y cuál está bloqueando la señal en la vela actual. Imprescindible para entender por qué NO salió una entrada que tú sí veías.")
 
 inNY      = useNY and not na(time(timeframe.period, sessNY, tzNY))
 inAsia    = useAsia and not na(time(timeframe.period, sessAsia, tzNY))
@@ -57,7 +58,7 @@ if timeframe.change("D")
 grpH = "Sesgo (temporalidad mayor)"
 htfTF       = input.timeframe("60", "Temporalidad del sesgo", group = grpH, tooltip = "60 = 1H, 240 = 4H")
 htfPivotLen = input.int(5, "Fuerza de swings HTF", minval = 2, group = grpH)
-requireBias = input.bool(true, "Exigir sesgo a favor", group = grpH)
+requireBias = input.bool(false, "Exigir sesgo a favor (filtro extra)", group = grpH, tooltip = "APAGADO por defecto desde v1.7: la dirección ya la define el tramo estructural (M1). Este era un segundo criterio, más crudo, que discrepaba del tramo y bloqueaba señales válidas. Enciéndelo solo si quieres un filtro adicional.")
 
 f_bias(_len) =>
     ph = ta.pivothigh(_len, _len)
@@ -134,24 +135,37 @@ f_leg(_len) =>
         lastSH := sh
     if not na(sl2)
         lastSL := sl2
+
+    // SWING PROTEGIDO: en un tramo bajista es el último high ANTES del low
+    // actual. Solo romper ESE nivel es quiebre de estructura. Romper un pivote
+    // menor cualquiera es el retroceso normal — y precisamente el retroceso es
+    // cuando queremos entrar, no cuando debemos dar la vuelta al tramo.
+    var float protHigh = na
+    var float protLow  = na
     atrLeg   = ta.atr(14)
     bullDisp = close > open and ((high - low) > atrLeg * dispMult or low > high[2])
     bearDisp = close < open and ((high - low) > atrLeg * dispMult or high < low[2])
-    if useBOS and not na(p1)
-        if not p1High and not na(lastSH) and close > lastSH and bullDisp
-            p0 := p1          // el low que se dejó atrás pasa a ser el origen
-            p1 := high        // el extremo del nuevo tramo alcista
-            p1High := true
-        else if p1High and not na(lastSL) and close < lastSL and bearDisp
-            p0 := p1
-            p1 := low
-            p1High := false
-    // el extremo del tramo vivo sigue al precio
+
+    // el extremo del tramo vivo sigue al precio; al hacerlo, fija el swing protegido
     if not na(p1)
         if p1High and high > p1
             p1 := high
+            protLow := lastSL       // el low que sostiene este impulso alcista
         else if not p1High and low < p1
             p1 := low
+            protHigh := lastSH      // el high que sostiene este impulso bajista
+
+    if useBOS and not na(p1)
+        if not p1High and not na(protHigh) and close > protHigh and bullDisp
+            p0 := p1                // el low queda como origen del nuevo tramo
+            p1 := high
+            p1High := true
+            protLow := lastSL
+        else if p1High and not na(protLow) and close < protLow and bearDisp
+            p0 := p1
+            p1 := low
+            p1High := false
+            protHigh := lastSH
 
     rh = na(p0) or na(p1) ? na : math.max(p0, p1)
     rl = na(p0) or na(p1) ? na : math.min(p0, p1)
@@ -907,3 +921,58 @@ if barstate.islast and showLog
             txt = array.get(logRows, n - 1 - i)
             neg = str.contains(txt, "-") and not str.contains(txt, "+")
             table.cell(lg, 0, i + 1, txt, bgcolor = neg ? color.new(color.red, 65) : color.new(color.green, 65), text_color = color.white, text_size = size.tiny)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10) DIAGNÓSTICO — por qué NO hay señal
+//
+//    Cada fila es una compuerta que debe abrirse. La primera ✗ de una columna
+//    es lo que está bloqueando esa dirección en la vela actual.
+// ─────────────────────────────────────────────────────────────────────────────
+var table dg = table.new(position.middle_right, 3, 10, border_width = 1)
+if barstate.islast and showDiag
+    okC  = color.new(color.green, 45)
+    noC  = color.new(color.red, 45)
+    hdC  = color.new(color.gray, 25)
+    f_c(_b) => _b ? "✓" : "✗"
+    f_bg(_b) => _b ? okC : noC
+    table.cell(dg, 0, 0, "CONDICIÓN", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 1, 0, "COMPRA",    bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 0, "VENTA",     bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+
+    table.cell(dg, 0, 1, "Sesión operable", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 1, 1, f_c(inSession), bgcolor = f_bg(inSession), text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 1, f_c(inSession), bgcolor = f_bg(inSession), text_color = color.white, text_size = size.tiny)
+
+    table.cell(dg, 0, 2, "Dirección del tramo", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 1, 2, f_c(legOKLong),  bgcolor = f_bg(legOKLong),  text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 2, f_c(legOKShort), bgcolor = f_bg(legOKShort), text_color = color.white, text_size = size.tiny)
+
+    table.cell(dg, 0, 3, "Sesgo (si se exige)", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 1, 3, f_c(biasOKLong),  bgcolor = f_bg(biasOKLong),  text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 3, f_c(biasOKShort), bgcolor = f_bg(biasOKShort), text_color = color.white, text_size = size.tiny)
+
+    table.cell(dg, 0, 4, "Contexto (modelos)", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 1, 4, fractalLong  ? f_models(true)  : "✗", bgcolor = f_bg(fractalLong),  text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 4, fractalShort ? f_models(false) : "✗", bgcolor = f_bg(fractalShort), text_color = color.white, text_size = size.tiny)
+
+    table.cell(dg, 0, 5, "Zona fib del tramo", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 1, 5, f_c(inFibLong),  bgcolor = f_bg(inFibLong),  text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 5, f_c(inFibShort), bgcolor = f_bg(inFibShort), text_color = color.white, text_size = size.tiny)
+
+    table.cell(dg, 0, 6, "Manipulación reciente", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 1, 6, f_c(manipRecentLong),  bgcolor = f_bg(manipRecentLong),  text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 6, f_c(manipRecentShort), bgcolor = f_bg(manipRecentShort), text_color = color.white, text_size = size.tiny)
+
+    table.cell(dg, 0, 7, "Confirmación " + (ltfValid ? ltfTF : timeframe.period), bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 1, 7, f_c(confirmLong),  bgcolor = f_bg(confirmLong),  text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 7, f_c(confirmShort), bgcolor = f_bg(confirmShort), text_color = color.white, text_size = size.tiny)
+
+    table.cell(dg, 0, 8, "Cupo diario (" + str.tostring(signalsToday) + "/" + str.tostring(maxPerDay) + ")", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    cupo = signalsToday < maxPerDay
+    table.cell(dg, 1, 8, f_c(cupo), bgcolor = f_bg(cupo), text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 8, f_c(cupo), bgcolor = f_bg(cupo), text_color = color.white, text_size = size.tiny)
+
+    table.cell(dg, 0, 9, "Sin operación abierta", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    libre = dirNow == 0
+    table.cell(dg, 1, 9, f_c(libre), bgcolor = f_bg(libre), text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 9, f_c(libre), bgcolor = f_bg(libre), text_color = color.white, text_size = size.tiny)

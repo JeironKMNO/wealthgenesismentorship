@@ -1,6 +1,6 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v1.6** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v1.7** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
@@ -60,6 +60,38 @@ y de control de calidad: cada versión debe seguir marcando los ✅.
 | 25-ago-2026 | XAUUSD 5m | TPs desplazados respecto al fib manual | Niveles incorrectos | Rango tomado de pivotes no consecutivos. → v1.0 tramo real (dos pivotes seguidos) |
 | **26-ago-2026** | **XAUUSD 5m** | **Venta en premium del tramo bajista → expansión completa** | **✅ TP1 + TP2** | **Trade modelo: entrada en zona fib, salida en 0% y −14.6%. Cumplió todo lo requerido.** |
 | 26-ago-2026 | XAUUSD 1m (Asia) | Compra: giro alcista sobre 4600, retroceso al 61.8% + iFVG | Señal NO marcada | El tramo de 1H seguía marcado bajista: los pivotes tardan 5 velas en confirmarse (5 h en 1H). → v1.5 gira el tramo al **quiebre de estructura con desplazamiento** |
+
+---
+
+## Diagnóstico — por qué no sale una señal (v1.7)
+
+El panel de diagnóstico (centro derecha, activado) muestra cada compuerta para
+compras y ventas. **La primera ✗ de una columna es lo que bloquea esa dirección.**
+
+| Compuerta | Si sale ✗ |
+|---|---|
+| Sesión operable | Fuera de NY/Asia. Ajusta horarios o desactiva el filtro. |
+| Dirección del tramo | El tramo va al revés. Compara con tu lectura; si discrepa, ajusta `Fuerza swings EXTERNOS` o la TF del rango. |
+| Sesgo (si se exige) | Filtro extra; **apagado por defecto desde v1.7**. |
+| Contexto (modelos) | Ningún modelo activo se cumple. Muestra cuáles sí cuando pasa. |
+| Zona fib del tramo | El precio no está en el 61.8–88.6%. |
+| Manipulación reciente | No hubo barrido de liquidez en las últimas N velas. |
+| Confirmación | En la TF menor no apareció envolvente / CHoCH / imbalance / iFVG. |
+| Cupo diario | Se agotaron las señales del día. |
+| Sin operación abierta | Ya hay un setup vivo; solo uno a la vez. |
+
+### Dos causas de bloqueo corregidas en v1.7
+
+1. **Sesgo duplicado.** Había dos definiciones de dirección compitiendo: el
+   `htfBias` (rotura de swing, criterio crudo) y el tramo estructural de M1.
+   Cuando discrepaban, la señal moría sin motivo real. El filtro de sesgo pasa
+   a estar **apagado por defecto**: la dirección la define el tramo.
+2. **El BOS giraba con el retroceso.** La v1.5 giraba el tramo al romper
+   *cualquier* pivote menor — pero el retroceso hacia la zona de entrada rompe
+   pivotes menores todo el tiempo. Resultado: el tramo se daba la vuelta justo
+   cuando íbamos a entrar, y la señal desaparecía. Ahora solo cuenta romper el
+   **swing protegido** (el high que sostiene el impulso bajista, o el low que
+   sostiene el alcista), que es el quiebre de estructura de verdad.
 
 ---
 
