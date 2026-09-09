@@ -1,6 +1,6 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v1.8** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v1.9** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
@@ -258,24 +258,25 @@ la bolsa.
 
 ---
 
-## 3c. Dibujo de la operación ✅ (v1.8)
+## 3c. Dibujo de la operación ✅ (v1.9)
 
-Cada nivel se representa con una **línea horizontal en su precio exacto**:
+Cada señal se dibuja como la **herramienta de posición de TradingView**:
 
-| Nivel | Trazo | Color |
-|---|---|---|
-| Entrada | discontinua | gris (configurable) |
-| Stop loss | continua | rojo |
-| Take profits | continua | verde |
+- **Caja roja** de la entrada al stop loss (lo que se arriesga).
+- **Caja verde** de la entrada al último take profit (lo que se busca).
+- **Líneas horizontales** en cada nivel: entrada (discontinua), SL y TPs (continuas).
+- **Etiquetas con nombre y precio**: `ENTRADA 4602.14`, `STOP LOSS 4595.00`,
+  `TAKE PROFIT 1 4620.00`…
+- **Ratio riesgo/beneficio** en el centro: `COMPRA · R:R 1:5.14`.
 
-Por defecto son **rayos extendidos a la derecha**, para que el nivel se lea con
-precisión desde la propia vela de la señal (antes nacían en la vela de entrada y
-solo llegaban a la siguiente, con lo que al principio eran casi invisibles).
-Alternativa: "Hasta la vela actual", si se prefiere que solo acompañen al precio.
+**Al cerrarse la operación** (input "Al cerrarse la operación"):
+- *Mantener el historial* (por defecto): el dibujo queda congelado como registro
+  visual de la operación — se puede repasar el histórico y ver los niveles exactos.
+- *Borrar (gráfico limpio)*: solo quedan la flecha y las marcas ✔ TP / ✘ SL.
 
-Grosor, colores y etiquetas de precio son configurables en el grupo
-**"Dibujo de la operación"**. Al cerrarse la operación, las líneas se borran y
-solo queda el rastro (flecha BUY/SELL y marcas ✔ TP / ✘ SL).
+Ancho del dibujo, grosor, colores, etiquetas y R:R son configurables en el grupo
+**"Dibujo de la operación"**. Si la operación dura más que el ancho fijado, el
+dibujo se alarga solo.
 
 ---
 
