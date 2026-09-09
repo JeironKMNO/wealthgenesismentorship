@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.7.1)
+// Wealth Genesis — Señales SMC Oro (v1.8)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.7.1]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.8]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -43,6 +43,14 @@ showStats = input.bool(true,  "Mostrar estadísticas", group = grpJ, tooltip = "
 showLog   = input.bool(true,  "Mostrar últimas operaciones", group = grpJ, tooltip = "Historial con fecha, dirección, modelo que la produjo, cómo cerró y su resultado en R.")
 statsPos  = input.string("Abajo derecha", "Posición de los paneles", options = ["Abajo derecha", "Abajo izquierda", "Arriba izquierda"], group = grpJ)
 showDiag  = input.bool(true, "Mostrar diagnóstico de condiciones", group = grpJ, tooltip = "Muestra, para compras y ventas, qué condición se cumple y cuál está bloqueando la señal en la vela actual. Imprescindible para entender por qué NO salió una entrada que tú sí veías.")
+
+grpD = "Dibujo de la operación"
+lineMode   = input.string("Extendidas a la derecha", "Líneas de entrada / SL / TP", options = ["Extendidas a la derecha", "Hasta la vela actual"], group = grpD, tooltip = "Extendidas: líneas horizontales que cruzan el gráfico desde la señal — el nivel se lee con precisión desde el primer momento. Hasta la vela actual: solo acompañan al precio.")
+lineW      = input.int(2, "Grosor de las líneas", minval = 1, maxval = 4, group = grpD)
+showPxLbl  = input.bool(true, "Etiquetas con el precio", group = grpD)
+colEntry   = input.color(color.new(color.gray, 0),  "Color · Entrada", group = grpD)
+colSL      = input.color(color.new(color.red, 0),   "Color · Stop loss", group = grpD)
+colTP      = input.color(color.new(color.green, 0), "Color · Take profit", group = grpD)
 
 inNY      = useNY and not na(time(timeframe.period, sessNY, tzNY))
 inAsia    = useAsia and not na(time(timeframe.period, sessAsia, tzNY))
@@ -639,16 +647,27 @@ f_clearLevels() =>
     while array.size(actLabels) > 0
         label.delete(array.pop(actLabels))
 
+// Cada nivel de la operación se dibuja como una LÍNEA HORIZONTAL en su precio
+// exacto: entrada (discontinua), stop loss y take profits (continuas). En modo
+// "Extendidas a la derecha" son rayos, así el nivel se lee con precisión desde
+// la propia vela de la señal.
 f_drawLevels() =>
-    array.push(actLines, line.new(bar_index, entryPx, bar_index + 1, entryPx, color = color.gray, width = 2))
-    array.push(actLines, line.new(bar_index, slPx, bar_index + 1, slPx, color = color.red, width = 2))
-    array.push(actLabels, label.new(bar_index + 1, entryPx, "Entrada " + str.tostring(entryPx, format.mintick), style = label.style_label_left, color = color.new(color.gray, 70), textcolor = chart.fg_color, size = size.small))
-    array.push(actLabels, label.new(bar_index + 1, slPx, "SL " + str.tostring(slPx, format.mintick), style = label.style_label_left, color = color.new(color.red, 70), textcolor = chart.fg_color, size = size.small))
+    ext = lineMode == "Extendidas a la derecha" ? extend.right : extend.none
+    x2  = bar_index + 1
+    // Entrada
+    array.push(actLines, line.new(bar_index, entryPx, x2, entryPx, color = colEntry, width = lineW, style = line.style_dashed, extend = ext))
+    // Stop loss
+    array.push(actLines, line.new(bar_index, slPx, x2, slPx, color = colSL, width = lineW, style = line.style_solid, extend = ext))
+    if showPxLbl
+        array.push(actLabels, label.new(x2, entryPx, "Entrada " + str.tostring(entryPx, format.mintick), style = label.style_label_left, color = color.new(colEntry, 70), textcolor = chart.fg_color, size = size.small))
+        array.push(actLabels, label.new(x2, slPx, "SL " + str.tostring(slPx, format.mintick), style = label.style_label_left, color = color.new(colSL, 70), textcolor = chart.fg_color, size = size.small))
+    // Take profits
     if array.size(tps) > 0
         for i = 0 to array.size(tps) - 1
             tpv = array.get(tps, i)
-            array.push(actLines, line.new(bar_index, tpv, bar_index + 1, tpv, color = color.green, width = 2))
-            array.push(actLabels, label.new(bar_index + 1, tpv, "TP" + str.tostring(i + 1) + " " + str.tostring(tpv, format.mintick), style = label.style_label_left, color = color.new(color.green, 70), textcolor = chart.fg_color, size = size.small))
+            array.push(actLines, line.new(bar_index, tpv, x2, tpv, color = colTP, width = lineW, style = line.style_solid, extend = ext))
+            if showPxLbl
+                array.push(actLabels, label.new(x2, tpv, "TP" + str.tostring(i + 1) + " " + str.tostring(tpv, format.mintick), style = label.style_label_left, color = color.new(colTP, 70), textcolor = chart.fg_color, size = size.small))
 
 f_tpString() =>
     s = ""
@@ -742,9 +761,11 @@ if shortCandidate and dirNow == 0 and not newLong
         newShort := true
         f_drawLevels()
 
-// Mientras la operación siga viva, las líneas y etiquetas acompañan al precio
+// Mientras la operación siga viva, las líneas y etiquetas acompañan al precio.
+// Con las líneas extendidas a la derecha no hace falta alargarlas: ya son rayos,
+// pero las etiquetas sí siguen al precio para no quedarse atrás.
 if dirNow != 0
-    if array.size(actLines) > 0
+    if lineMode != "Extendidas a la derecha" and array.size(actLines) > 0
         for ln in actLines
             line.set_x2(ln, bar_index + 1)
     if array.size(actLabels) > 0

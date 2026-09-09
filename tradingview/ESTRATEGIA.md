@@ -1,6 +1,6 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v1.7** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v1.8** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
@@ -255,6 +255,27 @@ si hay altos/bajos iguales dentro de la distancia configurada (3 puntos por
 defecto) de un nivel de expansión, el TP se mueve a **justo antes** de esa
 liquidez (margen de 0.3 puntos). Se sale antes que la multitud, no dentro de
 la bolsa.
+
+---
+
+## 3c. Dibujo de la operación ✅ (v1.8)
+
+Cada nivel se representa con una **línea horizontal en su precio exacto**:
+
+| Nivel | Trazo | Color |
+|---|---|---|
+| Entrada | discontinua | gris (configurable) |
+| Stop loss | continua | rojo |
+| Take profits | continua | verde |
+
+Por defecto son **rayos extendidos a la derecha**, para que el nivel se lea con
+precisión desde la propia vela de la señal (antes nacían en la vela de entrada y
+solo llegaban a la siguiente, con lo que al principio eran casi invisibles).
+Alternativa: "Hasta la vela actual", si se prefiere que solo acompañen al precio.
+
+Grosor, colores y etiquetas de precio son configurables en el grupo
+**"Dibujo de la operación"**. Al cerrarse la operación, las líneas se borran y
+solo queda el rastro (flecha BUY/SELL y marcas ✔ TP / ✘ SL).
 
 ---
 
