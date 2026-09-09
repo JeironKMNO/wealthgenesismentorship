@@ -1,6 +1,6 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v1.10** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v2.0** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
@@ -92,6 +92,37 @@ compras y ventas. **La primera ✗ de una columna es lo que bloquea esa direcci�
    cuando íbamos a entrar, y la señal desaparecía. Ahora solo cuenta romper el
    **swing protegido** (el high que sostiene el impulso bajista, o el low que
    sostiene el alcista), que es el quiebre de estructura de verdad.
+
+---
+
+## Señal única, independiente del gráfico (v2.0)
+
+> **La misma entrada se ve igual en 1m, 5m, 15m, 30m o 1H.**
+
+Hasta la v1.10 la manipulación y la confirmación se calculaban sobre las velas
+**del gráfico**: al cambiar de 30m a 15m salía otra entrada, con otro stop y otro
+R:R. Eso hacía imposible operar con criterio.
+
+**Ahora** todo el modelo de entrada se evalúa en **temporalidades fijas** vía
+`request.security` — por defecto **15m, 5m y 1m** — sin importar en qué
+temporalidad esté el gráfico. El gráfico pasa a ser solo la ventana desde la que
+miras; la señal, su entrada, su stop y sus objetivos son los mismos siempre.
+
+**Si varias temporalidades dan señal a la vez** se elige UNA, según el criterio
+del input "Si varias dan señal a la vez":
+
+| Criterio | Qué elige |
+|---|---|
+| **Mejor riesgo/beneficio** (por defecto) | La entrada con más recorrido hasta la liquidez externa por unidad de riesgo — normalmente el stop más ajustado bien colocado |
+| Temporalidad mayor | Prioriza 15m sobre 5m sobre 1m (señales más lentas y amplias) |
+| Temporalidad menor | Prioriza 1m (entradas más finas, stops más pequeños) |
+
+La temporalidad que generó la señal aparece en la etiqueta del dibujo
+(`COMPRA 5 · R:R 1:5.14`), en la alerta (`🟢 COMPRA [M1+M4 · 5] XAUUSD …`) y en
+la bitácora, para poder medir después **qué temporalidad rinde mejor**.
+
+Las tres temporalidades son configurables y desactivables por separado en el
+grupo **"Ejecución (independiente del gráfico)"**.
 
 ---
 

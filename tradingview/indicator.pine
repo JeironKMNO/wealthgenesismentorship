@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.10)
+// Wealth Genesis — Señales SMC Oro (v2.0)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.10]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v2.0]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -471,8 +471,6 @@ tapFVGShort = f_scanFVG(bearFVG, false)
 // ─────────────────────────────────────────────────────────────────────────────
 grpC = "Confirmación"
 needConfirm = input.bool(true, "Exigir confirmación (zona ≠ entrada)", group = grpC, tooltip = "Si se desactiva, basta con la zona de interés. NO recomendado: es lo que produce entradas prematuras.")
-useLTF      = input.bool(true, "Confirmar en temporalidad MENOR", group = grpC, tooltip = "El modelo de entrada se busca en una temporalidad menor a la del gráfico (ej. gráfico 15m, confirmación en 1m)")
-ltfTF       = input.timeframe("1", "Temporalidad de confirmación", group = grpC, tooltip = "1 = 1m, 2 = 2m, 5 = 5m. Debe ser menor que la del gráfico; si no, se confirma en el propio gráfico")
 useEngulf   = input.bool(true, "· Vela envolvente", group = grpC)
 useChoch    = input.bool(true, "· Cambio de estructura (CHoCH)", group = grpC)
 useFVGconf  = input.bool(true, "· Nuevo imbalance a favor", group = grpC)
@@ -480,79 +478,192 @@ useInval    = input.bool(true, "· Invalidación de imbalance contrario", group 
 invLookback = input.int(15, "Velas para buscar imbalances contrarios", minval = 3, maxval = 40, group = grpC)
 manipWindow = input.int(5, "Velas máx. entre manipulación y confirmación", minval = 1, maxval = 20, group = grpC)
 
-// Manipulación: barrido de un swing interno, barrido de highs/lows iguales
-// (EQH/EQL) o tap de un imbalance
-sweepEqLow  = not na(eqLow) and low < eqLow and close > eqLow and (na(rangeLow) or low > rangeLow)
-sweepEqHigh = not na(eqHigh) and high > eqHigh and close < eqHigh and (na(rangeHigh) or high < rangeHigh)
-manipLong  = (not na(intLow) and low < intLow and close > intLow and (na(rangeLow) or low > rangeLow)) or sweepEqLow or tapFVGLong
-manipShort = (not na(intHigh) and high > intHigh and close < intHigh and (na(rangeHigh) or high < rangeHigh)) or sweepEqHigh or tapFVGShort
-manipRecentLong  = ta.barssince(manipLong) <= manipWindow
-manipRecentShort = ta.barssince(manipShort) <= manipWindow
+// ─────────────────────────────────────────────────────────────────────────────
+//  EJECUCIÓN ANCLADA A TEMPORALIDADES FIJAS
+//
+//  Antes, la manipulación y la confirmación se calculaban sobre las velas DEL
+//  GRÁFICO: al pasar de 30m a 15m o a 1H salía otra entrada, con otro stop.
+//  Ahora todo el modelo se evalúa en temporalidades FIJAS (15m / 5m / 1m) vía
+//  request.security, así la señal es idéntica mires el gráfico que mires.
+//  Si varias temporalidades dan señal a la vez, se elige UNA según el criterio
+//  configurado — por defecto la de mejor riesgo/beneficio.
+// ─────────────────────────────────────────────────────────────────────────────
+grpG = "Gestión"
+// Estas tres van aquí porque la sección de ejecución las necesita para
+// calcular el stop y el riesgo/beneficio de cada candidata.
+minRR    = input.float(1.0, "RR mínimo hasta la liquidez externa", minval = 0.1, step = 0.1, group = grpG)
+slMode   = input.string("Extremo de la manipulación", "Colocación del stop loss", options = ["Extremo de la vela de señal", "Extremo de la manipulación", "Retroceso máximo del fib"], group = grpG, tooltip = "Extremo de la manipulación = el high/low más extremo desde la manipulación hasta la señal (cubre toda la mecha del barrido). Retroceso máximo del fib = detrás del 88.6%")
+slBuffer = input.float(0.5, "Margen extra del SL (puntos)", minval = 0.0, step = 0.1, group = grpG)
 
-// --- Modelo de confirmación (se evalúa en la temporalidad menor o, si no
-//     procede, en la del propio gráfico). Devuelve [confirmaLargo, confirmaCorto]
-f_confirmModel() =>
-    engBull = close > open and close[1] < open[1] and close >= open[1] and open <= close[1]
-    engBear = close < open and close[1] > open[1] and close <= open[1] and open >= close[1]
-    fvgBull = low > high[2] and close > open
-    fvgBear = high < low[2] and close < open
-    // CHoCH: rotura del último swing menor
-    ph = ta.pivothigh(2, 2)
-    pl = ta.pivotlow(2, 2)
-    var float sh = na
-    var float sl = na
+grpE = "Ejecución (independiente del gráfico)"
+useE1 = input.bool(true,  "Evaluar temporalidad A", group = grpE)
+e1TF  = input.timeframe("15", "· A", group = grpE)
+useE2 = input.bool(true,  "Evaluar temporalidad B", group = grpE)
+e2TF  = input.timeframe("5",  "· B", group = grpE)
+useE3 = input.bool(true,  "Evaluar temporalidad C", group = grpE)
+e3TF  = input.timeframe("1",  "· C", group = grpE)
+pickMode = input.string("Mejor riesgo/beneficio", "Si varias dan señal a la vez", options = ["Mejor riesgo/beneficio", "Temporalidad mayor", "Temporalidad menor"], group = grpE, tooltip = "Mejor riesgo/beneficio: se toma la entrada con mayor recorrido hasta la liquidez externa por unidad de riesgo — normalmente la del stop más ajustado bien colocado.")
+
+// Modelo completo evaluado DENTRO de una temporalidad fija. Devuelve la última
+// señal "latcheada" (con su hora y sus precios), para que el gráfico pueda
+// leerla aunque esté en una temporalidad mayor y no la haya visto formarse.
+f_exec() =>
+    // --- swings internos y bolsas de liquidez (altos/bajos iguales)
+    ph = ta.pivothigh(intLen, intLen)
+    pl = ta.pivotlow(intLen, intLen)
+    var float iHigh  = na
+    var float iLow   = na
+    var float iHighP = na
+    var float iLowP  = na
     if not na(ph)
-        sh := ph
+        iHighP := iHigh
+        iHigh  := ph
     if not na(pl)
-        sl := pl
-    chBull = not na(sh) and close > sh and close[1] <= sh
-    chBear = not na(sl) and close < sl and close[1] >= sl
-    // Invalidación de imbalances contrarios: el precio cierra atravesando un
-    // FVG del bando opuesto → ese lado perdió el control
-    invalBull = false   // se invalidó un FVG alcista → presión bajista
-    invalBear = false   // se invalidó un FVG bajista → presión alcista
+        iLowP := iLow
+        iLow  := pl
+    eqH = not na(iHigh) and not na(iHighP) and math.abs(iHigh - iHighP) <= eqTol ? math.max(iHigh, iHighP) : na
+    eqL = not na(iLow)  and not na(iLowP)  and math.abs(iLow  - iLowP)  <= eqTol ? math.min(iLow,  iLowP)  : na
+    // --- imbalance vigente (el último sin mitigar de cada bando)
+    var float bT = na
+    var float bB = na
+    var float sT = na
+    var float sB = na
+    if low > high[2]
+        bT := low
+        bB := high[2]
+    if high < low[2]
+        sT := low[2]
+        sB := high
+    if not na(bB) and close < bB
+        bT := na
+        bB := na
+    if not na(sT) and close > sT
+        sT := na
+        sB := na
+    tapBull = not na(bT) and low <= bT and close > bB
+    tapBear = not na(sT) and high >= sB and close < sT
+    // --- manipulación: barrido de swing interno, de altos/bajos iguales, o tap de imbalance
+    mL = (not na(iLow)  and low  < iLow  and close > iLow)  or (not na(eqL) and low  < eqL and close > eqL) or tapBull
+    mS = (not na(iHigh) and high > iHigh and close < iHigh) or (not na(eqH) and high > eqH and close < eqH) or tapBear
+    mRecL = ta.barssince(mL) <= manipWindow
+    mRecS = ta.barssince(mS) <= manipWindow
+    // --- confirmación: envolvente / CHoCH / imbalance a favor / iFVG
+    engB = close > open and close[1] < open[1] and close >= open[1] and open <= close[1]
+    engS = close < open and close[1] > open[1] and close <= open[1] and open >= close[1]
+    fvgB = low > high[2] and close > open
+    fvgS = high < low[2] and close < open
+    sph = ta.pivothigh(2, 2)
+    spl = ta.pivotlow(2, 2)
+    var float lsh = na
+    var float lsl = na
+    if not na(sph)
+        lsh := sph
+    if not na(spl)
+        lsl := spl
+    chB = not na(lsh) and close > lsh and close[1] <= lsh
+    chS = not na(lsl) and close < lsl and close[1] >= lsl
+    invB = false
+    invS = false
     for i = 1 to invLookback
         if low[i] > high[i + 2] and close < high[i + 2]
-            invalBull := true
+            invB := true
         if high[i] < low[i + 2] and close > low[i + 2]
-            invalBear := true
-    cLong  = (useEngulf and engBull) or (useChoch and chBull) or (useFVGconf and fvgBull) or (useInval and invalBear)
-    cShort = (useEngulf and engBear) or (useChoch and chBear) or (useFVGconf and fvgBear) or (useInval and invalBull)
-    [cLong, cShort]
+            invS := true
+    cL = (useEngulf and engB) or (useChoch and chB) or (useFVGconf and fvgB) or (useInval and invS)
+    cS = (useEngulf and engS) or (useChoch and chS) or (useFVGconf and fvgS) or (useInval and invB)
+    // --- señal cruda y latcheo de sus precios
+    rawL = mRecL and (not needConfirm or cL)
+    rawS = mRecS and (not needConfirm or cS)
+    var int   tL = 0
+    var float pcL = na
+    var float plL = na
+    var float pmL = na
+    var int   tS = 0
+    var float pcS = na
+    var float phS = na
+    var float pmS = na
+    if rawL and barstate.isconfirmed
+        tL  := time
+        pcL := close
+        plL := low
+        pmL := ta.lowest(low, manipWindow + 1)
+    if rawS and barstate.isconfirmed
+        tS  := time
+        pcS := close
+        phS := high
+        pmS := ta.highest(high, manipWindow + 1)
+    [tL, pcL, plL, pmL, tS, pcS, phS, pmS]
 
-f_anyTrue(_arr) =>
-    r = false
-    if not na(_arr) and array.size(_arr) > 0
-        for v in _arr
-            if v
-                r := true
-    r
+[t1L, c1L, l1L, m1L, t1S, c1S, h1S, m1S] = request.security(syminfo.tickerid, e1TF, f_exec(), lookahead = barmerge.lookahead_off)
+[t2L, c2L, l2L, m2L, t2S, c2S, h2S, m2S] = request.security(syminfo.tickerid, e2TF, f_exec(), lookahead = barmerge.lookahead_off)
+[t3L, c3L, l3L, m3L, t3S, c3S, h3S, m3S] = request.security(syminfo.tickerid, e3TF, f_exec(), lookahead = barmerge.lookahead_off)
 
-// Solo se puede confirmar en temporalidad menor si realmente es menor que la
-// del gráfico; si no, el modelo se busca en el propio gráfico.
-ltfValid = useLTF and timeframe.in_seconds(ltfTF) < timeframe.in_seconds(timeframe.period)
+// Filtros de contexto (iguales para todas las temporalidades: dependen del
+// tramo, del fib y de los modelos, no de las velas del gráfico)
+ctxLong  = legOKLong  and biasOKLong  and fractalLong  and allowLongs  and inSession
+ctxShort = legOKShort and biasOKShort and fractalShort and allowShorts and inSession
 
-[cLongChart, cShortChart] = f_confirmModel()
-[cLongArr, cShortArr] = request.security_lower_tf(syminfo.tickerid, ltfValid ? ltfTF : timeframe.period, f_confirmModel())
+// Evalúa una candidata: ¿está en la zona fib? ¿qué stop y qué R:R tendría?
+f_evalLong(_t, _c, _l, _m, _on) =>
+    okZone = not useFib or (not na(rangeSize) and _l <= fibTopLong and _c >= fibBotLong)
+    sl = slMode == "Extremo de la manipulación" ? _m - slBuffer : slMode == "Retroceso máximo del fib" and not na(rangeSize) ? fibBotLong - slBuffer : _l - slBuffer
+    risk = _c - sl
+    rew  = na(rangeHigh) ? na : rangeHigh - _c
+    rr   = risk > 0 and not na(rew) and rew > 0 ? rew / risk : 0.0
+    ok   = _on and _t > 0 and not na(_c) and okZone and ctxLong and risk > 0 and rr >= minRR and (na(rangeHigh) or _c < rangeHigh)
+    [ok, _t, _c, sl, rr]
 
-modelLong  = ltfValid ? f_anyTrue(cLongArr) : cLongChart
-modelShort = ltfValid ? f_anyTrue(cShortArr) : cShortChart
+f_evalShort(_t, _c, _h, _m, _on) =>
+    okZone = not useFib or (not na(rangeSize) and _h >= fibBotShort and _c <= fibTopShort)
+    sl = slMode == "Extremo de la manipulación" ? _m + slBuffer : slMode == "Retroceso máximo del fib" and not na(rangeSize) ? fibTopShort + slBuffer : _h + slBuffer
+    risk = sl - _c
+    rew  = na(rangeLow) ? na : _c - rangeLow
+    rr   = risk > 0 and not na(rew) and rew > 0 ? rew / risk : 0.0
+    ok   = _on and _t > 0 and not na(_c) and okZone and ctxShort and risk > 0 and rr >= minRR and (na(rangeLow) or _c > rangeLow)
+    [ok, _t, _c, sl, rr]
 
-confirmLong  = not needConfirm or modelLong
-confirmShort = not needConfirm or modelShort
+[okL1, tt1L, ee1L, ss1L, rr1L] = f_evalLong(t1L, c1L, l1L, m1L, useE1)
+[okL2, tt2L, ee2L, ss2L, rr2L] = f_evalLong(t2L, c2L, l2L, m2L, useE2)
+[okL3, tt3L, ee3L, ss3L, rr3L] = f_evalLong(t3L, c3L, l3L, m3L, useE3)
+[okS1, tt1S, ee1S, ss1S, rr1S] = f_evalShort(t1S, c1S, h1S, m1S, useE1)
+[okS2, tt2S, ee2S, ss2S, rr2S] = f_evalShort(t2S, c2S, h2S, m2S, useE2)
+[okS3, tt3S, ee3S, ss3S, rr3S] = f_evalShort(t3S, c3S, h3S, m3S, useE3)
 
-// ZONA DE INTERÉS (capa alta): el precio está donde nos interesa y a favor del
-// sesgo. Es condición NECESARIA pero NO SUFICIENTE — sin el modelo confirmado
-// en la temporalidad menor, no hay entrada.
-zoneLong  = inFibLong and biasOKLong and legOKLong and fractalLong and allowLongs and (na(rangeHigh) or close < rangeHigh)
-zoneShort = inFibShort and biasOKShort and legOKShort and fractalShort and allowShorts and (na(rangeLow) or close > rangeLow)
+// Solo se considera una candidata si su señal es NUEVA (no se ha operado ya)
+var int lastSigTime = 0
+newL1 = okL1 and tt1L > lastSigTime
+newL2 = okL2 and tt2L > lastSigTime
+newL3 = okL3 and tt3L > lastSigTime
+newS1 = okS1 and tt1S > lastSigTime
+newS2 = okS2 and tt2S > lastSigTime
+newS3 = okS3 and tt3S > lastSigTime
+
+// Puntuación para elegir entre varias: R:R, o la temporalidad mayor/menor
+scL1 = not newL1 ? -1.0 : pickMode == "Temporalidad mayor" ? 3.0 : pickMode == "Temporalidad menor" ? 1.0 : rr1L
+scL2 = not newL2 ? -1.0 : pickMode == "Temporalidad mayor" ? 2.0 : pickMode == "Temporalidad menor" ? 2.0 : rr2L
+scL3 = not newL3 ? -1.0 : pickMode == "Temporalidad mayor" ? 1.0 : pickMode == "Temporalidad menor" ? 3.0 : rr3L
+scS1 = not newS1 ? -1.0 : pickMode == "Temporalidad mayor" ? 3.0 : pickMode == "Temporalidad menor" ? 1.0 : rr1S
+scS2 = not newS2 ? -1.0 : pickMode == "Temporalidad mayor" ? 2.0 : pickMode == "Temporalidad menor" ? 2.0 : rr2S
+scS3 = not newS3 ? -1.0 : pickMode == "Temporalidad mayor" ? 1.0 : pickMode == "Temporalidad menor" ? 3.0 : rr3S
+
+bestScore = math.max(math.max(scL1, scL2), math.max(scL3, math.max(math.max(scS1, scS2), scS3)))
+
+// La ganadora
+pickLong  = bestScore > 0 and (scL1 == bestScore or scL2 == bestScore or scL3 == bestScore)
+pickShort = bestScore > 0 and not pickLong and (scS1 == bestScore or scS2 == bestScore or scS3 == bestScore)
+
+pickEntry = pickLong ? (scL1 == bestScore ? ee1L : scL2 == bestScore ? ee2L : ee3L) : pickShort ? (scS1 == bestScore ? ee1S : scS2 == bestScore ? ee2S : ee3S) : na
+pickSL    = pickLong ? (scL1 == bestScore ? ss1L : scL2 == bestScore ? ss2L : ss3L) : pickShort ? (scS1 == bestScore ? ss1S : scS2 == bestScore ? ss2S : ss3S) : na
+pickTime  = pickLong ? (scL1 == bestScore ? tt1L : scL2 == bestScore ? tt2L : tt3L) : pickShort ? (scS1 == bestScore ? tt1S : scS2 == bestScore ? tt2S : tt3S) : 0
+pickTF    = pickLong ? (scL1 == bestScore ? e1TF : scL2 == bestScore ? e2TF : e3TF) : pickShort ? (scS1 == bestScore ? e1TF : scS2 == bestScore ? e2TF : e3TF) : ""
+pickRR    = pickLong ? (scL1 == bestScore ? rr1L : scL2 == bestScore ? rr2L : rr3L) : pickShort ? (scS1 == bestScore ? rr1S : scS2 == bestScore ? rr2S : rr3S) : 0.0
+
+// Compatibilidad con el resto del indicador
+zoneLong  = ctxLong  and (okL1 or okL2 or okL3)
+zoneShort = ctxShort and (okS1 or okS2 or okS3)
 inZone    = zoneLong or zoneShort
-
-longRaw  = manipRecentLong and confirmLong and inFibLong and (na(rangeHigh) or close < rangeHigh)
-shortRaw = manipRecentShort and confirmShort and inFibShort and (na(rangeLow) or close > rangeLow)
-
-longCandidate  = longRaw and biasOKLong and legOKLong and fractalLong and allowLongs and inSession and signalsToday < maxPerDay and barstate.isconfirmed
-shortCandidate = shortRaw and biasOKShort and legOKShort and fractalShort and allowShorts and inSession and signalsToday < maxPerDay and barstate.isconfirmed
+longCandidate  = pickLong  and signalsToday < maxPerDay
+shortCandidate = pickShort and signalsToday < maxPerDay
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 7) GESTIÓN — entrada, SL y hasta 4 take profits
@@ -560,7 +671,6 @@ shortCandidate = shortRaw and biasOKShort and legOKShort and fractalShort and al
 //    TP2 = extensión -14.6%, TP3 = -27.2%, TP4 = -41.4% (configurables).
 //    Modo "Ratio R fijo": múltiplos de R.
 // ─────────────────────────────────────────────────────────────────────────────
-grpG = "Gestión"
 tpMode   = input.string("Liquidez externa + extensiones fib", "Take profit", options = ["Liquidez externa + extensiones fib", "Ratio R fijo"], group = grpG)
 numTPs   = input.int(2, "Número de take profits", minval = 1, maxval = 4, group = grpG, tooltip = "TP1 = liquidez externa (0% del fib). TP2/TP3/TP4 = extensiones del rango")
 ext1     = input.float(0.146, "Extensión TP2 (-14.6%)", minval = 0.01, step = 0.001, group = grpG)
@@ -570,17 +680,10 @@ rr1      = input.float(1.0, "TP1 (R, si modo fijo)", minval = 0.5, step = 0.5, g
 rr2      = input.float(2.0, "TP2 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
 rr3      = input.float(3.0, "TP3 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
 rr4      = input.float(4.0, "TP4 (R, si modo fijo)", minval = 0.5, step = 0.5, group = grpG)
-minRR    = input.float(1.0, "RR mínimo hasta la liquidez externa", minval = 0.1, step = 0.1, group = grpG)
-slMode   = input.string("Extremo de la manipulación", "Colocación del stop loss", options = ["Extremo de la vela de señal", "Extremo de la manipulación", "Retroceso máximo del fib"], group = grpG, tooltip = "Extremo de la manipulación = el high/low más extremo desde la manipulación hasta la señal (cubre toda la mecha del barrido). Retroceso máximo del fib = detrás del 88.6%")
-slBuffer = input.float(0.5, "Margen extra del SL (puntos)", minval = 0.0, step = 0.1, group = grpG)
 snapLiq  = input.bool(true, "Ajustar TPs a la liquidez cercana", group = grpG, tooltip = "Si hay altos/bajos iguales (liquidez) cerca de un nivel de expansión, el TP se coloca justo antes de esa liquidez. Los altos iguales sobre el -14.6% del 26-ago son el ejemplo.")
 snapTol  = input.float(3.0, "Distancia máx. para ajustar (puntos)", minval = 0.1, step = 0.1, group = grpG)
 snapBuf  = input.float(0.3, "Margen antes de la liquidez (puntos)", minval = 0.0, step = 0.1, group = grpG)
 tpExtMode = tpMode == "Liquidez externa + extensiones fib"
-
-// Extremos del tramo manipulación→señal (ventana de confirmación)
-manipHigh = ta.highest(high, manipWindow + 1)
-manipLow  = ta.lowest(low, manipWindow + 1)
 
 // Ajuste del TP a la liquidez: si hay altos/bajos iguales cerca del nivel de
 // expansión, se sale justo antes de esa bolsa de liquidez.
@@ -600,17 +703,11 @@ f_snapTP(_tp, _isLong) =>
             res := _isLong ? best - snapBuf : best + snapBuf
     res
 
-f_slLong() =>
-    base = slMode == "Extremo de la manipulación" ? manipLow : slMode == "Retroceso máximo del fib" and not na(rangeSize) ? fibBotLong : low
-    base - slBuffer
-f_slShort() =>
-    base = slMode == "Extremo de la manipulación" ? manipHigh : slMode == "Retroceso máximo del fib" and not na(rangeSize) ? fibTopShort : high
-    base + slBuffer
-
 var float entryPx = na
 var float slPx    = na
 var int   dirNow  = 0      // 1 = long, -1 = short, 0 = sin setup
 var string modelTag = ""   // qué modelo(s) respaldaron la señal
+var string sigTF    = ""   // en qué temporalidad se generó la señal elegida
 
 // --- REGISTRO DE OPERACIONES -------------------------------------------------
 // Cada operación se mide en R (múltiplos del riesgo inicial). Con varios TPs la
@@ -704,7 +801,7 @@ f_drawLevels() =>
         rew  = math.abs(lastTP - entryPx)
         rr   = risk > 0 ? rew / risk : 0.0
         mid  = math.round((x1 + x2) / 2)
-        array.push(actMidLbl, label.new(mid, entryPx, (dirNow == 1 ? "COMPRA" : "VENTA") + "  ·  R:R  1:" + str.tostring(rr, "#.##"), style = label.style_label_center, color = color.new(color.blue, lblOpa), textcolor = color.white, size = size.small))
+        array.push(actMidLbl, label.new(mid, entryPx, (dirNow == 1 ? "COMPRA" : "VENTA") + " " + sigTF + "  ·  R:R  1:" + str.tostring(rr, "#.##"), style = label.style_label_center, color = color.new(color.blue, lblOpa), textcolor = color.white, size = size.small))
 
 f_tpString() =>
     s = ""
@@ -717,8 +814,8 @@ bool newLong  = false
 bool newShort = false
 
 if longCandidate and dirNow == 0
-    e = close
-    s = f_slLong()
+    e = pickEntry
+    s = pickSL
     risk = e - s
     rewCheck = tpExtMode ? rangeHigh - e : risk * rr1
     if risk > 0 and not na(rewCheck) and rewCheck > 0 and (not tpExtMode or rewCheck / risk >= minRR)
@@ -755,12 +852,14 @@ if longCandidate and dirNow == 0
         usedM5  := useM5 and m5Long
         signalsToday += 1
         newLong := true
+        lastSigTime := pickTime
+        sigTF := pickTF
         entryBar := bar_index
         f_drawLevels()
 
 if shortCandidate and dirNow == 0 and not newLong
-    e = close
-    s = f_slShort()
+    e = pickEntry
+    s = pickSL
     risk = s - e
     rewCheck = tpExtMode ? e - rangeLow : risk * rr1
     if risk > 0 and not na(rewCheck) and rewCheck > 0 and (not tpExtMode or rewCheck / risk >= minRR)
@@ -797,6 +896,8 @@ if shortCandidate and dirNow == 0 and not newLong
         usedM5  := useM5 and m5Short
         signalsToday += 1
         newShort := true
+        lastSigTime := pickTime
+        sigTF := pickTF
         entryBar := bar_index
         f_drawLevels()
 
@@ -874,7 +975,7 @@ if tradeClosed
             array.set(mNetR,   mi, array.get(mNetR, mi) + closedR)
             if closedR > 0
                 array.set(mWins, mi, array.get(mWins, mi) + 1)
-    array.push(logRows, str.format_time(time, "dd/MM HH:mm", tzNY) + "  " + (closedDir == 1 ? "▲" : "▼") + "  " + modelTag + "  " + closedWhy + "  " + (closedR >= 0 ? "+" : "") + str.tostring(closedR, "#.##") + "R")
+    array.push(logRows, str.format_time(time, "dd/MM HH:mm", tzNY) + "  " + (closedDir == 1 ? "▲" : "▼") + "  " + sigTF + "  " + modelTag + "  " + closedWhy + "  " + (closedR >= 0 ? "+" : "") + str.tostring(closedR, "#.##") + "R")
     if array.size(logRows) > 12
         array.shift(logRows)
     // Alerta con el resultado, para llevar el registro también fuera de TradingView
@@ -911,14 +1012,14 @@ if barstate.islast
     legCol = legBear ? color.new(color.red, 45) : color.new(color.green, 45)
     table.cell(tb, 0, 2, legTxt, bgcolor = legCol, text_color = color.white, text_size = size.small)
     // Fila 4 — estado operativo
-    zoneTxt = dirNow != 0 ? "OPERACIÓN ACTIVA" : inZone ? "EN ZONA — esperando confirmación " + (ltfValid ? ltfTF : timeframe.period) : "Fuera de zona"
+    zoneTxt = dirNow != 0 ? "OPERACIÓN ACTIVA" : inZone ? "EN ZONA — esperando confirmación" : "Fuera de zona"
     zoneCol = dirNow != 0 ? color.new(color.blue, 30) : inZone ? color.new(color.orange, 30) : color.new(color.gray, 55)
     table.cell(tb, 0, 3, zoneTxt, bgcolor = zoneCol, text_color = color.white, text_size = size.small)
 
 if newLong
-    alert("🟢 COMPRA [" + modelTag + "] " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)
+    alert("🟢 COMPRA [" + modelTag + " · " + sigTF + "] " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)
 if newShort
-    alert("🔴 VENTA [" + modelTag + "] " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)
+    alert("🔴 VENTA [" + modelTag + " · " + sigTF + "] " + syminfo.ticker + " | Entrada: " + str.tostring(entryPx, format.mintick) + " | SL: " + str.tostring(slPx, format.mintick) + f_tpString(), alert.freq_once_per_bar_close)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 9) REGISTRO — estadísticas y bitácora de operaciones
@@ -1025,13 +1126,17 @@ if barstate.islast and showDiag
     table.cell(dg, 1, 5, f_c(inFibLong),  bgcolor = f_bg(inFibLong),  text_color = color.white, text_size = size.tiny)
     table.cell(dg, 2, 5, f_c(inFibShort), bgcolor = f_bg(inFibShort), text_color = color.white, text_size = size.tiny)
 
-    table.cell(dg, 0, 6, "Manipulación reciente", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
-    table.cell(dg, 1, 6, f_c(manipRecentLong),  bgcolor = f_bg(manipRecentLong),  text_color = color.white, text_size = size.tiny)
-    table.cell(dg, 2, 6, f_c(manipRecentShort), bgcolor = f_bg(manipRecentShort), text_color = color.white, text_size = size.tiny)
+    okAnyL = okL1 or okL2 or okL3
+    okAnyS = okS1 or okS2 or okS3
+    table.cell(dg, 0, 6, "Candidata válida", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 1, 6, okAnyL ? "✓ " + str.tostring(math.max(math.max(rr1L, rr2L), rr3L), "#.#") + "R" : "✗", bgcolor = f_bg(okAnyL), text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 6, okAnyS ? "✓ " + str.tostring(math.max(math.max(rr1S, rr2S), rr3S), "#.#") + "R" : "✗", bgcolor = f_bg(okAnyS), text_color = color.white, text_size = size.tiny)
 
-    table.cell(dg, 0, 7, "Confirmación " + (ltfValid ? ltfTF : timeframe.period), bgcolor = hdC, text_color = color.white, text_size = size.tiny)
-    table.cell(dg, 1, 7, f_c(confirmLong),  bgcolor = f_bg(confirmLong),  text_color = color.white, text_size = size.tiny)
-    table.cell(dg, 2, 7, f_c(confirmShort), bgcolor = f_bg(confirmShort), text_color = color.white, text_size = size.tiny)
+    nAnyL = newL1 or newL2 or newL3
+    nAnyS = newS1 or newS2 or newS3
+    table.cell(dg, 0, 7, "Señal nueva (" + (useE1 ? e1TF : "") + (useE2 ? "/" + e2TF : "") + (useE3 ? "/" + e3TF : "") + ")", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 1, 7, f_c(nAnyL), bgcolor = f_bg(nAnyL), text_color = color.white, text_size = size.tiny)
+    table.cell(dg, 2, 7, f_c(nAnyS), bgcolor = f_bg(nAnyS), text_color = color.white, text_size = size.tiny)
 
     table.cell(dg, 0, 8, "Cupo diario (" + str.tostring(signalsToday) + "/" + str.tostring(maxPerDay) + ")", bgcolor = hdC, text_color = color.white, text_size = size.tiny)
     cupo = signalsToday < maxPerDay
