@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.9)
+// Wealth Genesis — Señales SMC Oro (v1.9.1)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.9]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.9.1]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -644,6 +644,8 @@ var int   tpsHit  = 0
 var array<line>  actLines  = array.new<line>()
 var array<label> actLabels = array.new<label>()
 var array<box>   actBoxes  = array.new<box>()
+var array<label> actMidLbl = array.new<label>()   // etiqueta central (R:R), se
+                                                  // mueve al centro, no al borde
 var int          entryBar  = 0
 
 f_clearLevels() =>
@@ -653,6 +655,8 @@ f_clearLevels() =>
         label.delete(array.pop(actLabels))
     while array.size(actBoxes) > 0
         box.delete(array.pop(actBoxes))
+    while array.size(actMidLbl) > 0
+        label.delete(array.pop(actMidLbl))
 
 // Al cerrarse: o se borra todo (gráfico limpio) o se "congela" el dibujo como
 // registro visual de la operación.
@@ -663,6 +667,7 @@ f_finishLevels() =>
         array.clear(actLines)
         array.clear(actLabels)
         array.clear(actBoxes)
+        array.clear(actMidLbl)
 
 // Dibuja la operación como la herramienta de posición de TradingView:
 //   · caja ROJA   de la entrada al stop loss   (lo que se arriesga)
@@ -696,7 +701,7 @@ f_drawLevels() =>
         rew  = math.abs(lastTP - entryPx)
         rr   = risk > 0 ? rew / risk : 0.0
         mid  = math.round((x1 + x2) / 2)
-        array.push(actLabels, label.new(mid, entryPx, (dirNow == 1 ? "COMPRA" : "VENTA") + "  ·  R:R  1:" + str.tostring(rr, "#.##"), style = label.style_label_center, color = color.new(color.blue, 20), textcolor = color.white, size = size.small))
+        array.push(actMidLbl, label.new(mid, entryPx, (dirNow == 1 ? "COMPRA" : "VENTA") + "  ·  R:R  1:" + str.tostring(rr, "#.##"), style = label.style_label_center, color = color.new(color.blue, 20), textcolor = color.white, size = size.small))
 
 f_tpString() =>
     s = ""
@@ -804,8 +809,10 @@ if dirNow != 0 and bar_index > entryBar + boxBars
             box.set_right(bx, xEnd)
     if array.size(actLabels) > 0
         for lb in actLabels
-            if label.get_style(lb) == label.style_label_left
-                label.set_x(lb, xEnd)
+            label.set_x(lb, xEnd)          // etiquetas de nivel: al borde derecho
+    if array.size(actMidLbl) > 0
+        for lb in actMidLbl
+            label.set_x(lb, math.round((entryBar + xEnd) / 2))   // R:R: al centro
 
 // Resolución: SL cierra el setup; los TPs se van marcando en orden.
 // Al completarse, el dibujo se congela (registro visual) o se borra, según
