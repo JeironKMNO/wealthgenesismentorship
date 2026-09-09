@@ -1,6 +1,6 @@
 //@version=6
 // =============================================================================
-// Wealth Genesis — Señales SMC Oro (v1.9.1)
+// Wealth Genesis — Señales SMC Oro (v1.10)
 // -----------------------------------------------------------------------------
 // Estrategia (ver ESTRATEGIA.md) — DOS CAPAS:
 //
@@ -21,7 +21,7 @@
 //   Gráfico limpio: solo entrada / SL / TPs. FVGs y sesiones son cálculos
 //   internos (se pueden mostrar con toggles, apagados por defecto).
 // =============================================================================
-indicator("WG SMC — Señales Oro [v1.9.1]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+indicator("WG SMC — Señales Oro [v1.10]", overlay = true, max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1) FILTROS — sesiones NY y Asia (hora de Nueva York), límite diario
@@ -46,7 +46,9 @@ showDiag  = input.bool(true, "Mostrar diagnóstico de condiciones", group = grpJ
 
 grpD = "Dibujo de la operación"
 drawBoxes  = input.bool(true, "Dibujar caja de riesgo / beneficio", group = grpD, tooltip = "Como la herramienta de posición de TradingView: caja roja de la entrada al stop loss, caja verde de la entrada al último take profit.")
-onClose    = input.string("Mantener el historial", "Al cerrarse la operación", options = ["Mantener el historial", "Borrar (gráfico limpio)"], group = grpD, tooltip = "Mantener: la operación queda dibujada con sus niveles, como registro visual. Borrar: solo quedan la flecha y las marcas ✔/✘.")
+onClose    = input.string("Borrar (gráfico limpio)", "Al cerrarse la operación", options = ["Borrar (gráfico limpio)", "Mantener el historial"], group = grpD, tooltip = "Borrar (por defecto): la herramienta de previsión se usa SOLO en la señal en curso. Al cerrarse quedan la flecha y las marcas ✔ TP / ✘ SL como registro. Mantener: el dibujo se congela en el gráfico.")
+boxOpa     = input.int(92, "Transparencia de las cajas", minval = 70, maxval = 98, step = 1, group = grpD, tooltip = "Más alto = más transparente. Sube este valor si los colores tapan las velas.")
+lblOpa     = input.int(45, "Transparencia de las etiquetas", minval = 0, maxval = 90, step = 5, group = grpD)
 boxBars    = input.int(30, "Ancho del dibujo (velas)", minval = 5, maxval = 300, group = grpD, tooltip = "Cuántas velas hacia la derecha se dibuja la operación. Si dura más, se alarga sola.")
 showRR     = input.bool(true, "Mostrar ratio riesgo/beneficio", group = grpD)
 lineW      = input.int(2, "Grosor de las líneas", minval = 1, maxval = 4, group = grpD)
@@ -680,8 +682,9 @@ f_drawLevels() =>
     lastTP = array.size(tps) > 0 ? array.get(tps, array.size(tps) - 1) : entryPx
     // Cajas de riesgo y beneficio
     if drawBoxes
-        array.push(actBoxes, box.new(x1, entryPx, x2, slPx, border_color = color.new(colSL, 40), bgcolor = color.new(colSL, 82)))
-        array.push(actBoxes, box.new(x1, lastTP, x2, entryPx, border_color = color.new(colTP, 40), bgcolor = color.new(colTP, 82)))
+        bOpa = math.max(0, boxOpa - 25)   // el borde, algo más marcado que el relleno
+        array.push(actBoxes, box.new(x1, entryPx, x2, slPx, border_color = color.new(colSL, bOpa), bgcolor = color.new(colSL, boxOpa)))
+        array.push(actBoxes, box.new(x1, lastTP, x2, entryPx, border_color = color.new(colTP, bOpa), bgcolor = color.new(colTP, boxOpa)))
     // Líneas de cada nivel
     array.push(actLines, line.new(x1, entryPx, x2, entryPx, color = colEntry, width = lineW, style = line.style_dashed))
     array.push(actLines, line.new(x1, slPx, x2, slPx, color = colSL, width = lineW, style = line.style_solid))
@@ -690,18 +693,18 @@ f_drawLevels() =>
             array.push(actLines, line.new(x1, array.get(tps, i), x2, array.get(tps, i), color = colTP, width = lineW, style = line.style_solid))
     // Etiquetas: NOMBRE + PRECIO, a la derecha del dibujo
     if showPxLbl
-        array.push(actLabels, label.new(x2, entryPx, "ENTRADA  " + str.tostring(entryPx, format.mintick), style = label.style_label_left, color = color.new(colEntry, 25), textcolor = color.white, size = size.small))
-        array.push(actLabels, label.new(x2, slPx, "STOP LOSS  " + str.tostring(slPx, format.mintick), style = label.style_label_left, color = color.new(colSL, 25), textcolor = color.white, size = size.small))
+        array.push(actLabels, label.new(x2, entryPx, "ENTRADA  " + str.tostring(entryPx, format.mintick), style = label.style_label_left, color = color.new(colEntry, lblOpa), textcolor = color.white, size = size.small))
+        array.push(actLabels, label.new(x2, slPx, "STOP LOSS  " + str.tostring(slPx, format.mintick), style = label.style_label_left, color = color.new(colSL, lblOpa), textcolor = color.white, size = size.small))
         if array.size(tps) > 0
             for i = 0 to array.size(tps) - 1
-                array.push(actLabels, label.new(x2, array.get(tps, i), "TAKE PROFIT " + str.tostring(i + 1) + "  " + str.tostring(array.get(tps, i), format.mintick), style = label.style_label_left, color = color.new(colTP, 25), textcolor = color.white, size = size.small))
+                array.push(actLabels, label.new(x2, array.get(tps, i), "TAKE PROFIT " + str.tostring(i + 1) + "  " + str.tostring(array.get(tps, i), format.mintick), style = label.style_label_left, color = color.new(colTP, lblOpa), textcolor = color.white, size = size.small))
     // Ratio riesgo/beneficio, en el centro del dibujo
     if showRR
         risk = math.abs(entryPx - slPx)
         rew  = math.abs(lastTP - entryPx)
         rr   = risk > 0 ? rew / risk : 0.0
         mid  = math.round((x1 + x2) / 2)
-        array.push(actMidLbl, label.new(mid, entryPx, (dirNow == 1 ? "COMPRA" : "VENTA") + "  ·  R:R  1:" + str.tostring(rr, "#.##"), style = label.style_label_center, color = color.new(color.blue, 20), textcolor = color.white, size = size.small))
+        array.push(actMidLbl, label.new(mid, entryPx, (dirNow == 1 ? "COMPRA" : "VENTA") + "  ·  R:R  1:" + str.tostring(rr, "#.##"), style = label.style_label_center, color = color.new(color.blue, lblOpa), textcolor = color.white, size = size.small))
 
 f_tpString() =>
     s = ""

@@ -1,6 +1,6 @@
 # Especificación de la estrategia — Indicador TradingView (Pine Script)
 
-Estado: **v1.9** — arquitectura de dos capas (zona en temporalidad mayor,
+Estado: **v1.10** — arquitectura de dos capas (zona en temporalidad mayor,
 confirmación en temporalidad menor), SMC + Fibonacci, gráfico limpio.
 Las secciones marcadas ✅ están implementadas en `indicator.pine`;
 las marcadas 🔧 son aproximaciones que hay que refinar con el mentor.
@@ -258,7 +258,7 @@ la bolsa.
 
 ---
 
-## 3c. Dibujo de la operación ✅ (v1.9)
+## 3c. Dibujo de la operación ✅ (v1.10)
 
 Cada señal se dibuja como la **herramienta de posición de TradingView**:
 
@@ -270,9 +270,13 @@ Cada señal se dibuja como la **herramienta de posición de TradingView**:
 - **Ratio riesgo/beneficio** en el centro: `COMPRA · R:R 1:5.14`.
 
 **Al cerrarse la operación** (input "Al cerrarse la operación"):
-- *Mantener el historial* (por defecto): el dibujo queda congelado como registro
-  visual de la operación — se puede repasar el histórico y ver los niveles exactos.
-- *Borrar (gráfico limpio)*: solo quedan la flecha y las marcas ✔ TP / ✘ SL.
+- *Borrar (gráfico limpio)* — **por defecto**: la herramienta de previsión se usa
+  SOLO en la señal en curso. Al tocar SL o el último TP, el dibujo desaparece y
+  quedan la flecha BUY/SELL y las marcas ✔ TP / ✘ SL como registro visual.
+- *Mantener el historial*: el dibujo se congela en el gráfico.
+
+**Transparencia configurable**: cajas al 92% y etiquetas al 45% por defecto,
+para que los colores no tapen las velas. Ambas ajustables.
 
 Ancho del dibujo, grosor, colores, etiquetas y R:R son configurables en el grupo
 **"Dibujo de la operación"**. Si la operación dura más que el ancho fijado, el
