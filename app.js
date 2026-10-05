@@ -223,6 +223,42 @@
 
   addTilt('.feat-item');
 
+  // ── Brillo intermitente de partículas ──
+  // Cada punto es un <span> con su propia duración y desfase, así titilan por
+  // separado y no todos a la vez. Se reparten hacia los bordes (oro a la
+  // izquierda, plata a la derecha, como el campo de partículas). Solo animan
+  // opacity y se pausan fuera de pantalla.
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    const sparkleObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => entry.target.classList.toggle('is-live', entry.isIntersecting));
+    });
+
+    document.querySelectorAll('.brand-particles').forEach(field => {
+      const area = field.offsetWidth * field.offsetHeight;
+      const count = Math.max(14, Math.min(38, Math.round(area / 20000)));
+      const frag = document.createDocumentFragment();
+
+      for (let i = 0; i < count; i++) {
+        const side = i % 2 === 0 ? 'gold' : 'silver';
+        const edge = Math.pow(Math.random(), 1.4) * 42;   // sesgo hacia el borde
+        const x = side === 'gold' ? edge : 100 - edge;
+        const s = document.createElement('span');
+        s.className = `sparkle sparkle--${side}`;
+        s.style.left = `${x}%`;
+        s.style.top = `${8 + Math.random() * 84}%`;
+        s.style.setProperty('--sp-size', `${(0.8 + Math.random() * 0.7).toFixed(2)}`);
+        s.style.animationDuration = `${(3.5 + Math.random() * 3.5).toFixed(2)}s`;
+        s.style.animationDelay = `${(-Math.random() * 7).toFixed(2)}s`;
+        frag.appendChild(s);
+      }
+
+      field.appendChild(frag);
+      sparkleObserver.observe(field);
+    });
+  }
+
   // ── Passive Scroll Handler ──
   window.addEventListener('scroll', () => {
     updateScrollBar();

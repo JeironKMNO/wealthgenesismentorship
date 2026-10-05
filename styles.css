@@ -200,6 +200,44 @@ summary:focus-visible,
   to   { opacity: 0.24; }
 }
 
+/* Brillo intermitente (los crea app.js dentro de .brand-particles):
+   puntitos del mismo tamaño y color que el campo de partículas que se
+   encienden y apagan despacio, cada uno a su ritmo. Pasan la mayor parte
+   del ciclo apagados y el pico es tenue, así que solo se percibe un leve
+   titileo aquí y allá. */
+.sparkle {
+  --sp-size: 1;
+  position: absolute;
+  width: calc(1.6px * var(--sp-size));
+  height: calc(1.6px * var(--sp-size));
+  border-radius: 50%;
+  background: var(--sp-core);
+  box-shadow: 0 0 3px 0.5px var(--sp-glow);
+  opacity: 0;
+  animation: sparkle-twinkle 5s ease-in-out infinite;
+  will-change: opacity;
+}
+
+.sparkle--gold {
+  --sp-core: var(--gold-pale);
+  --sp-glow: rgba(223, 194, 128, 0.45);
+}
+
+.sparkle--silver {
+  --sp-core: var(--silver-pale);
+  --sp-glow: rgba(230, 233, 238, 0.40);
+}
+
+.brand-particles:not(.is-live) .sparkle {
+  animation-play-state: paused;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 20%   { opacity: 0; }
+  45%       { opacity: 0.7; }
+  70%, 100% { opacity: 0; }
+}
+
 /* ── Buttons ── */
 .btn-primary {
   display: inline-flex;
