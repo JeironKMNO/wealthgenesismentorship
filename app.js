@@ -223,6 +223,42 @@
 
   addTilt('.feat-item');
 
+  // ── Brillos de marca (sparkles) ──
+  // Cada destello es un <span> con su propia duración y desfase, así no
+  // parpadean todos a la vez. Se reparten hacia los bordes (oro a la izquierda,
+  // plata a la derecha, como el logo) para no competir con el texto central.
+  // Solo animan transform/opacity y se pausan fuera de pantalla.
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    const sparkleObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => entry.target.classList.toggle('is-live', entry.isIntersecting));
+    });
+
+    document.querySelectorAll('.brand-particles').forEach(field => {
+      const area = field.offsetWidth * field.offsetHeight;
+      const count = Math.max(10, Math.min(34, Math.round(area / 26000)));
+      const frag = document.createDocumentFragment();
+
+      for (let i = 0; i < count; i++) {
+        const side = i % 2 === 0 ? 'gold' : 'silver';
+        const edge = Math.pow(Math.random(), 1.4) * 42;   // sesgo hacia el borde
+        const x = side === 'gold' ? edge : 100 - edge;
+        const s = document.createElement('span');
+        s.className = `sparkle sparkle--${side}`;
+        s.style.left = `${x}%`;
+        s.style.top = `${8 + Math.random() * 84}%`;
+        s.style.setProperty('--sp-size', `${(0.6 + Math.random() * 0.8).toFixed(2)}`);
+        s.style.animationDuration = `${(4 + Math.random() * 5).toFixed(2)}s`;
+        s.style.animationDelay = `${(-Math.random() * 9).toFixed(2)}s`;
+        frag.appendChild(s);
+      }
+
+      field.appendChild(frag);
+      sparkleObserver.observe(field);
+    });
+  }
+
   // ── Passive Scroll Handler ──
   window.addEventListener('scroll', () => {
     updateScrollBar();
