@@ -1,7 +1,7 @@
 /* ============================================================
    WEALTH GENESIS MENTORSHIP
    Financial Precision Luxury — Design System
-   Fonts: Cormorant Garant · Syne · JetBrains Mono
+   Fonts: Cormorant Garamond · Syne · JetBrains Mono
    ============================================================ */
 
 /* ── Design Tokens ── */
@@ -48,7 +48,7 @@
   --border-faint: rgba(237, 232, 223, 0.04);
 
   /* Fonts */
-  --f-display: 'Cormorant Garant', Georgia, 'Times New Roman', serif;
+  --f-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --f-ui:      'Syne', system-ui, sans-serif;
   --f-mono:    'JetBrains Mono', 'Courier New', monospace;
 
