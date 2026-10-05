@@ -237,7 +237,7 @@
 
     document.querySelectorAll('.brand-particles').forEach(field => {
       const area = field.offsetWidth * field.offsetHeight;
-      const count = Math.max(8, Math.min(26, Math.round(area / 32000)));
+      const count = Math.max(14, Math.min(38, Math.round(area / 20000)));
       const frag = document.createDocumentFragment();
 
       for (let i = 0; i < count; i++) {
@@ -249,8 +249,8 @@
         s.style.left = `${x}%`;
         s.style.top = `${8 + Math.random() * 84}%`;
         s.style.setProperty('--sp-size', `${(0.8 + Math.random() * 0.7).toFixed(2)}`);
-        s.style.animationDuration = `${(6 + Math.random() * 6).toFixed(2)}s`;
-        s.style.animationDelay = `${(-Math.random() * 12).toFixed(2)}s`;
+        s.style.animationDuration = `${(3.5 + Math.random() * 3.5).toFixed(2)}s`;
+        s.style.animationDelay = `${(-Math.random() * 7).toFixed(2)}s`;
         frag.appendChild(s);
       }
 

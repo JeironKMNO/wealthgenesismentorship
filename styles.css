@@ -214,7 +214,7 @@ summary:focus-visible,
   background: var(--sp-core);
   box-shadow: 0 0 3px 0.5px var(--sp-glow);
   opacity: 0;
-  animation: sparkle-twinkle 8s ease-in-out infinite;
+  animation: sparkle-twinkle 5s ease-in-out infinite;
   will-change: opacity;
 }
 
@@ -233,9 +233,9 @@ summary:focus-visible,
 }
 
 @keyframes sparkle-twinkle {
-  0%, 35%   { opacity: 0; }
-  55%       { opacity: 0.55; }
-  75%, 100% { opacity: 0; }
+  0%, 20%   { opacity: 0; }
+  45%       { opacity: 0.7; }
+  70%, 100% { opacity: 0; }
 }
 
 /* ── Buttons ── */
