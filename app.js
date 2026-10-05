@@ -223,11 +223,11 @@
 
   addTilt('.feat-item');
 
-  // ── Brillos de marca (sparkles) ──
-  // Cada destello es un <span> con su propia duración y desfase, así no
-  // parpadean todos a la vez. Se reparten hacia los bordes (oro a la izquierda,
-  // plata a la derecha, como el logo) para no competir con el texto central.
-  // Solo animan transform/opacity y se pausan fuera de pantalla.
+  // ── Brillo intermitente de partículas ──
+  // Cada punto es un <span> con su propia duración y desfase, así titilan por
+  // separado y no todos a la vez. Se reparten hacia los bordes (oro a la
+  // izquierda, plata a la derecha, como el campo de partículas). Solo animan
+  // opacity y se pausan fuera de pantalla.
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if (!reduceMotion && 'IntersectionObserver' in window) {
@@ -237,7 +237,7 @@
 
     document.querySelectorAll('.brand-particles').forEach(field => {
       const area = field.offsetWidth * field.offsetHeight;
-      const count = Math.max(10, Math.min(34, Math.round(area / 26000)));
+      const count = Math.max(8, Math.min(26, Math.round(area / 32000)));
       const frag = document.createDocumentFragment();
 
       for (let i = 0; i < count; i++) {
@@ -248,9 +248,9 @@
         s.className = `sparkle sparkle--${side}`;
         s.style.left = `${x}%`;
         s.style.top = `${8 + Math.random() * 84}%`;
-        s.style.setProperty('--sp-size', `${(0.6 + Math.random() * 0.8).toFixed(2)}`);
-        s.style.animationDuration = `${(4 + Math.random() * 5).toFixed(2)}s`;
-        s.style.animationDelay = `${(-Math.random() * 9).toFixed(2)}s`;
+        s.style.setProperty('--sp-size', `${(0.8 + Math.random() * 0.7).toFixed(2)}`);
+        s.style.animationDuration = `${(6 + Math.random() * 6).toFixed(2)}s`;
+        s.style.animationDelay = `${(-Math.random() * 12).toFixed(2)}s`;
         frag.appendChild(s);
       }
 
