@@ -1,0 +1,4 @@
+# Archivos del repo que no deben publicarse como assets del sitio
+wrangler.jsonc
+og-cover.html
+.gitignore

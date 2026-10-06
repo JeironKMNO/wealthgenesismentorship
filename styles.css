@@ -4,6 +4,42 @@
    Fonts: Cormorant Garamond · Syne · JetBrains Mono
    ============================================================ */
 
+/* ── Fuentes (self-hosted, subset latín, variables) ──
+   Servidas desde el mismo dominio: sin bloqueo de render por Google Fonts
+   y con caché larga (ver _headers). Licencia: SIL Open Font License. */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('assets/fonts/cormorant-garamond-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('assets/fonts/cormorant-garamond-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Syne';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('assets/fonts/syne-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('assets/fonts/jetbrains-mono-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* ── Design Tokens ── */
 :root {
   /* Colors — warm dark palette */
@@ -39,7 +75,7 @@
   /* Text — warm cream tones */
   --cream:       #EDE8DF;
   --cream-70:    rgba(237, 232, 223, 0.70);
-  --cream-40:    rgba(237, 232, 223, 0.40);
+  --cream-40:    rgba(237, 232, 223, 0.58);  /* ≥4.5:1 sobre el fondo (WCAG AA) */
   --cream-20:    rgba(237, 232, 223, 0.12);
 
   /* Borders */
@@ -174,7 +210,7 @@ summary:focus-visible,
 }
 
 .brand-particles::before {
-  background-image: url('assets/images/particles-gold.svg');
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='%23DFC280'%3E%3Ccircle cx='77.7' cy='36.2' r='0.5' fill-opacity='0.82'/%3E%3Ccircle cx='22.6' cy='139.9' r='1.5' fill-opacity='0.4'/%3E%3Ccircle cx='20.6' cy='100.4' r='1.0' fill-opacity='0.55'/%3E%3Ccircle cx='198.4' cy='29.7' r='1.2' fill-opacity='0.66'/%3E%3Ccircle cx='14.8' cy='140.5' r='0.6' fill-opacity='0.28'/%3E%3Ccircle cx='206.0' cy='69.5' r='0.5' fill-opacity='0.65'/%3E%3Ccircle cx='134.5' cy='163.7' r='1.0' fill-opacity='0.7'/%3E%3Ccircle cx='89.4' cy='131.5' r='0.5' fill-opacity='0.68'/%3E%3Ccircle cx='119.1' cy='127.6' r='0.8' fill-opacity='0.66'/%3E%3Ccircle cx='108.8' cy='71.9' r='1.2' fill-opacity='0.8'/%3E%3Ccircle cx='19.6' cy='72.1' r='0.7' fill-opacity='0.76'/%3E%3Ccircle cx='69.1' cy='235.2' r='0.8' fill-opacity='0.37'/%3E%3Ccircle cx='82.1' cy='224.0' r='1.2' fill-opacity='0.3'/%3E%3Ccircle cx='133.9' cy='189.4' r='0.7' fill-opacity='0.74'/%3E%3Ccircle cx='142.6' cy='139.2' r='0.5' fill-opacity='0.91'/%3E%3Ccircle cx='113.8' cy='159.4' r='1.2' fill-opacity='0.47'/%3E%3Ccircle cx='138.7' cy='163.5' r='1.2' fill-opacity='0.52'/%3E%3Ccircle cx='160.5' cy='5.4' r='0.6' fill-opacity='0.68'/%3E%3Ccircle cx='118.5' cy='52.4' r='1.2' fill-opacity='0.42'/%3E%3Ccircle cx='93.8' cy='209.1' r='0.8' fill-opacity='0.53'/%3E%3Ccircle cx='66.7' cy='32.9' r='1.0' fill-opacity='0.44'/%3E%3Ccircle cx='99.7' cy='86.1' r='0.6' fill-opacity='0.36'/%3E%3Ccircle cx='42.3' cy='55.7' r='0.8' fill-opacity='0.83'/%3E%3Ccircle cx='43.8' cy='67.7' r='1.0' fill-opacity='0.51'/%3E%3Ccircle cx='135.9' cy='228.7' r='1.0' fill-opacity='0.92'/%3E%3Ccircle cx='157.2' cy='177.5' r='1.2' fill-opacity='0.81'/%3E%3Ccircle cx='94.2' cy='95.8' r='1.2' fill-opacity='0.53'/%3E%3Ccircle cx='45.7' cy='236.3' r='0.5' fill-opacity='0.49'/%3E%3Ccircle cx='12.6' cy='0.1' r='0.5' fill-opacity='0.91'/%3E%3Ccircle cx='147.3' cy='16.9' r='0.8' fill-opacity='0.35'/%3E%3Ccircle cx='60.5' cy='83.4' r='0.5' fill-opacity='0.33'/%3E%3Ccircle cx='117.1' cy='234.7' r='0.7' fill-opacity='0.31'/%3E%3Ccircle cx='24.5' cy='82.2' r='1.2' fill-opacity='0.36'/%3E%3Ccircle cx='5.5' cy='228.2' r='0.6' fill-opacity='0.73'/%3E%3Ccircle cx='219.4' cy='182.0' r='1.2' fill-opacity='0.85'/%3E%3Ccircle cx='167.1' cy='62.7' r='0.6' fill-opacity='0.5'/%3E%3Ccircle cx='53.5' cy='130.0' r='1.2' fill-opacity='0.41'/%3E%3Ccircle cx='194.8' cy='236.4' r='0.6' fill-opacity='0.82'/%3E%3Ccircle cx='177.6' cy='54.4' r='0.7' fill-opacity='0.76'/%3E%3Ccircle cx='237.5' cy='189.6' r='0.6' fill-opacity='0.73'/%3E%3Ccircle cx='229.6' cy='107.3' r='1.5' fill-opacity='0.94'/%3E%3Ccircle cx='229.2' cy='87.5' r='0.6' fill-opacity='0.58'/%3E%3Ccircle cx='81.1' cy='115.8' r='1.5' fill-opacity='0.68'/%3E%3Ccircle cx='0.5' cy='218.2' r='1.2' fill-opacity='0.31'/%3E%3Ccircle cx='158.5' cy='218.3' r='0.6' fill-opacity='0.58'/%3E%3Ccircle cx='42.8' cy='189.4' r='1.2' fill-opacity='0.53'/%3E%3Ccircle cx='96.3' cy='227.2' r='0.6' fill-opacity='0.95'/%3E%3Ccircle cx='6.6' cy='141.8' r='1.2' fill-opacity='0.35'/%3E%3Ccircle cx='198.4' cy='235.3' r='0.7' fill-opacity='0.36'/%3E%3Ccircle cx='131.6' cy='5.1' r='1.2' fill-opacity='0.7'/%3E%3Ccircle cx='126.4' cy='224.1' r='0.6' fill-opacity='0.83'/%3E%3Ccircle cx='50.7' cy='60.4' r='0.6' fill-opacity='0.78'/%3E%3Ccircle cx='78.2' cy='130.6' r='0.5' fill-opacity='0.89'/%3E%3Ccircle cx='84.9' cy='110.0' r='1.0' fill-opacity='0.54'/%3E%3Ccircle cx='220.3' cy='120.4' r='1.0' fill-opacity='0.61'/%3E%3Ccircle cx='209.5' cy='186.4' r='0.6' fill-opacity='0.37'/%3E%3Ccircle cx='113.6' cy='174.0' r='0.7' fill-opacity='0.73'/%3E%3Ccircle cx='127.4' cy='115.8' r='1.0' fill-opacity='0.29'/%3E%3Ccircle cx='45.9' cy='10.1' r='0.8' fill-opacity='0.64'/%3E%3Ccircle cx='182.4' cy='219.0' r='1.0' fill-opacity='0.93'/%3E%3Ccircle cx='145.5' cy='47.9' r='1.0' fill-opacity='0.62'/%3E%3Ccircle cx='114.7' cy='226.0' r='0.7' fill-opacity='0.9'/%3E%3Ccircle cx='214.3' cy='48.6' r='0.8' fill-opacity='0.34'/%3E%3Ccircle cx='106.1' cy='17.4' r='0.5' fill-opacity='0.4'/%3E%3Ccircle cx='72.7' cy='29.4' r='1.2' fill-opacity='0.7'/%3E%3Ccircle cx='87.9' cy='60.7' r='0.8' fill-opacity='0.4'/%3E%3Ccircle cx='228.6' cy='95.6' r='1.2' fill-opacity='0.83'/%3E%3Ccircle cx='38.8' cy='103.6' r='0.7' fill-opacity='0.54'/%3E%3Ccircle cx='85.6' cy='22.1' r='0.7' fill-opacity='0.64'/%3E%3Ccircle cx='105.7' cy='4.3' r='1.0' fill-opacity='0.46'/%3E%3Ccircle cx='230.6' cy='27.1' r='1.5' fill-opacity='0.41'/%3E%3Ccircle cx='210.3' cy='20.2' r='0.6' fill-opacity='0.44'/%3E%3Ccircle cx='31.1' cy='101.3' r='1.5' fill-opacity='0.82'/%3E%3Ccircle cx='62.1' cy='35.8' r='1.5' fill-opacity='0.65'/%3E%3Ccircle cx='168.1' cy='21.5' r='1.2' fill-opacity='0.38'/%3E%3Ccircle cx='214.9' cy='64.5' r='0.5' fill-opacity='0.81'/%3E%3Ccircle cx='20.1' cy='205.5' r='0.5' fill-opacity='0.57'/%3E%3Ccircle cx='81.4' cy='132.7' r='1.5' fill-opacity='0.44'/%3E%3Ccircle cx='31.0' cy='126.5' r='0.5' fill-opacity='0.93'/%3E%3Ccircle cx='62.9' cy='43.5' r='1.5' fill-opacity='0.69'/%3E%3Ccircle cx='127.5' cy='49.4' r='1.2' fill-opacity='0.37'/%3E%3Ccircle cx='83.3' cy='4.4' r='0.5' fill-opacity='0.26'/%3E%3Ccircle cx='121.4' cy='234.7' r='0.6' fill-opacity='0.9'/%3E%3Ccircle cx='25.5' cy='196.5' r='0.8' fill-opacity='0.63'/%3E%3Ccircle cx='213.3' cy='232.9' r='0.6' fill-opacity='0.94'/%3E%3Ccircle cx='82.2' cy='199.7' r='1.2' fill-opacity='0.35'/%3E%3Ccircle cx='237.5' cy='235.7' r='0.5' fill-opacity='0.3'/%3E%3Ccircle cx='177.8' cy='61.3' r='0.5' fill-opacity='0.72'/%3E%3Ccircle cx='91.4' cy='121.4' r='1.5' fill-opacity='0.67'/%3E%3Ccircle cx='166.2' cy='10.9' r='0.7' fill-opacity='0.56'/%3E%3C/g%3E%3C/svg%3E");
   -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.55) 32%, transparent 50%);
   mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.55) 32%, transparent 50%);
   opacity: 0.20;
@@ -182,7 +218,7 @@ summary:focus-visible,
 }
 
 .brand-particles::after {
-  background-image: url('assets/images/particles-silver.svg');
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='%23E6E9EE'%3E%3Ccircle cx='108.6' cy='134.3' r='1.5' fill-opacity='0.58'/%3E%3Ccircle cx='121.9' cy='141.0' r='1.0' fill-opacity='0.58'/%3E%3Ccircle cx='147.4' cy='44.7' r='0.6' fill-opacity='0.31'/%3E%3Ccircle cx='194.3' cy='166.4' r='0.8' fill-opacity='0.93'/%3E%3Ccircle cx='156.9' cy='147.7' r='0.5' fill-opacity='0.83'/%3E%3Ccircle cx='15.2' cy='8.6' r='1.0' fill-opacity='0.27'/%3E%3Ccircle cx='111.3' cy='105.7' r='1.0' fill-opacity='0.41'/%3E%3Ccircle cx='70.6' cy='1.1' r='1.2' fill-opacity='0.44'/%3E%3Ccircle cx='239.4' cy='239.0' r='1.2' fill-opacity='0.43'/%3E%3Ccircle cx='181.9' cy='123.1' r='1.0' fill-opacity='0.79'/%3E%3Ccircle cx='96.1' cy='203.2' r='0.5' fill-opacity='0.84'/%3E%3Ccircle cx='0.1' cy='50.3' r='1.5' fill-opacity='0.58'/%3E%3Ccircle cx='235.3' cy='95.4' r='1.2' fill-opacity='0.39'/%3E%3Ccircle cx='162.0' cy='80.9' r='0.5' fill-opacity='0.92'/%3E%3Ccircle cx='181.9' cy='28.3' r='0.5' fill-opacity='0.26'/%3E%3Ccircle cx='111.6' cy='116.8' r='0.6' fill-opacity='0.56'/%3E%3Ccircle cx='45.8' cy='175.7' r='1.2' fill-opacity='0.52'/%3E%3Ccircle cx='94.8' cy='237.6' r='1.0' fill-opacity='0.46'/%3E%3Ccircle cx='212.4' cy='50.6' r='1.0' fill-opacity='0.7'/%3E%3Ccircle cx='24.1' cy='237.4' r='0.7' fill-opacity='0.26'/%3E%3Ccircle cx='146.5' cy='199.3' r='0.5' fill-opacity='0.31'/%3E%3Ccircle cx='139.9' cy='58.3' r='0.7' fill-opacity='0.69'/%3E%3Ccircle cx='30.5' cy='140.9' r='0.6' fill-opacity='0.86'/%3E%3Ccircle cx='43.9' cy='37.0' r='1.5' fill-opacity='0.82'/%3E%3Ccircle cx='59.9' cy='45.6' r='1.0' fill-opacity='0.39'/%3E%3Ccircle cx='228.0' cy='211.7' r='0.8' fill-opacity='0.28'/%3E%3Ccircle cx='26.2' cy='123.0' r='1.2' fill-opacity='0.74'/%3E%3Ccircle cx='61.7' cy='197.7' r='0.7' fill-opacity='0.61'/%3E%3Ccircle cx='223.0' cy='234.5' r='0.8' fill-opacity='0.64'/%3E%3Ccircle cx='204.6' cy='147.4' r='0.6' fill-opacity='0.77'/%3E%3Ccircle cx='16.6' cy='98.7' r='0.5' fill-opacity='0.37'/%3E%3Ccircle cx='88.5' cy='137.3' r='0.7' fill-opacity='0.35'/%3E%3Ccircle cx='108.1' cy='79.4' r='1.0' fill-opacity='0.66'/%3E%3Ccircle cx='33.7' cy='8.4' r='0.7' fill-opacity='0.74'/%3E%3Ccircle cx='231.1' cy='5.1' r='0.8' fill-opacity='0.3'/%3E%3Ccircle cx='74.7' cy='32.8' r='0.8' fill-opacity='0.63'/%3E%3Ccircle cx='176.9' cy='216.0' r='1.2' fill-opacity='0.34'/%3E%3Ccircle cx='231.2' cy='82.0' r='0.8' fill-opacity='0.88'/%3E%3Ccircle cx='209.1' cy='100.1' r='0.8' fill-opacity='0.65'/%3E%3Ccircle cx='150.0' cy='91.8' r='1.0' fill-opacity='0.3'/%3E%3Ccircle cx='21.8' cy='27.7' r='0.8' fill-opacity='0.76'/%3E%3Ccircle cx='93.2' cy='176.4' r='0.8' fill-opacity='0.57'/%3E%3Ccircle cx='129.9' cy='124.5' r='0.7' fill-opacity='0.67'/%3E%3Ccircle cx='115.4' cy='55.3' r='0.8' fill-opacity='0.8'/%3E%3Ccircle cx='158.4' cy='116.7' r='0.7' fill-opacity='0.46'/%3E%3Ccircle cx='162.8' cy='48.6' r='0.7' fill-opacity='0.71'/%3E%3Ccircle cx='106.1' cy='214.0' r='1.2' fill-opacity='0.43'/%3E%3Ccircle cx='152.2' cy='192.9' r='0.6' fill-opacity='0.87'/%3E%3Ccircle cx='92.3' cy='139.9' r='0.6' fill-opacity='0.34'/%3E%3Ccircle cx='84.2' cy='215.0' r='0.5' fill-opacity='0.92'/%3E%3Ccircle cx='66.4' cy='40.6' r='0.7' fill-opacity='0.9'/%3E%3Ccircle cx='199.4' cy='91.8' r='1.2' fill-opacity='0.47'/%3E%3Ccircle cx='201.4' cy='235.7' r='0.5' fill-opacity='0.83'/%3E%3Ccircle cx='66.7' cy='145.8' r='0.7' fill-opacity='0.65'/%3E%3Ccircle cx='74.2' cy='190.0' r='0.6' fill-opacity='0.53'/%3E%3Ccircle cx='45.6' cy='184.6' r='0.6' fill-opacity='0.81'/%3E%3Ccircle cx='236.2' cy='27.7' r='1.0' fill-opacity='0.71'/%3E%3Ccircle cx='193.8' cy='230.0' r='0.6' fill-opacity='0.83'/%3E%3Ccircle cx='61.5' cy='171.4' r='1.0' fill-opacity='0.75'/%3E%3Ccircle cx='43.0' cy='65.4' r='1.2' fill-opacity='0.91'/%3E%3Ccircle cx='120.1' cy='239.2' r='1.2' fill-opacity='0.88'/%3E%3Ccircle cx='20.9' cy='223.8' r='0.6' fill-opacity='0.57'/%3E%3Ccircle cx='47.3' cy='213.0' r='1.0' fill-opacity='0.65'/%3E%3Ccircle cx='211.0' cy='191.2' r='1.5' fill-opacity='0.57'/%3E%3Ccircle cx='156.3' cy='49.2' r='1.2' fill-opacity='0.9'/%3E%3Ccircle cx='29.6' cy='58.2' r='0.5' fill-opacity='0.93'/%3E%3Ccircle cx='128.9' cy='189.8' r='1.2' fill-opacity='0.85'/%3E%3Ccircle cx='83.6' cy='19.9' r='1.0' fill-opacity='0.54'/%3E%3Ccircle cx='66.1' cy='220.7' r='0.5' fill-opacity='0.55'/%3E%3Ccircle cx='8.4' cy='127.9' r='0.6' fill-opacity='0.58'/%3E%3Ccircle cx='240.0' cy='216.1' r='1.2' fill-opacity='0.73'/%3E%3Ccircle cx='227.0' cy='118.2' r='1.5' fill-opacity='0.31'/%3E%3Ccircle cx='53.1' cy='126.4' r='1.2' fill-opacity='0.64'/%3E%3Ccircle cx='39.4' cy='123.4' r='1.5' fill-opacity='0.43'/%3E%3Ccircle cx='161.1' cy='229.1' r='1.0' fill-opacity='0.4'/%3E%3Ccircle cx='204.2' cy='232.4' r='1.0' fill-opacity='0.6'/%3E%3Ccircle cx='98.7' cy='27.4' r='0.8' fill-opacity='0.27'/%3E%3Ccircle cx='232.7' cy='123.8' r='1.0' fill-opacity='0.34'/%3E%3Ccircle cx='22.4' cy='40.0' r='1.5' fill-opacity='0.57'/%3E%3Ccircle cx='221.0' cy='192.1' r='0.6' fill-opacity='0.58'/%3E%3Ccircle cx='30.5' cy='104.1' r='0.8' fill-opacity='0.62'/%3E%3Ccircle cx='26.1' cy='100.7' r='0.7' fill-opacity='0.34'/%3E%3Ccircle cx='187.0' cy='5.5' r='0.6' fill-opacity='0.26'/%3E%3Ccircle cx='68.2' cy='173.7' r='0.8' fill-opacity='0.32'/%3E%3Ccircle cx='175.4' cy='29.5' r='0.7' fill-opacity='0.75'/%3E%3Ccircle cx='168.3' cy='210.9' r='1.2' fill-opacity='0.54'/%3E%3Ccircle cx='127.0' cy='38.3' r='1.2' fill-opacity='0.62'/%3E%3Ccircle cx='52.4' cy='51.9' r='1.0' fill-opacity='0.85'/%3E%3Ccircle cx='55.8' cy='177.8' r='0.6' fill-opacity='0.47'/%3E%3Ccircle cx='75.6' cy='221.5' r='0.6' fill-opacity='0.87'/%3E%3C/g%3E%3C/svg%3E");
   background-position: 120px 60px;
   -webkit-mask-image: linear-gradient(270deg, #000 0%, rgba(0, 0, 0, 0.55) 32%, transparent 50%);
   mask-image: linear-gradient(270deg, #000 0%, rgba(0, 0, 0, 0.55) 32%, transparent 50%);
@@ -297,6 +333,24 @@ summary:focus-visible,
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Hero: entrada con CSS puro (no espera a app.js), así el titular se pinta
+   en el primer render y no retrasa el LCP. */
+.hero-in {
+  animation: hero-in 0.8s var(--ease) both;
+}
+
+.hero-in:nth-child(2) { animation-delay: 0.06s; }
+.hero-in:nth-child(3) { animation-delay: 0.12s; }
+.hero-in:nth-child(4) { animation-delay: 0.18s; }
+.hero-in:nth-child(5) { animation-delay: 0.22s; }
+.hero-in:nth-child(6) { animation-delay: 0.26s; }
+.hero-visual.hero-in  { animation-delay: 0.15s; }
+
+@keyframes hero-in {
+  from { opacity: 0.01; transform: translateY(18px); }
+  to   { opacity: 1;    transform: none; }
 }
 
 /* ── Scroll Progress ── */
@@ -431,7 +485,22 @@ summary:focus-visible,
   transition: color 0.2s;
 }
 
-.nav-links a:hover { color: var(--gold-light); }
+.nav-links a:hover,
+.nav-links a.is-active { color: var(--gold-light); }
+
+.nav-links a:not(.nav-cta) { position: relative; }
+
+.nav-links a:not(.nav-cta)::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -6px;
+  height: 1px;
+  background: var(--split-line);
+  transform: scaleX(0);
+  transition: transform 0.3s var(--ease);
+}
+
+.nav-links a.is-active::after { transform: scaleX(1); }
 
 .nav-links .nav-cta {
   color: var(--gold);
@@ -497,7 +566,8 @@ summary:focus-visible,
   transition: color 0.2s;
 }
 
-.nav-mobile a:hover { color: var(--gold-light); }
+.nav-mobile a:hover,
+.nav-mobile a.is-active { color: var(--gold-light); }
 
 .nav-mobile .nav-cta {
   color: var(--gold);
@@ -686,7 +756,14 @@ summary:focus-visible,
   align-items: stretch;
   border: 1px solid var(--border);
   background: rgba(201, 165, 90, 0.03);
-  margin-bottom: 2.5rem;
+}
+
+.hero-micro {
+  font-family: var(--f-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--cream-40);
+  margin: 1rem 0 2.25rem;
 }
 
 .data-item {
@@ -987,13 +1064,6 @@ summary:focus-visible,
 .method-section::before { top: 0; }
 .method-section::after { bottom: 0; }
 
-.method-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(3rem, 6vw, 6rem);
-  align-items: start;
-}
-
 .method-quote {
   font-family: var(--f-display);
   font-style: italic;
@@ -1031,29 +1101,6 @@ summary:focus-visible,
   color: var(--gold);
   flex-shrink: 0;
   margin-top: 2px;
-}
-
-.method-right {
-  position: relative;
-}
-
-.method-right img {
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--border-sub);
-}
-
-.method-caption {
-  margin-top: 1.75rem;
-  padding: 1.4rem 1.75rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-sub);
-  border-left: 2px solid var(--gold-dim);
-  font-family: var(--f-display);
-  font-style: italic;
-  font-size: 1.05rem;
-  color: var(--cream-70);
-  line-height: 1.65;
 }
 
 /* ── Mentor Section ── */
@@ -1153,18 +1200,13 @@ summary:focus-visible,
     gap: 2.5rem;
   }
   .mentor-photo {
-    max-width: 360px;
+    max-width: 260px;
     margin: 0 auto;
   }
+  .mentor-photo::after { inset: 10px; }
 }
 
-/* ── Markets Section ── */
-.markets-section {
-  padding: var(--sp-xl) 0;
-  background: var(--bg-dark);
-}
-
-/* Etiqueta de ticker (reutilizada por la sección Herramientas) */
+/* ── Etiqueta de ticker (Herramientas) ── */
 .market-ticker-label {
   font-family: var(--f-mono);
   font-size: 0.65rem;
@@ -1173,58 +1215,6 @@ summary:focus-visible,
   text-transform: uppercase;
   color: var(--gold);
   margin-bottom: 0.75rem;
-}
-
-/* Markets — versión compacta (imagen NQ + dos filas) */
-.markets-compact {
-  display: grid;
-  grid-template-columns: 1fr 0.9fr;
-  gap: clamp(2.5rem, 5vw, 4.5rem);
-  align-items: center;
-  margin-top: 3rem;
-}
-
-.markets-compact-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-}
-
-.mkt-row {
-  padding-left: 1.25rem;
-  border-left: 2px solid var(--gold);
-}
-
-.mkt-row--silver { border-left-color: var(--silver); }
-
-.mkt-row-label {
-  display: block;
-  font-family: var(--f-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 0.5rem;
-}
-
-.mkt-row--silver .mkt-row-label { color: var(--silver-light); }
-
-.mkt-row p {
-  font-size: 0.92rem;
-  line-height: 1.7;
-  color: var(--cream-70);
-}
-
-.markets-compact-img img {
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--border-sub);
-}
-
-@media (max-width: 768px) {
-  .markets-compact { grid-template-columns: 1fr; gap: 2.5rem; }
-  .markets-compact-img { order: -1; }
 }
 
 /* ── Tools / Data Institucional Section ── */
@@ -1341,6 +1331,8 @@ summary:focus-visible,
   object-fit: contain;
 }
 
+.tools-swipe-hint { display: none; }
+
 .tools-shots-caption {
   max-width: 720px;
   margin: 1.5rem auto 0;
@@ -1352,21 +1344,38 @@ summary:focus-visible,
 
 .tools-shots-caption strong { color: var(--silver-light); font-weight: 600; }
 
-.tools-note {
-  margin-top: 2.75rem;
-  padding: 1.4rem 1.75rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-sub);
-  border-left: 2px solid var(--gold-dim);
-  font-size: 0.9rem;
-  line-height: 1.7;
-  color: var(--cream-70);
-}
-
 @media (max-width: 768px) {
-  .tools-contrast { grid-template-columns: 1fr; }
-  .tools-shots { grid-template-columns: 1fr; }
-  .shot-frame { height: 300px; }
+  .tools-contrast { grid-template-columns: 1fr; gap: 0.9rem; margin-bottom: 2.5rem; }
+  .contrast-col { padding: 1.25rem; }
+
+  /* Móvil: las capturas pasan a un carrusel deslizable (scroll-snap nativo,
+     sin JS) en vez de apilarse; se asoma la siguiente para invitar a deslizar. */
+  .tools-shots {
+    display: flex;
+    gap: 0.9rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    margin: 2rem calc(-1 * clamp(1.25rem, 4vw, 2.5rem)) 0;
+    padding: 0 clamp(1.25rem, 4vw, 2.5rem);
+    scroll-padding: 0 clamp(1.25rem, 4vw, 2.5rem);
+  }
+  .tools-shots::-webkit-scrollbar { display: none; }
+  .tools-shots .shot { flex: 0 0 86%; scroll-snap-align: start; }
+  .shot-frame { height: 240px; }
+
+  .tools-swipe-hint {
+    display: block;
+    margin-top: 0.75rem;
+    text-align: right;
+    font-family: var(--f-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cream-40);
+  }
 }
 
 /* ── Video / El Sistema en Acción ── */
@@ -2141,7 +2150,7 @@ summary:focus-visible,
 .footer {
   background: var(--bg-deep);
   border-top: 1px solid var(--border-sub);
-  padding: 4rem 0 0;
+  padding: 3rem 0 0;
 }
 
 .footer-wrap {
@@ -2152,26 +2161,51 @@ summary:focus-visible,
 
 .footer-main {
   display: grid;
-  grid-template-columns: 1.5fr 2fr;
-  gap: 4rem;
-  padding-bottom: 3rem;
+  grid-template-columns: 1.2fr 1.6fr auto;
+  gap: 3rem;
+  align-items: center;
+  padding-bottom: 2.25rem;
   border-bottom: 1px solid var(--border-sub);
 }
 
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
 .footer-brand img {
-  height: 110px;
+  height: 88px;
   width: auto;
-  margin-bottom: 1.25rem;
+  flex-shrink: 0;
   filter: var(--logo-glow);
 }
 
 .footer-brand p {
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   color: var(--cream-40);
-  line-height: 1.75;
-  max-width: 260px;
-  margin-bottom: 1.5rem;
+  line-height: 1.7;
+  max-width: 240px;
 }
+
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1.75rem;
+}
+
+.footer-nav a {
+  font-family: var(--f-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cream-70);
+  transition: color 0.2s;
+}
+
+.footer-nav a:hover { color: var(--gold-light); }
 
 .footer-socials {
   display: flex;
@@ -2182,52 +2216,19 @@ summary:focus-visible,
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--border-sub);
-  font-family: var(--f-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--cream-40);
+  color: var(--cream-70);
   transition: border-color 0.2s, color 0.2s;
 }
+
+.footer-socials svg { width: 18px; height: 18px; }
 
 .footer-socials a:hover {
   border-color: var(--gold-border);
   color: var(--gold);
 }
-
-.footer-nav {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-}
-
-.footer-col h4 {
-  font-family: var(--f-mono);
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 1.25rem;
-}
-
-.footer-col ul {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-  list-style: none;
-}
-
-.footer-col a {
-  font-size: 0.83rem;
-  color: var(--cream-40);
-  transition: color 0.2s;
-}
-
-.footer-col a:hover { color: var(--gold-light); }
 
 .footer-bottom {
   padding: 1.25rem 0;
@@ -2242,10 +2243,13 @@ summary:focus-visible,
   font-family: var(--f-mono);
   font-size: 0.64rem;
   letter-spacing: 0.05em;
-  color: var(--cream-20);
+  color: var(--cream-40);
 }
 
 .footer-disclaimer { font-style: italic; }
+
+/* ── Barra fija de conversión (solo móvil) ── */
+.mobile-cta { display: none; }
 
 /* ── WhatsApp Float ── */
 .wa-float {
@@ -2299,7 +2303,6 @@ summary:focus-visible,
 
   .hero-desc { max-width: 100%; }
 
-  .method-grid,
   .community-grid,
   .pricing-layout {
     grid-template-columns: 1fr;
@@ -2308,15 +2311,22 @@ summary:focus-visible,
 
   .footer-main {
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    justify-items: center;
+    text-align: center;
+    gap: 1.75rem;
   }
+
+  .footer-brand { flex-direction: column; gap: 1rem; }
 }
 
 /* ── Responsive — 768px ── */
 @media (max-width: 768px) {
   :root {
-    --sp-xl: 3.5rem;
+    --sp-xl: 3.25rem;
   }
+
+  /* El nombre ya está en el logo: en móvil ese espacio es para el contenido */
+  .top-brand-banner { display: none; }
 
   .nav-links { display: none; }
   .nav-toggle { display: flex; }
@@ -2327,19 +2337,24 @@ summary:focus-visible,
     line-height: 1.4;
   }
 
-  /* Mobile: permitir que la barra crezca cuando el texto envuelve a varias líneas.
-     En desktop tiene max-height:44px para mantenerla compacta, pero en mobile esa
-     altura recortaba el texto cuando el flex-wrap rompía a 2-3 líneas. */
+  /* Mobile: permitir que la barra crezca si el texto envuelve.
+     En desktop tiene max-height:44px para mantenerla compacta. */
   .announce-bar {
     max-height: none;
-    padding: 0.7rem 1rem;
+    padding: 0.6rem 1rem;
   }
 
   .hero {
-    padding-top: 3.5rem;
-    padding-bottom: 4rem;
+    padding-top: 1.75rem;
+    padding-bottom: 3.25rem;
     min-height: unset;
   }
+
+  .hero-eyebrow { margin-bottom: 1.25rem; gap: 0.75rem; }
+  .eyebrow-line { width: 24px; }
+  .hero-eyebrow span:last-child { letter-spacing: 0.14em; }
+  .hero-desc { margin-bottom: 1.75rem; }
+  .hero-micro { margin: 0.85rem 0 1.75rem; }
 
   .hero-data { width: 100%; }
   .data-item { flex: 1; padding: 0.75rem 1rem; }
@@ -2350,7 +2365,11 @@ summary:focus-visible,
 
   .feat-item {
     border-right: none !important;
+    padding: 1.5rem 1.25rem;
+    gap: 1rem;
   }
+
+  .feat-num { font-size: 1.6rem; width: 40px; }
 
   .feat-item:nth-last-child(-n+2) {
     border-bottom: 1px solid var(--border-sub);
@@ -2360,21 +2379,27 @@ summary:focus-visible,
     border-bottom: none;
   }
 
-  .pricing-card { padding: 2rem; }
+  .section-header { margin-bottom: 1.75rem; }
 
-  .footer-nav {
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
+  /* La imagen de la cohorte es decorativa: en móvil se omite (y al ser lazy, no se descarga) */
+  .community-img { display: none; }
+
+  .step-item { padding: 1.5rem 1.25rem; }
+  .steps-grid { margin-top: 2rem; gap: 0.9rem; }
+
+  .pricing-card { padding: 1.75rem 1.5rem; }
+
+  /* La fila de confianza repite lo que ya dicen la franja de precio y la tarjeta */
+  .trust-row { display: none; }
+  .pricing-intro p { margin-bottom: 0; }
+  .pricing-layout { gap: 2rem; }
+  .pricing-features { gap: 0.7rem; margin-bottom: 1.75rem; padding-bottom: 1.75rem; }
 
   .footer-bottom {
     flex-direction: column;
     text-align: center;
     gap: 0.5rem;
   }
-
-  /* Mobile: logo del footer (lockup con texto) un poco más compacto */
-  .footer-brand img { height: 96px; }
 
   /* Mobile: logo del navbar un pelín más chico para no apretar el toggle */
   .nav-logo img { height: 48px; }
@@ -2395,13 +2420,69 @@ summary:focus-visible,
   /* Mobile: precio un pelín más compacto pero igual de dominante */
   .pricing-value { font-size: 3.6rem; }
   .pricing-currency { font-size: 1.7rem; }
+
+  /* La barra fija reemplaza a la burbuja de WhatsApp en móvil */
+  .wa-float { display: none; }
+
+  .mobile-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 450;
+    padding: 0.7rem clamp(1.25rem, 4vw, 2.5rem) calc(0.7rem + env(safe-area-inset-bottom));
+    background: rgba(8, 7, 5, 0.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--gold-border);
+    transform: translateY(105%);
+    visibility: hidden;
+    transition: transform 0.35s var(--ease), visibility 0s linear 0.35s;
+  }
+
+  .mobile-cta::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 0; right: 0;
+    height: 1px;
+    background: var(--split-line);
+  }
+
+  .mobile-cta.is-visible {
+    transform: translateY(0);
+    visibility: visible;
+    transition: transform 0.35s var(--ease), visibility 0s;
+  }
+
+  .mobile-cta-text { display: flex; flex-direction: column; line-height: 1.2; }
+
+  .mobile-cta-text strong {
+    font-family: var(--f-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--cream);
+  }
+
+  .mobile-cta-text span {
+    font-family: var(--f-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .mobile-cta .btn-primary { padding: 0.8rem 1.6rem; }
+
+  /* Espacio para que la barra no tape el final del footer */
+  body { padding-bottom: 72px; }
 }
 
 /* ── Responsive — 480px ── */
 @media (max-width: 480px) {
   /* Headline y títulos un pelín más chicos para no desbordar en ~375px */
   .hero-headline { font-size: clamp(2.3rem, 10vw, 3.1rem); }
-  .top-brand-banner span { font-size: clamp(0.95rem, 4.5vw, 1.25rem); }
 
   .hero-ctas {
     flex-direction: column;
@@ -2411,38 +2492,10 @@ summary:focus-visible,
   .btn-primary.btn-lg,
   .hero-ctas .btn-primary { width: 100%; justify-content: center; }
 
-  .hero-data {
-    flex-direction: column;
-    border: 1px solid var(--border);
-    width: auto;
-    display: flex;
-  }
+  /* Datos del hero en una sola fila compacta (antes se apilaban en 3 bloques) */
+  .data-item { padding: 0.65rem 0.6rem; gap: 0.15rem; }
+  .data-val { font-size: 0.78rem; }
+  .data-label { font-size: 0.52rem; letter-spacing: 0.06em; }
 
-  .data-sep {
-    width: auto;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .data-item { padding: 0.75rem 1.25rem; }
-
-  .footer-nav {
-    grid-template-columns: 1fr;
-  }
-
-  .announce-inner span:nth-child(5),
-  .announce-inner span:nth-child(6) {
-    display: none;
-  }
-
-  /* Pantallas pequeñas: footer logo aún más compacto */
-  .footer-brand img { height: 88px; }
-
-  /* Pantallas pequeñas: WhatsApp FAB más cerca del borde para no chocar con CTAs */
-  .wa-float {
-    bottom: 1.25rem;
-    right: 1.25rem;
-    width: 48px;
-    height: 48px;
-  }
+  .footer-brand img { height: 76px; }
 }
