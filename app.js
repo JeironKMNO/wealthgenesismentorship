@@ -78,23 +78,6 @@
     }
   });
 
-  // ── Video: eventos de reproducción (play, 50%, completo) ──
-  const videoEl = document.querySelector('.video-player');
-  if (videoEl) {
-    const firedVid = {};
-    const trackVid = (name) => {
-      if (firedVid[name]) return;
-      firedVid[name] = true;
-      if (typeof window.gtag === 'function') window.gtag('event', name, { event_category: 'video' });
-      if (typeof window.fbq === 'function') window.fbq('trackCustom', name);
-    };
-    videoEl.addEventListener('play', () => trackVid('video_play'));
-    videoEl.addEventListener('timeupdate', () => {
-      if (videoEl.duration && videoEl.currentTime / videoEl.duration >= 0.5) trackVid('video_50');
-    });
-    videoEl.addEventListener('ended', () => trackVid('video_complete'));
-  }
-
   // ── Scroll Progress Bar ──
   const scrollBar = document.createElement('div');
   scrollBar.className = 'scroll-bar';
