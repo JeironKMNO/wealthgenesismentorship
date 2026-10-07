@@ -1435,6 +1435,51 @@ summary:focus-visible,
   text-align: center;
 }
 
+.market-class {
+  max-width: 960px;
+  margin: clamp(3rem, 6vw, 5rem) auto 0;
+}
+
+.market-class-heading {
+  max-width: 760px;
+  margin-bottom: 1.75rem;
+}
+
+.market-class-heading h3 {
+  margin: 0.85rem 0 1rem;
+  color: var(--cream);
+  font-family: var(--f-display);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 600;
+  line-height: 1.05;
+}
+
+.market-class-heading h3 em { color: var(--gold-light); font-weight: 500; }
+
+.market-class-heading p {
+  max-width: 64ch;
+  color: var(--cream-70);
+  font-size: 0.98rem;
+  line-height: 1.75;
+}
+
+.market-class-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--gold-border);
+  background: var(--bg-deep);
+}
+
+.market-class-caption {
+  margin-top: 0.9rem;
+  color: var(--cream-40);
+  font-family: var(--f-mono);
+  font-size: 0.68rem;
+  line-height: 1.6;
+}
+
 @media (max-width: 768px) {
   .market-focus-grid { grid-template-columns: 1fr; }
   .market-focus-card { min-height: 300px; }
