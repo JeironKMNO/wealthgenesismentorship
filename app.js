@@ -139,6 +139,8 @@
   navToggle.addEventListener('click', () => {
     const isOpen = navMobile.classList.toggle('open');
     navToggle.classList.toggle('open', isOpen);
+    navToggle.setAttribute('aria-expanded', String(isOpen));
+    navToggle.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
     document.body.style.overflow = isOpen ? 'hidden' : '';
   });
 
@@ -146,9 +148,60 @@
     link.addEventListener('click', () => {
       navMobile.classList.remove('open');
       navToggle.classList.remove('open');
+      navToggle.setAttribute('aria-expanded', 'false');
+      navToggle.setAttribute('aria-label', 'Abrir menú');
       document.body.style.overflow = '';
     });
   });
+
+  // ── Scrollspy: resalta en el menú la sección que se está leyendo ──
+  // Una línea imaginaria a ~40% de la altura de pantalla decide la sección activa.
+  const spyLinks = [...document.querySelectorAll('.nav-links a[href^="#"], .nav-mobile a[href^="#"]')];
+  const spySections = [...new Set(spyLinks.map(a => a.getAttribute('href')))]
+    .map(id => document.querySelector(id))
+    .filter(Boolean);
+
+  if (spySections.length && 'IntersectionObserver' in window) {
+    // Si la línea cae en una sección sin link (p. ej. Herramientas), no se marca ninguno.
+    const onLine = new Set();
+    const spyObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) onLine.add(entry.target.id);
+        else onLine.delete(entry.target.id);
+      });
+      const id = onLine.size ? '#' + [...onLine].pop() : null;
+      spyLinks.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === id));
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    spySections.forEach(sec => spyObserver.observe(sec));
+  }
+
+  // ── Barra fija de conversión (móvil) ──
+  // Aparece cuando el CTA del hero ya quedó arriba y se oculta mientras la
+  // tarjeta de precio o el CTA final están en pantalla (no duplicar botones).
+  const mobileCta = document.getElementById('mobileCta');
+  const heroCtas  = document.querySelector('.hero-ctas');
+
+  if (mobileCta && heroCtas && 'IntersectionObserver' in window) {
+    let pastHero = false;
+    const ctaInView = new Set();
+    const syncMobileCta = () => {
+      mobileCta.classList.toggle('is-visible', pastHero && ctaInView.size === 0);
+    };
+
+    new IntersectionObserver(([entry]) => {
+      pastHero = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+      syncMobileCta();
+    }).observe(heroCtas);
+
+    const ctaObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) ctaInView.add(entry.target);
+        else ctaInView.delete(entry.target);
+      });
+      syncMobileCta();
+    });
+    document.querySelectorAll('.pricing-action, .final-cta-inner').forEach(el => ctaObserver.observe(el));
+  }
 
   // ── Smooth Anchor Scroll ──
   document.addEventListener('click', (e) => {
@@ -235,7 +288,10 @@
       entries.forEach(entry => entry.target.classList.toggle('is-live', entry.isIntersecting));
     });
 
-    document.querySelectorAll('.brand-particles').forEach(field => {
+    // Se crean en tiempo ocioso: leer offsetWidth/Height fuerza layout y no
+    // debe competir con el primer render.
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
+    idle(() => document.querySelectorAll('.brand-particles').forEach(field => {
       const area = field.offsetWidth * field.offsetHeight;
       const count = Math.max(14, Math.min(38, Math.round(area / 20000)));
       const frag = document.createDocumentFragment();
@@ -256,7 +312,7 @@
 
       field.appendChild(frag);
       sparkleObserver.observe(field);
-    });
+    }));
   }
 
   // ── Passive Scroll Handler ──

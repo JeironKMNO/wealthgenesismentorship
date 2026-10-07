@@ -19,9 +19,10 @@
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://wealthgenesismentorship.com/assets/images/og-cover.jpg?v=2" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <!-- Fuentes self-hosted: se precargan las del primer pantallazo (titular, cuerpo) -->
+  <link rel="preload" href="assets/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/cormorant-garamond-italic-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/syne-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -38,9 +39,9 @@
     <div class="announce-bar" id="announceBar">
       <div class="announce-inner">
         <span class="announce-pulse"></span>
-        <span>Cohorte fundadora · $75/mes · 10 cupos</span>
+        <span>10 cupos fundadores · $75/mes</span>
         <span class="announce-dot">·</span>
-        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20hablar%20sobre%20Wealth%20Genesis%20Mentorship." target="_blank" rel="noopener" data-loc="announce">Hablar por WhatsApp →</a>
+        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" data-loc="announce">Aplicar →</a>
       </div>
     </div>
 
@@ -54,13 +55,14 @@
           </picture>
         </a>
         <ul class="nav-links" id="navLinks">
-          <li><a href="#herramientas">Herramientas</a></li>
+          <li><a href="#sistema">Sistema</a></li>
+          <li><a href="#mentor">Mentor</a></li>
           <li><a href="#programa">Programa</a></li>
-          <li><a href="#comunidad">Comunidad</a></li>
           <li><a href="#acceso">Precio</a></li>
-          <li><a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20hablar%20sobre%20Wealth%20Genesis%20Mentorship." target="_blank" rel="noopener" class="nav-cta" data-loc="nav">WhatsApp</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="nav-cta" data-loc="nav">Aplicar</a></li>
         </ul>
-        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú">
+        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navMobile">
           <span></span><span></span><span></span>
         </button>
       </div>
@@ -74,21 +76,27 @@
     <div class="container hero-container">
 
       <div class="hero-content">
-        <div class="hero-eyebrow reveal">
+        <div class="hero-eyebrow hero-in">
           <span class="eyebrow-line"></span>
           <span>Academia de Trading Profesional</span>
         </div>
 
-        <h1 class="hero-headline reveal">
+        <h1 class="hero-headline hero-in">
           De Cero<br />a Operar con<br /><em>Estructura</em>.
         </h1>
 
-        <p class="hero-desc reveal">
+        <p class="hero-desc hero-in">
           Futuros del Nasdaq (NQ) con un sistema de reglas claras. Te llevamos paso a paso:
           de pasar tu cuenta de fondeo a tu primer retiro.
         </p>
 
-        <div class="hero-data reveal">
+        <div class="hero-ctas hero-in">
+          <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="btn-primary" data-loc="hero">Aplicar a la Mentoría</a>
+          <a href="#sistema" class="btn-text">Ver el sistema ↓</a>
+        </div>
+        <p class="hero-micro hero-in">Te respondo yo por WhatsApp · Garantía de 14 días</p>
+
+        <div class="hero-data hero-in">
           <div class="data-item">
             <span class="data-val">NQ</span>
             <span class="data-label">Futuros del Nasdaq</span>
@@ -104,14 +112,9 @@
             <span class="data-label">Enfoque Práctico</span>
           </div>
         </div>
-
-        <div class="hero-ctas reveal">
-          <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20hablar%20sobre%20Wealth%20Genesis%20Mentorship." target="_blank" rel="noopener" class="btn-primary" data-loc="hero">Hablar con Jeiron por WhatsApp</a>
-          <a href="#sistema" class="btn-text">Ver el sistema ↓</a>
-        </div>
       </div>
 
-      <div class="hero-visual reveal">
+      <div class="hero-visual hero-in">
         <div class="hero-frame">
           <div class="hero-halo" aria-hidden="true"></div>
           <picture>
@@ -169,7 +172,7 @@
           controls
           preload="none"
           playsinline
-          poster="assets/video/sistema-en-accion-poster.jpg?v=2"
+          poster="assets/video/sistema-en-accion-poster.webp?v=2"
         >
           <source src="assets/video/sistema-en-accion.mp4?v=2" type="video/mp4" />
           Tu navegador no soporta video HTML5.
@@ -185,7 +188,7 @@
           <strong>¿Aún no estás listo para aplicar?</strong>
           <span>Pídeme la <strong>clase completa gratis</strong> por WhatsApp y te la hago llegar.</span>
         </div>
-        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20la%20clase%20completa%20gratis%20de%20WGM." target="_blank" rel="noopener" class="btn-primary" data-loc="clase">Pedir la clase por WhatsApp</a>
+        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20la%20clase%20completa%20gratis%20de%20WGM." target="_blank" rel="noopener" class="btn-primary" data-loc="clase">Pedir la clase gratis</a>
       </div>
 
     </div>
@@ -202,7 +205,10 @@
 
       <div class="mentor-grid">
         <div class="mentor-photo reveal">
-          <img src="assets/images/mentor.jpg" alt="Jeiron Jiménez — Fundador de Wealth Genesis Mentorship" loading="lazy" decoding="async" />
+          <picture>
+            <source srcset="assets/images/mentor-720.webp 720w, assets/images/mentor.webp 1100w" sizes="(max-width: 768px) 360px, 460px" type="image/webp" />
+            <img src="assets/images/mentor.jpg" alt="Jeiron Jiménez — Fundador de Wealth Genesis Mentorship" width="1254" height="1254" loading="lazy" decoding="async" />
+          </picture>
         </div>
 
         <div class="mentor-body">
@@ -214,13 +220,22 @@
 
           <div class="mentor-proof reveal">
             <div class="proof-item">
-              <img src="assets/images/cert-topstep.jpg" alt="Certificado de fondeo Topstep — Jeiron Jiménez" loading="lazy" decoding="async" />
+              <picture>
+                <source srcset="assets/images/cert-topstep.webp" type="image/webp" />
+                <img src="assets/images/cert-topstep.jpg" alt="Certificado de fondeo Topstep — Jeiron Jiménez" width="1000" height="773" loading="lazy" decoding="async" />
+              </picture>
             </div>
             <div class="proof-item">
-              <img src="assets/images/cert-alpha.jpg" alt="Certificado de fondeo Alpha Futures — Jeiron Jiménez" loading="lazy" decoding="async" />
+              <picture>
+                <source srcset="assets/images/cert-alpha.webp" type="image/webp" />
+                <img src="assets/images/cert-alpha.jpg" alt="Certificado de fondeo Alpha Futures — Jeiron Jiménez" width="1280" height="967" loading="lazy" decoding="async" />
+              </picture>
             </div>
             <div class="proof-item">
-              <img src="assets/images/cert-fundingticks.jpg" alt="Certificado de fondeo FundingTicks — Jeiron Jiménez" loading="lazy" decoding="async" />
+              <picture>
+                <source srcset="assets/images/cert-fundingticks.webp" type="image/webp" />
+                <img src="assets/images/cert-fundingticks.jpg" alt="Certificado de fondeo FundingTicks — Jeiron Jiménez" width="1280" height="904" loading="lazy" decoding="async" />
+              </picture>
             </div>
           </div>
 
@@ -244,7 +259,7 @@
           <li>Cohorte de 10 cupos</li>
           <li>Sin contrato</li>
         </ul>
-        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20hablar%20sobre%20Wealth%20Genesis%20Mentorship." target="_blank" rel="noopener" class="btn-primary btn-lg" data-loc="precio-strip">Hablar con Jeiron por WhatsApp</a>
+        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="btn-primary btn-lg" data-loc="precio-strip">Aplicar a la Mentoría</a>
       </div>
     </div>
   </section>
@@ -304,6 +319,8 @@
         </figure>
       </div>
 
+      <p class="tools-swipe-hint" aria-hidden="true">Desliza para ver más →</p>
+
       <p class="tools-shots-caption reveal">Cada línea es una <strong>zona de alto volumen</strong> donde el precio tiende a reaccionar por su propia mecánica, no por casualidad. Entras con contexto, no a ciegas. La estructura, la liquidez y los Smart Money Concepts los trabajamos en las clases.</p>
 
     </div>
@@ -324,7 +341,7 @@
           <span class="feat-num">01</span>
           <div class="feat-body">
             <h3>Curso Completo</h3>
-            <p>De las bases del análisis a estrategias avanzadas de entrada y salida. De cero a competente.</p>
+            <p>De cero a avanzado: lectura de precio, estructura de mercado, gestión de riesgo y psicología del trading. Grabado, con acceso de por vida.</p>
           </div>
         </div>
 
@@ -355,8 +372,8 @@
         <div class="feat-item reveal">
           <span class="feat-num">05</span>
           <div class="feat-body">
-            <h3>Contenido Pregrabado</h3>
-            <p>Acceso de por vida a todas las lecciones. Aprende a tu ritmo.</p>
+            <h3>Seguimiento Personal</h3>
+            <p>Un plan adaptado a tu ritmo y acompañamiento paso a paso: de la cuenta de fondeo a tu primer retiro.</p>
           </div>
         </div>
 
@@ -372,51 +389,16 @@
     </div>
   </section>
 
-  <!-- ═══════ METHOD ═══════ -->
-  <section class="method-section" id="metodo">
-    <div class="container">
-      <div class="method-grid">
-
-        <div class="method-left">
-          <div class="reveal">
-            <span class="section-label">Nuestro Método</span>
-            <h2 class="section-title">Bases Sólidas.<br /><em>Proceso Real.</em></h2>
-          </div>
-
-          <blockquote class="method-quote reveal">
-            "No damos promesas vacías. Formamos traders que toman sus propias decisiones, de manera consciente y con entendimiento."
-          </blockquote>
-
-          <ul class="method-list">
-            <li class="reveal"><span class="m-check">✓</span><span>Análisis técnico y lectura de precio desde cero</span></li>
-            <li class="reveal"><span class="m-check">✓</span><span>Gestión de riesgo y psicología del trading</span></li>
-            <li class="reveal"><span class="m-check">✓</span><span>Acompañamiento paso a paso: de la cuenta de fondeo a tu primer retiro</span></li>
-            <li class="reveal"><span class="m-check">✓</span><span>Seguimiento personalizado y plan adaptado a tu ritmo</span></li>
-          </ul>
-
-          <div class="reveal">
-            <a href="#acceso" class="btn-primary">Aplicar a la Mentoría</a>
-          </div>
-        </div>
-
-        <div class="method-right reveal">
-          <img src="assets/images/geometric-wealth.png" alt="Método Wealth Genesis — Estructura" loading="lazy" decoding="async" />
-          <div class="method-caption">
-            Operar con estructura no se compra.<br />Se aprende, se practica, se domina.
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
   <!-- ═══════ COMMUNITY ═══════ -->
   <section class="community-section" id="comunidad">
     <div class="container">
       <div class="community-grid">
 
         <div class="community-img reveal">
-          <img src="assets/images/access-vault.png" alt="Comunidad Wealth Genesis" loading="lazy" decoding="async" />
+          <picture>
+            <source srcset="assets/images/access-vault.webp" type="image/webp" />
+            <img src="assets/images/access-vault.png" alt="Comunidad Wealth Genesis" width="640" height="640" loading="lazy" decoding="async" />
+          </picture>
         </div>
 
         <div class="community-content">
@@ -671,9 +653,9 @@
     <div class="brand-particles" aria-hidden="true"></div>
     <div class="container">
       <div class="final-cta-inner reveal">
-        <h2 class="final-title">Tu Futuro en los Mercados<br /><em>Comienza Ahora</em></h2>
-        <p>Cada día que pasa sin actuar es una oportunidad que no vuelve. Da el primer paso hoy.</p>
-        <a href="https://wa.me/17873297067?text=Hola%2C%20me%20interesa%20Wealth%20Genesis%20Mentorship.%20Quiero%20aplicar%20a%20la%20mentor%C3%ADa." target="_blank" rel="noopener" class="btn-primary btn-lg" data-loc="final">Aplicar a la Mentoría</a>
+        <h2 class="final-title">Diez cupos fundadores.<br /><em>Uno puede ser tuyo.</em></h2>
+        <p>Aplicas por WhatsApp, hablamos directo y decides con toda la información. Precio fundador congelado y garantía de 14 días.</p>
+        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="btn-primary btn-lg" data-loc="final">Aplicar a la Mentoría</a>
       </div>
     </div>
   </section>
@@ -700,37 +682,19 @@
             <img src="assets/images/logo-full.png" alt="Wealth Genesis Mentorship" width="137" height="110" loading="lazy" decoding="async" />
           </picture>
           <p>La academia de trading que te da las herramientas para operar con independencia y confianza.</p>
-          <div class="footer-socials">
-            <a href="https://www.instagram.com/wgmentorship" target="_blank" rel="noopener" aria-label="Instagram">IG</a>
-            <a href="https://wa.me/17873297067" target="_blank" rel="noopener" aria-label="WhatsApp">WA</a>
-          </div>
         </div>
 
-        <div class="footer-nav">
-          <div class="footer-col">
-            <h4>Programa</h4>
-            <ul>
-              <li><a href="#programa">Qué incluye</a></li>
-              <li><a href="#metodo">Nuestro método</a></li>
-              <li><a href="#herramientas">Herramientas</a></li>
-              <li><a href="#acceso">Inscripción</a></li>
-            </ul>
-          </div>
-          <div class="footer-col">
-            <h4>Comunidad</h4>
-            <ul>
-              <li><a href="#comunidad">La cohorte</a></li>
-              <li><a href="https://www.instagram.com/wgmentorship" target="_blank" rel="noopener">Instagram</a></li>
-              <li><a href="https://wa.me/17873297067" target="_blank" rel="noopener">WhatsApp</a></li>
-            </ul>
-          </div>
-          <div class="footer-col">
-            <h4>Contacto</h4>
-            <ul>
-              <li><a href="https://wa.me/17873297067" target="_blank" rel="noopener">WhatsApp</a></li>
-              <li><a href="https://www.instagram.com/wgmentorship" target="_blank" rel="noopener">Instagram DM</a></li>
-            </ul>
-          </div>
+        <nav class="footer-nav" aria-label="Secciones">
+          <a href="#sistema">Sistema</a>
+          <a href="#mentor">Mentor</a>
+          <a href="#programa">Programa</a>
+          <a href="#acceso">Precio</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+
+        <div class="footer-socials">
+          <a href="https://www.instagram.com/wgmentorship" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://wa.me/17873297067" target="_blank" rel="noopener" aria-label="WhatsApp" data-loc="footer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4z"/><path d="M9 8.6c0 3.4 2.9 6.4 6.4 6.4l1-1.5-2-1-1 .9c-1.2-.5-2.3-1.6-2.8-2.8l.9-1-1-2z" stroke-width="1.2"/></svg></a>
         </div>
 
       </div>
@@ -741,6 +705,16 @@
       </div>
     </div>
   </footer>
+
+  <!-- Barra fija de conversión (solo móvil). app.js la muestra al pasar el CTA
+       del hero y la oculta cuando la tarjeta de precio o el CTA final están en pantalla. -->
+  <div class="mobile-cta" id="mobileCta">
+    <div class="mobile-cta-text">
+      <strong>$75/mes</strong>
+      <span>Cohorte fundadora · 10 cupos</span>
+    </div>
+    <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="btn-primary" data-loc="sticky">Aplicar</a>
+  </div>
 
   <!-- WhatsApp Float -->
   <a href="https://wa.me/17873297067?text=Hola%2C%20me%20interesa%20Wealth%20Genesis%20Mentorship." target="_blank" rel="noopener" class="wa-float" aria-label="Contactar por WhatsApp" title="Contáctanos por WhatsApp" data-loc="float">
