@@ -1,0 +1,236 @@
+/* EDGE33 — academia editorial. Overrides intentionally follow the legacy layout. */
+:root {
+  --bg-deep: #0d1418;
+  --bg-dark: #10191d;
+  --bg-section: #142025;
+  --bg-alt: #172329;
+  --bg-card: #1b2a30;
+  --gold: #bd9558;
+  --gold-light: #d6b782;
+  --gold-pale: #ead5ae;
+  --gold-dim: rgba(189, 149, 88, .13);
+  --gold-border: rgba(189, 149, 88, .3);
+  --gold-glow: rgba(189, 149, 88, .07);
+  --silver: #ccd1d0;
+  --silver-light: #f1ece2;
+  --silver-pale: #f9f5ed;
+  --silver-dim: rgba(215, 220, 217, .07);
+  --silver-border: rgba(215, 220, 217, .2);
+  --cream: #f1ece2;
+  --cream-70: rgba(241, 236, 226, .76);
+  --cream-40: rgba(241, 236, 226, .6);
+  --cream-20: rgba(241, 236, 226, .14);
+  --border: rgba(189, 149, 88, .27);
+  --border-sub: rgba(241, 236, 226, .11);
+  --border-faint: rgba(241, 236, 226, .06);
+  --split-line: linear-gradient(90deg, transparent, var(--gold), transparent);
+  --split-line-faint: linear-gradient(90deg, transparent, var(--gold-border), transparent);
+  --metal-gold: linear-gradient(100deg, var(--gold), var(--gold-pale) 58%, var(--gold));
+  --logo-glow: none;
+}
+
+body { background: var(--bg-deep); }
+
+.top-brand-banner {
+  padding: .55rem 1rem;
+  background: #0b1114;
+  border-bottom: 1px solid var(--border-sub);
+}
+.top-brand-banner::before, .top-brand-banner::after { display: none; }
+.top-brand-banner span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .13rem;
+  background: none;
+  -webkit-text-fill-color: var(--cream);
+  color: var(--cream);
+  filter: none;
+  animation: none;
+  font-family: var(--f-ui);
+  font-weight: 800;
+  font-size: .84rem;
+  letter-spacing: .17em;
+}
+.top-brand-banner sup { color: var(--gold-light); font-size: .59em; transform: translateY(-.45em); }
+.top-brand-banner small {
+  margin-left: .8rem;
+  color: var(--cream-40);
+  font-family: var(--f-mono);
+  font-size: .61em;
+  font-weight: 500;
+  letter-spacing: .2em;
+}
+
+.announce-bar { background: #1b282d; border-bottom: 1px solid var(--gold-border); }
+.announce-inner { color: var(--gold-light); }
+.announce-pulse { background: var(--gold-light); }
+.announce-inner a { color: var(--cream); border-bottom-color: var(--gold); }
+.site-header.compact .navbar { background: rgba(13, 20, 24, .95); }
+.navbar { background: rgba(13, 20, 24, .78); }
+.nav-logo { display: block; width: 174px; height: 54px; overflow: hidden; }
+.nav-logo img,
+.site-header.compact .nav-logo img {
+  display: block;
+  width: 174px;
+  height: 54px;
+  object-fit: cover;
+  object-position: 50% 50%;
+  mix-blend-mode: screen;
+  filter: none;
+}
+.nav-logo:hover img { filter: brightness(1.12); }
+.nav-links .nav-cta { color: var(--cream); border-color: var(--gold); }
+.nav-links .nav-cta:hover { background: var(--gold); color: var(--bg-deep); }
+
+.hero {
+  min-height: min(760px, calc(100svh - 122px));
+  padding: clamp(3.25rem, 7vw, 6.5rem) 0;
+  background: radial-gradient(circle at 75% 42%, rgba(189,149,88,.09), transparent 32%), var(--bg-deep);
+}
+.hero::before {
+  top: auto; bottom: 0; right: 0; width: 58%; height: 64%;
+  background: linear-gradient(145deg, transparent 48%, rgba(189,149,88,.045) 49%, transparent 50%);
+}
+.hero::after { opacity: .15; }
+.hero-container { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(2rem, 4vw, 5rem); }
+.hero-eyebrow { margin-bottom: 1.8rem; }
+.hero-headline {
+  max-width: 760px;
+  font-family: var(--f-ui);
+  font-size: clamp(2.6rem, 4.7vw, 5.1rem);
+  font-weight: 700;
+  letter-spacing: -.055em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.hero-headline em {
+  font-family: var(--f-display);
+  font-size: 1.04em;
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+.hero-desc { max-width: 580px; font-size: clamp(1rem, 1.3vw, 1.13rem); }
+.hero-data { width: 100%; max-width: 560px; background: rgba(255,255,255,.025); }
+.data-item { flex: 1; }
+.data-val { font-size: 1.12rem; }
+
+.edge-hero-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 570px;
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--gold-border);
+  background: #10161a;
+  box-shadow: 0 24px 100px rgba(0,0,0,.22);
+}
+.edge-hero-card::before {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(241,236,226,.09);
+  z-index: 2;
+  pointer-events: none;
+}
+.edge-hero-logo { display: block; width: 100%; height: 100%; object-fit: cover; }
+.edge-hero-index {
+  display: flex;
+  justify-content: space-between;
+  gap: .8rem;
+  position: absolute;
+  left: 32px; right: 32px; bottom: 23px;
+  color: var(--cream-40);
+  font: 600 .55rem var(--f-mono);
+  letter-spacing: .12em;
+  z-index: 3;
+}
+
+.edge-philosophy {
+  position: relative;
+  padding: clamp(4rem, 8vw, 7.5rem) 0;
+  background: var(--bg-section);
+  border-top: 1px solid var(--gold-border);
+  border-bottom: 1px solid var(--border-sub);
+}
+.edge-philosophy-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, .72fr) minmax(0, 1.28fr);
+  align-items: center;
+  gap: clamp(3rem, 8vw, 9rem);
+}
+.edge-philosophy-number {
+  color: var(--gold);
+  font: 600 clamp(8rem, 18vw, 17rem)/.8 var(--f-display);
+  letter-spacing: -.12em;
+  white-space: nowrap;
+  opacity: .9;
+}
+.edge-philosophy-number span { font-size: .38em; vertical-align: top; letter-spacing: -.04em; }
+.edge-philosophy-copy { max-width: 670px; }
+.edge-philosophy-copy h2 {
+  font: 600 clamp(2.1rem, 4vw, 3.7rem)/1.08 var(--f-display);
+  margin-bottom: 1.75rem;
+  text-wrap: balance;
+}
+.edge-philosophy-copy h2 em { color: var(--gold-light); font-weight: 400; }
+.edge-philosophy-copy p { color: var(--cream-70); font-size: 1rem; line-height: 1.85; }
+.edge-philosophy-copy .edge-philosophy-note {
+  margin-top: 1rem;
+  color: var(--cream-40);
+  font: 500 .71rem/1.65 var(--f-mono);
+}
+.edge-text-link {
+  display: inline-flex;
+  gap: .8rem;
+  align-items: center;
+  margin-top: 1.7rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid var(--gold);
+  color: var(--gold-light);
+  font: 700 .75rem var(--f-ui);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.edge-text-link:hover { color: var(--cream); }
+
+.section-title { text-wrap: balance; }
+.features-section, .video-section, .community-section, .tools-section,
+.steps-section, .pricing-section, .faq-section, .method-section { scroll-margin-top: 90px; }
+.video-wrap { max-width: 900px; box-shadow: 0 24px 85px rgba(0,0,0,.23); }
+.community-img { background: #10161a; border: 1px solid var(--gold-border); }
+.community-img img { border: 0; mix-blend-mode: screen; }
+.pricing-card { box-shadow: 0 25px 90px rgba(0,0,0,.2); }
+.footer-brand img {
+  width: 170px;
+  height: 72px;
+  object-fit: cover;
+  object-position: center;
+  mix-blend-mode: screen;
+  filter: none;
+}
+
+@media (max-width: 1024px) {
+  .hero-container { grid-template-columns: 1fr; }
+  .hero-visual { order: 2; }
+  .edge-hero-card { max-width: 430px; }
+}
+@media (max-width: 768px) {
+  .nav-logo, .nav-logo img, .site-header.compact .nav-logo img { width: 154px; height: 50px; }
+  .hero { min-height: auto; padding: 3rem 0 3.5rem; }
+  .hero-headline { font-size: clamp(2.5rem, 8vw, 4rem); }
+  .hero-container { gap: 2.5rem; }
+  .edge-hero-card { max-width: 430px; }
+  .edge-philosophy-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .edge-philosophy-number { font-size: 7rem; }
+  .edge-philosophy-copy h2 { font-size: clamp(2.1rem, 8vw, 3rem); }
+  .edge-hero-index { left: 26px; right: 26px; bottom: 22px; }
+}
+@media (max-width: 480px) {
+  .hero-headline { font-size: clamp(2.25rem, 10vw, 3.1rem); }
+  .hero-data { overflow-x: auto; }
+  .data-item { min-width: 96px; padding: .7rem .65rem; }
+  .data-val { font-size: .9rem; }
+  .data-label { font-size: .5rem; }
+  .edge-hero-index span:last-child { font-size: .46rem; }
+}

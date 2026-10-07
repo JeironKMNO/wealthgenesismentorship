@@ -2,98 +2,88 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=JetBrains+Mono:wght@500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 1200px; height: 630px; }
+    * { box-sizing: border-box; }
+    html, body { width: 1200px; height: 630px; margin: 0; }
     body {
-      width: 1200px;
-      height: 630px;
-      background:
-        radial-gradient(ellipse 55% 85% at 84% 48%, rgba(201,165,90,0.16), transparent 62%),
-        radial-gradient(ellipse 40% 60% at 12% 60%, rgba(200,205,212,0.06), transparent 60%),
-        #080705;
-      display: flex;
-      align-items: center;
-      gap: 60px;
-      padding: 70px 84px;
-      font-family: 'Syne', system-ui, sans-serif;
-      color: #EDE8DF;
       position: relative;
       overflow: hidden;
+      background: #10161a;
+      color: #f1ece2;
+      font-family: Georgia, serif;
     }
-    .frame {
-      position: absolute;
-      inset: 26px;
-      border: 1px solid rgba(201,165,90,0.22);
-      pointer-events: none;
-    }
-    .frame::after {
+    body::before {
       content: '';
       position: absolute;
-      inset: 8px;
-      border: 1px solid rgba(201,165,90,0.08);
+      inset: 22px;
+      border: 1px solid rgba(189,149,88,.35);
     }
-    .logo {
-      height: 350px;
-      width: auto;
-      flex-shrink: 0;
-      filter: drop-shadow(0 0 28px rgba(201,165,90,0.22)) drop-shadow(0 0 10px rgba(230,233,238,0.10));
-    }
-    .content { display: flex; flex-direction: column; gap: 22px; }
-    .eyebrow {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 19px;
-      font-weight: 700;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: #C9A55A;
-    }
-    .headline {
-      font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-      font-size: 68px;
-      font-weight: 700;
-      line-height: 1.02;
-      letter-spacing: -0.01em;
-      color: #EDE8DF;
-    }
-    .headline em { font-style: italic; font-weight: 400; color: #DFC280; }
-    .accent {
-      width: 84px;
-      height: 2px;
-      background: linear-gradient(90deg, #C9A55A, #E6E9EE, #DFC280);
-    }
-    .sub {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 22px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      color: rgba(237,232,223,0.72);
-    }
-    .url {
+    .grain {
       position: absolute;
-      bottom: 42px;
-      right: 84px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 17px;
-      font-weight: 500;
-      letter-spacing: 0.12em;
+      width: 540px;
+      height: 540px;
+      right: -40px;
+      top: 38px;
+      border: 1px solid rgba(189,149,88,.16);
+      border-radius: 50%;
+      box-shadow: 0 0 0 46px rgba(189,149,88,.018), 0 0 0 96px rgba(189,149,88,.014);
+    }
+    .brand {
+      position: absolute;
+      left: 82px;
+      top: 62px;
+      width: 450px;
+      height: 155px;
+      overflow: hidden;
+    }
+    .brand img {
+      display: block;
+      width: 450px;
+      height: 450px;
+      object-fit: cover;
+      transform: translateY(-148px);
+      mix-blend-mode: screen;
+    }
+    .eyebrow {
+      position: absolute;
+      top: 245px;
+      left: 82px;
+      color: #d6b782;
+      font: 700 17px/1.2 Arial, sans-serif;
+      letter-spacing: .2em;
+    }
+    .title {
+      position: absolute;
+      top: 293px;
+      left: 80px;
+      max-width: 800px;
+      font-size: 68px;
+      font-weight: 600;
+      line-height: 1.05;
+      letter-spacing: -.03em;
+    }
+    .title em { color: #d6b782; font-weight: 400; }
+    .footer {
+      position: absolute;
+      left: 82px;
+      right: 82px;
+      bottom: 66px;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid rgba(241,236,226,.22);
+      padding-top: 16px;
+      color: rgba(241,236,226,.65);
+      font: 600 15px Arial, sans-serif;
+      letter-spacing: .12em;
       text-transform: uppercase;
-      color: rgba(237,232,223,0.4);
     }
   </style>
 </head>
 <body>
-  <div class="frame"></div>
-  <img class="logo" src="assets/images/logo-full.png" alt="" />
-  <div class="content">
-    <div class="eyebrow">Academia de Trading Profesional</div>
-    <div class="headline">De Cero a<br /><em>Operar con Estructura</em></div>
-    <div class="accent"></div>
-    <div class="sub">Futuros del Nasdaq (NQ)</div>
-  </div>
-  <div class="url">wealthgenesismentorship.com</div>
+  <div class="grain"></div>
+  <div class="brand"><img src="assets/images/edge33-logo.png" alt="" /></div>
+  <div class="eyebrow">ACADEMIA DE FUTUROS / NQ · MNQ</div>
+  <div class="title">Tu ventaja está<br /><em>en el proceso.</em></div>
+  <div class="footer"><span>Contexto · Ejecución · Riesgo</span><span>EDGE33</span></div>
 </body>
 </html>

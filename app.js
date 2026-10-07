@@ -1,5 +1,5 @@
 /* ============================================================
-   WEALTH GENESIS MENTORSHIP — app.js
+   EDGE33 — app.js
    Financial Precision Luxury
    ============================================================ */
 
@@ -328,12 +328,12 @@
 
   // ── Console Branding ──
   console.log(
-    '%c⬡ WEALTH GENESIS MENTORSHIP',
-    'color:#C9A55A;font-family:monospace;font-size:13px;font-weight:700;'
+    '%cEDGE33',
+    'color:#D6B782;font-family:monospace;font-size:13px;font-weight:700;'
   );
   console.log(
-    '%cDomina los Mercados. Crea Tu Riqueza.',
-    'color:#635C50;font-family:monospace;font-size:10px;'
+    '%cTu ventaja está en el proceso.',
+    'color:#778A8C;font-family:monospace;font-size:10px;'
   );
 
 })();
