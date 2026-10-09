@@ -1,728 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wealth Genesis Mentorship — De Cero a Operar con Estructura</title>
-  <meta name="description" content="Academia de trading profesional enfocada en los futuros del Nasdaq (NQ). Aprende a operar con un sistema práctico aplicado en condiciones reales de mercado. Te llevamos paso a paso desde pasar la cuenta de fondeo hasta tu primer retiro. Comunidad privada, clases en vivo, educación continua." />
-  <meta name="keywords" content="trading, mentoría, futuros nasdaq, NQ, MNQ, micro nasdaq, cuenta de fondeo, prop firm, primer retiro, academia, curso trading, wealth genesis, operar con estructura, gestión de riesgo" />
-  <meta property="og:title" content="Wealth Genesis Mentorship — De Cero a Operar con Estructura" />
-  <meta property="og:description" content="Sistema con reglas claras. Cohorte fundadora. Formamos traders que toman sus propias decisiones con criterio. Tu camino hacia operar con autonomía." />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#090a0b" />
+  <title>EDGE33 — Aprende un sistema. Construye tu criterio.</title>
+  <meta name="description" content="EDGE33 es una academia de trading para aprender fundamentos, un sistema con estructura y reglas claras, gestión de riesgo y el criterio para operar de forma independiente en distintos mercados." />
+  <meta name="keywords" content="EDGE33, academia de trading, sistema de trading, gestión de riesgo, trader independiente, futuros, índices, oro" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://wealthgenesismentorship.com/" />
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png" />
-  <link rel="icon" type="image/png" sizes="512x512" href="assets/images/logo-icon.png" />
-  <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png" />
-  <!-- Banner de preview 1200x630 (2x) generado desde og-cover.html con Playwright. -->
-  <meta property="og:image" content="https://wealthgenesismentorship.com/assets/images/og-cover.jpg?v=2" />
+  <meta property="og:title" content="EDGE33 — Tu ventaja está en el proceso" />
+  <meta property="og:description" content="Fundamentos, reglas claras y gestión de riesgo para formar traders independientes." />
+  <link rel="canonical" href="https://edge33.net/" />
+  <meta property="og:url" content="https://edge33.net/" />
+  <meta property="og:image" content="https://edge33.net/assets/images/edge33-og-cover.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://wealthgenesismentorship.com/assets/images/og-cover.jpg?v=2" />
-  <!-- Fuentes self-hosted: se precargan las del primer pantallazo (titular, cuerpo) -->
-  <link rel="preload" href="assets/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="assets/fonts/cormorant-garamond-italic-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <meta name="twitter:image" content="https://edge33.net/assets/images/edge33-og-cover.jpg" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/edge33-favicon.svg" />
+  <link rel="apple-touch-icon" href="assets/images/edge33-apple-touch-icon.png" />
   <link rel="preload" href="assets/fonts/syne-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="preload" href="assets/images/edge33-trading-concept.webp" as="image" fetchpriority="high" />
+  <link rel="stylesheet" href="edge33.css" />
 </head>
 <body>
-
-  <!-- ═══════ TOP BRAND BANNER ═══════ -->
-  <div class="top-brand-banner">
-    <span>Wealth Genesis Mentorship</span>
-  </div>
-
-  <!-- ═══════ SITE HEADER (Sticky) ═══════ -->
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header class="site-header" id="siteHeader">
-
-    <!-- Announcement Bar -->
-    <div class="announce-bar" id="announceBar">
-      <div class="announce-inner">
-        <span class="announce-pulse"></span>
-        <span>10 cupos fundadores · $75/mes</span>
-        <span class="announce-dot">·</span>
-        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" data-loc="announce">Aplicar →</a>
-      </div>
+    <div class="shell header-inner">
+      <a class="brand" href="#inicio" aria-label="EDGE33, ir al inicio"><picture><source srcset="assets/images/edge33-wordmark.webp" type="image/webp" /><img src="assets/images/edge33-wordmark.png" width="1800" height="390" alt="EDGE33" /></picture><span>ACADEMIA DE TRADING</span></a>
+      <nav class="desktop-nav" aria-label="Navegación principal"><a href="#sistema">El sistema</a><a href="#programa">Qué aprenderás</a><a href="#fundador">Fundador</a><a href="#acceso">Acceso</a></nav>
+      <a class="header-cta" href="https://buy.stripe.com/aFaeVd0llaqQ7H94c9afS00" target="_blank" rel="noopener" data-loc="header">Inscribirme <span aria-hidden="true">↗</span></a>
+      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menú" aria-controls="mobileNav" aria-expanded="false"><span></span><span></span></button>
     </div>
-
-    <!-- Navbar -->
-    <nav class="navbar" id="navbar">
-      <div class="nav-wrap">
-        <a href="/" class="nav-logo">
-          <picture>
-            <source srcset="assets/images/logo-icon.webp" type="image/webp" />
-            <img src="assets/images/logo-icon.png" alt="Wealth Genesis Mentorship" width="56" height="56" decoding="async" />
-          </picture>
-        </a>
-        <ul class="nav-links" id="navLinks">
-          <li><a href="#sistema">Sistema</a></li>
-          <li><a href="#mentor">Mentor</a></li>
-          <li><a href="#programa">Programa</a></li>
-          <li><a href="#acceso">Precio</a></li>
-          <li><a href="#faq">FAQ</a></li>
-          <li><a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="nav-cta" data-loc="nav">Aplicar</a></li>
-        </ul>
-        <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navMobile">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </nav>
-
+    <nav class="mobile-nav" id="mobileNav" aria-label="Navegación móvil" hidden><a href="#sistema">El sistema</a><a href="#programa">Qué aprenderás</a><a href="#fundador">Fundador</a><a href="#acceso">Acceso</a><a href="https://buy.stripe.com/aFaeVd0llaqQ7H94c9afS00" target="_blank" rel="noopener" data-loc="menu">Inscribirme a EDGE33 ↗</a></nav>
   </header>
 
-  <!-- ═══════ HERO ═══════ -->
-  <section class="hero" id="hero">
-    <div class="brand-particles" aria-hidden="true"></div>
-    <div class="container hero-container">
-
-      <div class="hero-content">
-        <div class="hero-eyebrow hero-in">
-          <span class="eyebrow-line"></span>
-          <span>Academia de Trading Profesional</span>
+  <main id="contenido">
+    <section class="hero" id="inicio" aria-labelledby="heroTitle">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="shell hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="status-dot"></span> LA VENTAJA SE CONSTRUYE</p>
+          <h1 id="heroTitle">Aprende un sistema.<br /><em>Construye tu criterio.</em></h1>
+          <p class="hero-lead">Deja de depender de señales. En EDGE33 aprendes fundamentos, una estrategia con estructura y reglas claras, y la gestión necesaria para trabajar hacia la rentabilidad por cuenta propia.</p>
+          <div class="hero-actions"><a class="button button-primary" href="https://buy.stripe.com/aFaeVd0llaqQ7H94c9afS00" target="_blank" rel="noopener" data-loc="hero" aria-label="Unirme a EDGE33"><span class="button-label">Unirme a EDGE<sup class="brand-exponent">33</sup></span><span class="button-icon" aria-hidden="true">↗</span></a><a class="text-link" href="#sistema">Explorar el método <span aria-hidden="true">↓</span></a></div>
+          <div class="hero-proof" aria-label="Pilares de la formación"><span>01 / FUNDAMENTOS</span><span>02 / REGLAS</span><span>03 / INDEPENDENCIA</span></div>
         </div>
-
-        <h1 class="hero-headline hero-in">
-          De Cero<br />a Operar con<br /><em>Estructura</em>.
-        </h1>
-
-        <p class="hero-desc hero-in">
-          Futuros del Nasdaq (NQ) con un sistema de reglas claras. Te llevamos paso a paso:
-          de pasar tu cuenta de fondeo a tu primer retiro.
-        </p>
-
-        <div class="hero-ctas hero-in">
-          <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="btn-primary" data-loc="hero">Aplicar a la Mentoría</a>
-          <a href="#sistema" class="btn-text">Ver el sistema ↓</a>
-        </div>
-        <p class="hero-micro hero-in">Te respondo yo por WhatsApp · Garantía de 14 días</p>
-
-        <div class="hero-data hero-in">
-          <div class="data-item">
-            <span class="data-val">NQ</span>
-            <span class="data-label">Futuros del Nasdaq</span>
+        <div class="hero-art">
+          <!-- Arte + neón que recorre las velas: las capas usan una máscara con
+               solo las velas (edge33-candles-mask), así el brillo nunca toca manos ni texto. -->
+          <div class="hero-art-media" id="heroArt">
+            <img src="assets/images/edge33-trading-concept.webp" width="1254" height="1254" alt="Logo EDGE33 entre dos manos iluminadas y un gráfico de velas doradas" fetchpriority="high" />
+            <span class="candle-glow" aria-hidden="true"></span>
+            <span class="candle-neon candle-neon--halo" aria-hidden="true"></span>
+            <span class="candle-neon" aria-hidden="true"></span>
           </div>
-          <div class="data-sep"></div>
-          <div class="data-item">
-            <span class="data-val">10 Cupos</span>
-            <span class="data-label">Cohorte Fundadora</span>
-          </div>
-          <div class="data-sep"></div>
-          <div class="data-item">
-            <span class="data-val">100%</span>
-            <span class="data-label">Enfoque Práctico</span>
-          </div>
+          <span class="art-coordinate art-coordinate--top" aria-hidden="true">EDGE / 33</span>
         </div>
       </div>
+      <div class="hero-bottom shell"><span>Un proceso. Distintos mercados.</span><span>DESLIZA PARA EXPLORAR <b aria-hidden="true">↓</b></span></div>
+    </section>
 
-      <div class="hero-visual hero-in">
-        <div class="hero-frame">
-          <div class="hero-halo" aria-hidden="true"></div>
-          <picture>
-            <source srcset="assets/images/glass-bull.webp" type="image/webp" />
-            <img src="assets/images/glass-bull.png" alt="Wealth Genesis — Mercados en Alza" class="hero-img" id="heroImg" width="640" height="640" decoding="async" fetchpriority="high" />
-          </picture>
-          <div class="hero-badge">
-            <span class="badge-num">NQ</span>
-            <span class="badge-label">Especialidad</span>
-          </div>
-        </div>
+    <section class="system section" id="sistema" aria-labelledby="systemTitle"><div class="shell">
+      <div class="section-heading"><p class="eyebrow">01 / EL SISTEMA</p><h2 id="systemTitle">La estructura primero.<br /><em>La ejecución después.</em></h2><p>Enseñamos un sistema de trading con reglas definidas para buscar oportunidades, limitar el riesgo y revisar cada decisión. Sus principios se pueden aplicar a distintos mercados; los ejemplos pueden incluir índices como el Dow y el Nasdaq, y también el oro.</p></div>
+      <div class="system-flow" aria-label="Tres etapas del sistema">
+        <article class="flow-step"><span class="flow-index">01 <i></i></span><div><span class="flow-label">PREPARAR</span><h3>Lee el contexto</h3><p>Entiende el mercado, identifica escenarios y define qué tendría que ocurrir antes de actuar.</p></div></article>
+        <article class="flow-step"><span class="flow-index">02 <i></i></span><div><span class="flow-label">EJECUTAR</span><h3>Sigue tus reglas</h3><p>Entradas, salidas e invalidación se establecen de antemano para reducir la improvisación.</p></div></article>
+        <article class="flow-step"><span class="flow-index">03 <i></i></span><div><span class="flow-label">EVOLUCIONAR</span><h3>Mide y ajusta</h3><p>Registra operaciones, estudia errores y mejora un proceso que puedas sostener en el tiempo.</p></div></article>
       </div>
+    </div></section>
 
-    </div>
-  </section>
-
-  <!-- ═══════ MARKET TICKER ═══════ -->
-  <div class="ticker-strip" aria-hidden="true">
-    <div class="ticker-track">
-      <span>NQ · NASDAQ</span><span class="t-sep">◆</span>
-      <span>MNQ · MICRO NASDAQ</span><span class="t-sep">◆</span>
-      <span>FUTUROS CME</span><span class="t-sep">◆</span>
-      <span>DATA · GEX LEVELS</span><span class="t-sep">◆</span>
-      <span>FONDEO → RETIRO</span><span class="t-sep">◆</span>
-      <span>NQ · NASDAQ</span><span class="t-sep">◆</span>
-      <span>MNQ · MICRO NASDAQ</span><span class="t-sep">◆</span>
-      <span>FUTUROS CME</span><span class="t-sep">◆</span>
-      <span>DATA · GEX LEVELS</span><span class="t-sep">◆</span>
-      <span>FONDEO → RETIRO</span><span class="t-sep">◆</span>
-      <span>NQ · NASDAQ</span><span class="t-sep">◆</span>
-      <span>MNQ · MICRO NASDAQ</span><span class="t-sep">◆</span>
-      <span>FUTUROS CME</span><span class="t-sep">◆</span>
-      <span>DATA · GEX LEVELS</span><span class="t-sep">◆</span>
-      <span>FONDEO → RETIRO</span><span class="t-sep">◆</span>
-      <span>NQ · NASDAQ</span><span class="t-sep">◆</span>
-      <span>MNQ · MICRO NASDAQ</span><span class="t-sep">◆</span>
-      <span>FUTUROS CME</span><span class="t-sep">◆</span>
-      <span>DATA · GEX LEVELS</span><span class="t-sep">◆</span>
-      <span>FONDEO → RETIRO</span><span class="t-sep">◆</span>
-    </div>
-  </div>
-
-  <!-- ═══════ EL SISTEMA EN ACCIÓN (VIDEO) ═══════ -->
-  <section class="video-section" id="sistema">
-    <div class="container">
-
-      <div class="section-header reveal">
-        <span class="section-label">El Sistema en Acción</span>
-        <h2 class="section-title">Una operación real,<br /><em>explicada</em></h2>
+    <section class="program section" id="programa" aria-labelledby="programTitle"><div class="shell program-grid">
+      <div class="program-intro"><p class="eyebrow">02 / LA FORMACIÓN</p><h2 id="programTitle">Más que leer<br /><em>un gráfico.</em></h2><p>El objetivo es que entiendas lo que haces, construyas un plan propio y puedas tomar decisiones sin depender de otra persona.</p><a class="text-link" href="#acceso">Ver acceso y precio <span aria-hidden="true">↗</span></a></div>
+      <div class="program-list">
+        <article><span>01</span><div><h3>Fundamentos reales</h3><p>Cómo funcionan los mercados, los instrumentos, las órdenes y los costos de operar.</p></div></article>
+        <article><span>02</span><div><h3>Estrategia y ejecución</h3><p>Estructura, escenarios, entradas, salidas y un sistema con reglas que puedas repetir.</p></div></article>
+        <article><span>03</span><div><h3>Riesgo y psicología</h3><p>Tamaño de posición, pérdidas, disciplina y decisiones bajo presión.</p></div></article>
+        <article><span>04</span><div><h3>Práctica acompañada</h3><p>Clases en vivo, revisión de operaciones, diario y comunidad para desarrollar autonomía.</p></div></article>
       </div>
-
-      <div class="video-wrap reveal">
-        <video
-          class="video-player"
-          controls
-          preload="none"
-          playsinline
-          poster="assets/video/sistema-en-accion-poster.webp?v=2"
-        >
-          <source src="assets/video/sistema-en-accion.mp4?v=2" type="video/mp4" />
-          Tu navegador no soporta video HTML5.
-        </video>
-      </div>
-
-      <p class="video-caption reveal">Mira cómo se leen los <strong>GEX levels</strong> y la estructura en una operación real de MNQ: la zona, la ejecución y la gestión de riesgo — el mismo proceso que aprendes en la mentoría.</p>
-
-      <p class="video-disclaimer reveal">Resultado de una operación individual, con fines educativos. No representa resultados típicos ni garantiza ganancias futuras. El trading conlleva riesgo sustancial de pérdida.</p>
-
-      <div class="class-cta reveal">
-        <div class="class-cta-text">
-          <strong>¿Aún no estás listo para aplicar?</strong>
-          <span>Pídeme la <strong>clase completa gratis</strong> por WhatsApp y te la hago llegar.</span>
-        </div>
-        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20la%20clase%20completa%20gratis%20de%20WGM." target="_blank" rel="noopener" class="btn-primary" data-loc="clase">Pedir la clase gratis</a>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ═══════ MENTOR ═══════ -->
-  <section class="method-section" id="mentor">
-    <div class="container">
-
-      <div class="section-header reveal">
-        <span class="section-label">Tu Mentor</span>
-        <h2 class="section-title">Aprende con quien<br /><em>arriesga su propio capital</em></h2>
-      </div>
-
-      <div class="mentor-grid">
-        <div class="mentor-photo reveal">
-          <picture>
-            <source srcset="assets/images/mentor-720.webp 720w, assets/images/mentor.webp 1100w" sizes="(max-width: 768px) 360px, 460px" type="image/webp" />
-            <img src="assets/images/mentor.jpg" alt="Jeiron Jiménez — Fundador de Wealth Genesis Mentorship" width="1254" height="1254" loading="lazy" decoding="async" />
-          </picture>
-        </div>
-
-        <div class="mentor-body">
-          <blockquote class="method-quote reveal">
-            "Soy Jeiron Jiménez. Opero desde Puerto Rico, enfocado exclusivamente en los futuros del Nasdaq (NQ)."
-          </blockquote>
-
-          <p class="reveal">He superado las evaluaciones de fondeo de <strong>Topstep</strong>, <strong>Alpha Futures</strong> y <strong>FundingTicks</strong>. Significa que opero bajo reglas reales de riesgo — las mismas que te voy a enseñar. También he quemado cuentas; aprendí a operar con estructura porque el camino fácil me costó dinero primero.</p>
-
-          <div class="mentor-proof reveal">
-            <div class="proof-item">
-              <picture>
-                <source srcset="assets/images/cert-topstep.webp" type="image/webp" />
-                <img src="assets/images/cert-topstep.jpg" alt="Certificado de fondeo Topstep — Jeiron Jiménez" width="1000" height="773" loading="lazy" decoding="async" />
-              </picture>
-            </div>
-            <div class="proof-item">
-              <picture>
-                <source srcset="assets/images/cert-alpha.webp" type="image/webp" />
-                <img src="assets/images/cert-alpha.jpg" alt="Certificado de fondeo Alpha Futures — Jeiron Jiménez" width="1280" height="967" loading="lazy" decoding="async" />
-              </picture>
-            </div>
-            <div class="proof-item">
-              <picture>
-                <source srcset="assets/images/cert-fundingticks.webp" type="image/webp" />
-                <img src="assets/images/cert-fundingticks.jpg" alt="Certificado de fondeo FundingTicks — Jeiron Jiménez" width="1280" height="904" loading="lazy" decoding="async" />
-              </picture>
-            </div>
-          </div>
-
-          <p class="mentor-proof-caption reveal">Evaluaciones de fondeo superadas en <strong>condiciones reales de mercado</strong> — un proceso aplicado bajo reglas reales de riesgo, no una vez sino <strong>múltiples veces</strong>.</p>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ═══════ FRANJA PRECIO (temprana) ═══════ -->
-  <section class="pricestrip-section" aria-label="Precio fundador">
-    <div class="container">
-      <div class="pricestrip reveal">
-        <div class="pricestrip-price">
-          <span class="pricestrip-amount"><span class="pricestrip-cur">$</span>75<span class="pricestrip-per">/mes</span></span>
-          <span class="pricestrip-label">Precio fundador · primeros 10 · congelado</span>
-        </div>
-        <ul class="pricestrip-trust">
-          <li>Garantía de 14 días</li>
-          <li>Cohorte de 10 cupos</li>
-          <li>Sin contrato</li>
-        </ul>
-        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="btn-primary btn-lg" data-loc="precio-strip">Aplicar a la Mentoría</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ HERRAMIENTAS / DATA INSTITUCIONAL ═══════ -->
-  <section class="tools-section" id="herramientas">
-    <div class="container">
-
-      <div class="section-header reveal">
-        <span class="section-label">La Ventaja</span>
-        <h2 class="section-title">La mayoría opera a ciegas.<br /><em>Tú vas a operar con data.</em></h2>
-      </div>
-
-      <p class="tools-intro reveal">Nuestro único mercado es el <strong>Nasdaq (NQ)</strong>, dominado a fondo. Y el trader promedio lo mira solo con velas: precio, sin contexto. Los <strong>GEX levels</strong> ponen encima del gráfico el mapa que dejan las instituciones — la ventaja de información que casi nadie usa.</p>
-
-      <div class="tools-contrast">
-        <div class="contrast-col contrast-col--blind reveal">
-          <span class="contrast-tag">Lo que ve la mayoría</span>
-          <p>Solo velas y trendlines. Reacciona tarde, sin saber por qué se mueve el precio.</p>
-        </div>
-        <div class="contrast-col contrast-col--data reveal">
-          <span class="contrast-tag">Lo que ves tú</span>
-          <p>Velas + niveles de data institucional. Contexto sobre dónde el mercado suele reaccionar.</p>
-        </div>
-      </div>
-
-      <div class="tools-showcase reveal">
-        <span class="market-ticker-label">Herramienta propietaria</span>
-        <h3 class="tools-showcase-title">GEX Levels</h3>
-        <p class="tools-showcase-desc">Se calculan a partir del posicionamiento institucional en opciones (<strong>gamma exposure</strong>), actualizados con data de fin de día, más niveles <strong>0DTE (intradía)</strong> que expiran ~1:00 PM ET. Marcan zonas donde el precio tiende a frenarse, rebotar o acelerar — contexto para decidir con información, no a ciegas.</p>
-      </div>
-
-      <div class="tools-shots">
-        <figure class="shot reveal">
-          <div class="shot-frame">
-            <picture>
-              <source srcset="assets/images/gex-levels-nq.webp" type="image/webp" />
-              <img src="assets/images/gex-levels-nq.png" alt="Niveles GEX sobre futuros del Nasdaq (NQ)" loading="lazy" decoding="async" />
-            </picture>
-          </div>
-        </figure>
-        <figure class="shot reveal">
-          <div class="shot-frame">
-            <picture>
-              <source srcset="assets/images/gex-levels-nq-reaction.webp" type="image/webp" />
-              <img src="assets/images/gex-levels-nq-reaction.png" alt="Niveles GEX sobre futuros del Nasdaq (NQ)" loading="lazy" decoding="async" />
-            </picture>
-          </div>
-        </figure>
-        <figure class="shot reveal">
-          <div class="shot-frame">
-            <picture>
-              <source srcset="assets/images/gex-levels-nq-entries.webp" type="image/webp" />
-              <img src="assets/images/gex-levels-nq-entries.png" alt="Niveles GEX sobre futuros del Nasdaq (NQ)" loading="lazy" decoding="async" />
-            </picture>
-          </div>
-        </figure>
-      </div>
-
-      <p class="tools-swipe-hint" aria-hidden="true">Desliza para ver más →</p>
-
-      <p class="tools-shots-caption reveal">Cada línea es una <strong>zona de alto volumen</strong> donde el precio tiende a reaccionar por su propia mecánica, no por casualidad. Entras con contexto, no a ciegas. La estructura, la liquidez y los Smart Money Concepts los trabajamos en las clases.</p>
-
-    </div>
-  </section>
-
-  <!-- ═══════ FEATURES / PROGRAMA ═══════ -->
-  <section class="features-section" id="programa">
-    <div class="container">
-
-      <div class="section-header reveal">
-        <span class="section-label">El Programa</span>
-        <h2 class="section-title">Todo lo que necesitas para<br /><em>operar con confianza</em></h2>
-      </div>
-
-      <div class="features-grid">
-
-        <div class="feat-item reveal">
-          <span class="feat-num">01</span>
-          <div class="feat-body">
-            <h3>Curso Completo</h3>
-            <p>De cero a avanzado: lectura de precio, estructura de mercado, gestión de riesgo y psicología del trading. Grabado, con acceso de por vida.</p>
-          </div>
-        </div>
-
-        <div class="feat-item reveal">
-          <span class="feat-num">02</span>
-          <div class="feat-body">
-            <h3>Estrategia con Reglas Claras</h3>
-            <p>Cuándo entrar, cuándo salir, cómo gestionar el riesgo. Reglas definidas, sin improvisación.</p>
-          </div>
-        </div>
-
-        <div class="feat-item reveal">
-          <span class="feat-num">03</span>
-          <div class="feat-body">
-            <h3>Clases en Vivo</h3>
-            <p>Análisis de mercado en tiempo real. Ves la estrategia aplicada, semana a semana.</p>
-          </div>
-        </div>
-
-        <div class="feat-item reveal">
-          <span class="feat-num">04</span>
-          <div class="feat-body">
-            <h3>Herramientas Pro</h3>
-            <p>TradingView, GEX levels y diario de operaciones — las herramientas de un trader profesional.</p>
-          </div>
-        </div>
-
-        <div class="feat-item reveal">
-          <span class="feat-num">05</span>
-          <div class="feat-body">
-            <h3>Seguimiento Personal</h3>
-            <p>Un plan adaptado a tu ritmo y acompañamiento paso a paso: de la cuenta de fondeo a tu primer retiro.</p>
-          </div>
-        </div>
-
-        <div class="feat-item reveal">
-          <span class="feat-num">06</span>
-          <div class="feat-body">
-            <h3>Educación Continua</h3>
-            <p>Nuevas lecciones y material adicional. La educación evoluciona con el mercado.</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ COMMUNITY ═══════ -->
-  <section class="community-section" id="comunidad">
-    <div class="container">
-      <div class="community-grid">
-
-        <div class="community-img reveal">
-          <picture>
-            <source srcset="assets/images/access-vault.webp" type="image/webp" />
-            <img src="assets/images/access-vault.png" alt="Comunidad Wealth Genesis" width="640" height="640" loading="lazy" decoding="async" />
-          </picture>
-        </div>
-
-        <div class="community-content">
-          <div class="reveal">
-            <span class="section-label">La Cohorte Fundadora</span>
-            <h2 class="section-title">No hay mil personas.<br /><em>Hay un grupo pequeño, y yo.</em></h2>
-          </div>
-
-          <p class="reveal">Estoy construyendo esto desde cero. Los primeros diez entran conmigo — precio fundador congelado, acceso directo, y voz en cómo se construye el programa. No te vendo una comunidad de mil traders que no existe; te digo la verdad: hoy hay un grupo pequeño, y yo.</p>
-
-          <div class="comm-features">
-
-            <div class="comm-feat reveal">
-              <div class="comm-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                </svg>
-              </div>
-              <div>
-                <strong>Acceso Directo</strong>
-                <p>Hablas conmigo, no con un moderador. Preguntas, análisis y dudas, de primera mano.</p>
-              </div>
-            </div>
-
-            <div class="comm-feat reveal">
-              <div class="comm-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M4 4v16h16"/>
-                  <path d="M7 14l3-3 3 2 4-5"/>
-                </svg>
-              </div>
-              <div>
-                <strong>Análisis Cada Día de Trading</strong>
-                <p>Comparto mi lectura del Nasdaq (NQ) cada día de trading.</p>
-              </div>
-            </div>
-
-            <div class="comm-feat reveal">
-              <div class="comm-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <rect x="4" y="11" width="16" height="9" rx="1.5"/>
-                  <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
-                </svg>
-              </div>
-              <div>
-                <strong>Precio Fundador Congelado</strong>
-                <p>Los primeros diez entran a $75/mes, congelado — a cambio de tu feedback mientras construimos el programa. Cuando el grupo crezca, el precio sube; tú te quedas donde entraste.</p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ PARA QUIÉN ═══════ -->
-  <section class="features-section" id="para-quien">
-    <div class="container">
-
-      <div class="section-header reveal">
-        <span class="section-label">¿Es Para Ti?</span>
-        <h2 class="section-title">Una mentoría seria para<br /><em>traders comprometidos</em></h2>
-      </div>
-
-      <div class="features-grid">
-
-        <div class="feat-item reveal">
-          <div class="feat-body">
-            <h3>Esto es para ti si:</h3>
-            <ul class="method-list">
-              <li><span class="m-check">✓</span><span>Quieres dejar de depender de terceros y decidir por ti mismo.</span></li>
-              <li><span class="m-check">✓</span><span>Quieres entender por qué entras y por qué sales.</span></li>
-              <li><span class="m-check">✓</span><span>Necesitas estructura, gestión de riesgo y comunidad.</span></li>
-              <li><span class="m-check">✓</span><span>Estás dispuesto a practicar y documentar tus operaciones.</span></li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="feat-item reveal">
-          <div class="feat-body">
-            <h3>Esto no es para ti si:</h3>
-            <ul class="method-list">
-              <li><span class="m-check">—</span><span>Buscas dinero rápido.</span></li>
-              <li><span class="m-check">—</span><span>Quieres copiar entradas sin aprender.</span></li>
-              <li><span class="m-check">—</span><span>No estás dispuesto a manejar pérdidas.</span></li>
-              <li><span class="m-check">—</span><span>Esperas resultados sin disciplina.</span></li>
-            </ul>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ QUÉ PASA DESPUÉS DE APLICAR ═══════ -->
-  <section class="steps-section" id="proceso">
-    <div class="container">
-
-      <div class="section-header reveal">
-        <span class="section-label">Después de Aplicar</span>
-        <h2 class="section-title">Qué pasa<br /><em>cuando entras</em></h2>
-      </div>
-
-      <div class="steps-grid">
-        <div class="step-item reveal">
-          <span class="step-num">Día 1</span>
-          <h3>Acceso completo</h3>
-          <p>Entras a la comunidad privada de Discord, a las clases grabadas y a todas las herramientas. Agendas tu primera llamada 1:1 y arrancas con un plan estructurado — listo para estudiar desde el primer día.</p>
-        </div>
-        <div class="step-item reveal">
-          <span class="step-num">Semanas 1–4+</span>
-          <h3>Construyes las bases</h3>
-          <p>Trabajas el plan a tu ritmo: estructura de mercado, gestión de riesgo y los GEX levels. Con experiencia previa puedes captarlo rápido; empezando de cero, suele tomar de uno a dos meses asentar los conceptos y la estrategia.</p>
-        </div>
-        <div class="step-item reveal">
-          <span class="step-num">Mes 2 en adelante</span>
-          <h3>Tu primera cuenta de fondeo</h3>
-          <p>Cuando las bases están sólidas, das el paso a tu primera evaluación de fondeo — con el sistema y el acompañamiento para enfrentarla con estructura, no a la improvisación.</p>
-        </div>
-      </div>
-
-      <p class="steps-note reveal">Los tiempos son referenciales: cada fase depende de tu nivel al entrar y, sobre todo, del compromiso y el tiempo que le dediques al estudio.</p>
-
-    </div>
-  </section>
-
-  <!-- ═══════ PRICING / ACCESO ═══════ -->
-  <section class="pricing-section" id="acceso">
-    <div class="container">
-      <div class="pricing-layout">
-
-        <div class="pricing-intro">
-          <div class="reveal">
-            <span class="section-label">Acceso Completo</span>
-            <h2 class="section-title">Únete a Wealth Genesis<br /><em>Mentorship Hoy</em></h2>
-          </div>
-          <p class="reveal">Todo el programa, la comunidad, las herramientas y la educación continua — en un solo acceso. Sin contratos. Sin sorpresas.</p>
-
-          <div class="trust-row reveal">
-            <div class="trust-item">
-              <span class="trust-icon">✦</span>
-              <span>Autonomía, no dependencia</span>
-            </div>
-            <div class="trust-item">
-              <span class="trust-icon">✦</span>
-              <span>Sistema con reglas claras</span>
-            </div>
-            <div class="trust-item">
-              <span class="trust-icon">✦</span>
-              <span>Cohorte fundadora · cupos limitados</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="pricing-card reveal">
-          <div class="pricing-top-line"></div>
-
-          <div class="pricing-price-block">
-            <span class="pricing-label">Precio Fundador · Primeros 10</span>
-            <div class="pricing-amount">
-              <span class="pricing-currency">$</span>
-              <span class="pricing-value">75</span>
-              <span class="pricing-period">/ mes</span>
-            </div>
-            <p class="pricing-sublabel">Congelado de por vida · Garantía de 14 días</p>
-          </div>
-
-          <div class="pricing-features">
-            <div class="pf-item"><span class="pf-check">✓</span><span>Curso básico a avanzado</span></div>
-            <div class="pf-item"><span class="pf-check">✓</span><span>Clases en vivo semanales</span></div>
-            <div class="pf-item"><span class="pf-check">✓</span><span>Estrategia con reglas claras</span></div>
-            <div class="pf-item"><span class="pf-check">✓</span><span>Ruta paso a paso: de fondeo a primer retiro</span></div>
-            <div class="pf-item"><span class="pf-check">✓</span><span>Indicador GEX levels + herramientas pro</span></div>
-            <div class="pf-item"><span class="pf-check">✓</span><span>Contenido pregrabado ilimitado</span></div>
-            <div class="pf-item"><span class="pf-check">✓</span><span>Comunidad privada en Discord (acceso al unirte)</span></div>
-            <div class="pf-item"><span class="pf-check">✓</span><span>Análisis de mercado diarios</span></div>
-            <div class="pf-item"><span class="pf-check">✓</span><span>Garantía de 14 días</span></div>
-          </div>
-
-          <div class="pricing-action">
-            <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="btn-primary btn-lg" id="enrollBtn" data-loc="precio">Aplicar a la Mentoría</a>
-            <!-- PAGO: Stripe Payment Link LIVE — suscripción $75/mes (Cohorte Fundadora). -->
-            <a href="https://buy.stripe.com/aFaeVd0llaqQ7H94c9afS00" target="_blank" rel="noopener" class="pay-link" id="payNow">Ya estoy listo · Pagar ahora →</a>
-            <p class="pricing-note">Solo 10 cupos fundadores · Garantía de 14 días</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ FAQ ═══════ -->
-  <section class="faq-section" id="faq">
-    <div class="container">
-
-      <div class="section-header reveal">
-        <span class="section-label">Preguntas Frecuentes</span>
-        <h2 class="section-title">Lo que necesitas<br /><em>saber antes de aplicar</em></h2>
-      </div>
-
+    </div></section>
+
+    <section class="founder section" id="fundador" aria-labelledby="founderTitle"><div class="shell founder-grid">
+      <div class="founder-mark" aria-hidden="true"><img src="assets/images/edge33-premium-33-percent.webp" width="1500" height="600" alt="" loading="lazy" /><small>EL PROCESO SOBRE EL ACIERTO</small></div>
+      <div class="founder-copy"><p class="eyebrow">03 / QUIÉN ESTÁ DETRÁS</p><h2 id="founderTitle">Soy Jeiron Jiménez.</h2><p>He operado futuros y superado evaluaciones de fondeo. También he aprendido de las pérdidas. Creé EDGE33 para enseñar un proceso con estructura, reglas y gestión de riesgo que te ayude a convertirte en un trader independiente.</p><p class="founder-note">El 33 recuerda una etapa en la que algunos de mis mayores retiros llegaron con aproximadamente 33–35% de aciertos. La lección fue gestionar cada operación y respetar el plan, no perseguir un porcentaje perfecto.</p></div>
+    </div></section>
+
+    <section class="access section" id="acceso" aria-labelledby="accessTitle"><div class="shell access-grid">
+      <div class="access-intro"><p class="eyebrow">04 / TU ACCESO</p><h2 id="accessTitle">Entrena con<br /><em>un plan claro.</em></h2><p>Un programa de educación, práctica y acompañamiento para construir habilidades aplicables a distintos mercados.</p><div class="access-points"><span>Curso de fundamentos a avanzado</span><span>Clases en vivo y revisión de operaciones</span><span>Comunidad privada y acompañamiento</span><span>Sistema, riesgo y diario de trading</span></div></div>
+      <div class="price-card"><span class="price-tag">COHORTE FUNDADORA / 10 CUPOS</span><div class="price"><span>$</span>75<small>/ mes</small></div><p>Precio fundador mientras mantengas tu membresía. Mensualidad sin contrato y garantía de 14 días.</p><a class="button button-primary" href="https://buy.stripe.com/aFaeVd0llaqQ7H94c9afS00" target="_blank" rel="noopener" data-loc="price" aria-label="Unirme a EDGE33"><span class="button-label">Unirme a EDGE<sup class="brand-exponent">33</sup></span><span class="button-icon" aria-hidden="true">↗</span></a><span class="checkout-note">Suscripción mensual · Pago seguro con Stripe</span></div>
+    </div></section>
+
+    <section class="faq section" id="faq" aria-labelledby="faqTitle"><div class="shell faq-grid">
+      <div><p class="eyebrow">05 / PREGUNTAS FRECUENTES</p><h2 id="faqTitle">Antes de<br /><em>comenzar.</em></h2></div>
       <div class="faq-list">
-        <details class="faq-item reveal">
-          <summary>¿Necesito capital propio para empezar?</summary>
-          <div class="faq-answer">
-            <p>No. Operamos con cuentas de fondeo (prop firms): pasas una evaluación y operas el capital de la firma, no el tuyo. Si prefieres operar con capital propio, también se puede — tú eliges.</p>
-          </div>
-        </details>
-
-        <details class="faq-item reveal">
-          <summary>¿Cuánto tiempo al día requiere?</summary>
-          <div class="faq-answer">
-            <p>Al principio, un poco más de tiempo y compromiso: hay que adaptarse y entender la información. Ya en operativa, nos mantenemos un máximo de dos horas al día, operando la sesión de Nueva York. Fuera de eso, no hace falta vivir pegado al gráfico.</p>
-          </div>
-        </details>
-
-        <details class="faq-item reveal">
-          <summary>¿Qué pasa si no paso la evaluación (combine)?</summary>
-          <div class="faq-answer">
-            <p>No pasa nada. Se revisa qué se hizo mal y se ejecuta con más eficiencia en el siguiente intento. No hay límite de cuentas de evaluación que puedas comprar — el objetivo es que entiendas por qué falló y lo corrijas, no que aciertes de primera.</p>
-          </div>
-        </details>
-
-        <details class="faq-item reveal">
-          <summary>¿Qué recibo la primera semana?</summary>
-          <div class="faq-answer">
-            <p>Acceso a la comunidad privada de Discord y a todo el contenido educativo, de lo más básico a lo más avanzado. Empiezas a construir las bases con un plan estructurado y acompañamiento directo, además del análisis de mercado cada día de trading.</p>
-          </div>
-        </details>
-
-        <details class="faq-item reveal">
-          <summary>¿Esto es para principiantes?</summary>
-          <div class="faq-answer">
-            <p>Sí. Aceptamos principiantes — el contenido arranca desde cero. Lo que sí pedimos es compromiso: disposición a estudiar, practicar y documentar tus operaciones.</p>
-          </div>
-        </details>
-
-        <details class="faq-item reveal">
-          <summary>¿Puedo cancelar?</summary>
-          <div class="faq-answer">
-            <p>Sí. Es una mensualidad sin contrato; cancelas cuando quieras. Y los primeros 10 (cohorte fundadora) mantienen el precio congelado mientras sigan dentro.</p>
-          </div>
-        </details>
+        <details><summary>¿Necesito experiencia previa?</summary><p>No. Comenzamos con los fundamentos y avanzamos hacia la estrategia, la gestión del riesgo y la práctica. Sí necesitas tiempo para estudiar y ejecutar tu plan.</p></details>
+        <details><summary>¿El sistema funciona solo en un instrumento?</summary><p>Enseñamos principios y reglas aplicables a distintos mercados. En clase podemos usar ejemplos de índices y oro, pero no tienes que limitarte a un solo instrumento.</p></details>
+        <details><summary>¿La mentoría garantiza rentabilidad?</summary><p>No. Aprenderás un proceso diseñado para buscar consistencia y trabajar hacia la rentabilidad. Los resultados dependen de tu práctica, tus decisiones y el riesgo asumido; operar siempre implica posibilidad de pérdida.</p></details>
+        <details><summary>¿Puedo cancelar?</summary><p>Sí. La membresía es mensual y sin contrato. La cohorte fundadora conserva su precio mientras mantenga activa su membresía.</p></details>
       </div>
+    </div></section>
 
-    </div>
-  </section>
+  </main>
 
-  <!-- ═══════ FINAL CTA ═══════ -->
-  <section class="final-cta-section">
-    <div class="brand-particles" aria-hidden="true"></div>
-    <div class="container">
-      <div class="final-cta-inner reveal">
-        <h2 class="final-title">Diez cupos fundadores.<br /><em>Uno puede ser tuyo.</em></h2>
-        <p>Aplicas por WhatsApp, hablamos directo y decides con toda la información. Precio fundador congelado y garantía de 14 días.</p>
-        <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="btn-primary btn-lg" data-loc="final">Aplicar a la Mentoría</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ DISCLAIMER DE RIESGO ═══════ -->
-  <!-- TODO LEGAL: texto placeholder para revisión de tu abogado. NO es texto legal final. -->
-  <section class="disclaimer-section" aria-label="Aviso de riesgo">
-    <div class="container">
-      <div class="disclaimer-box reveal">
-        <span class="disclaimer-tag">Aviso de Riesgo</span>
-        <p>Operar futuros y forex conlleva un <strong>riesgo sustancial de pérdida</strong> y no es adecuado para todos. El rendimiento pasado no garantiza ni indica resultados futuros. Wealth Genesis Mentorship ofrece <strong>educación</strong>, no asesoría financiera ni de inversión: no gestionamos fondos ni prometemos ganancias. Toda decisión de trading es tuya y bajo tu propia responsabilidad.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════ FOOTER ═══════ -->
-  <footer class="footer">
-    <div class="footer-wrap">
-      <div class="footer-main">
-
-        <div class="footer-brand">
-          <picture>
-            <source srcset="assets/images/logo-full.webp" type="image/webp" />
-            <img src="assets/images/logo-full.png" alt="Wealth Genesis Mentorship" width="137" height="110" loading="lazy" decoding="async" />
-          </picture>
-          <p>La academia de trading que te da las herramientas para operar con independencia y confianza.</p>
-        </div>
-
-        <nav class="footer-nav" aria-label="Secciones">
-          <a href="#sistema">Sistema</a>
-          <a href="#mentor">Mentor</a>
-          <a href="#programa">Programa</a>
-          <a href="#acceso">Precio</a>
-          <a href="#faq">FAQ</a>
-        </nav>
-
-        <div class="footer-socials">
-          <a href="https://www.instagram.com/wgmentorship" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
-          <a href="https://wa.me/17873297067" target="_blank" rel="noopener" aria-label="WhatsApp" data-loc="footer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4z"/><path d="M9 8.6c0 3.4 2.9 6.4 6.4 6.4l1-1.5-2-1-1 .9c-1.2-.5-2.3-1.6-2.8-2.8l.9-1-1-2z" stroke-width="1.2"/></svg></a>
-        </div>
-
-      </div>
-
-      <div class="footer-bottom">
-        <span>© 2026 Wealth Genesis Mentorship. Todos los derechos reservados.</span>
-        <span class="footer-disclaimer">El trading conlleva riesgo. El rendimiento pasado no garantiza resultados futuros.</span>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Barra fija de conversión (solo móvil). app.js la muestra al pasar el CTA
-       del hero y la oculta cuando la tarjeta de precio o el CTA final están en pantalla. -->
-  <div class="mobile-cta" id="mobileCta">
-    <div class="mobile-cta-text">
-      <strong>$75/mes</strong>
-      <span>Cohorte fundadora · 10 cupos</span>
-    </div>
-    <a href="https://wa.me/17873297067?text=Hola%2C%20quiero%20aplicar%20a%20Wealth%20Genesis%20Mentorship%20(cohorte%20fundadora)." target="_blank" rel="noopener" class="btn-primary" data-loc="sticky">Aplicar</a>
-  </div>
-
-  <!-- WhatsApp Float -->
-  <a href="https://wa.me/17873297067?text=Hola%2C%20me%20interesa%20Wealth%20Genesis%20Mentorship." target="_blank" rel="noopener" class="wa-float" aria-label="Contactar por WhatsApp" title="Contáctanos por WhatsApp" data-loc="float">
-    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-    </svg>
-  </a>
-
-  <script src="app.js"></script>
+  <footer class="footer"><div class="shell"><div class="footer-top"><a href="#inicio" aria-label="EDGE33, volver arriba"><picture><source srcset="assets/images/edge33-wordmark.webp" type="image/webp" /><img src="assets/images/edge33-wordmark.png" width="1800" height="390" alt="EDGE33" loading="lazy" /></picture></a><p>Aprende el sistema. Domina el proceso. Decide por ti mismo.</p><a href="https://www.instagram.com/wgmentorship" target="_blank" rel="noopener">Instagram ↗</a></div><div class="footer-bottom"><span>© 2026 EDGE33</span><p>El trading conlleva riesgo de pérdida. La educación ofrecida no constituye asesoría financiera. Los resultados pasados no garantizan resultados futuros.</p><a href="#inicio">Volver arriba ↑</a></div></div></footer>
+  <script src="app.js" defer></script>
 </body>
 </html>

@@ -1,99 +1,20 @@
 <!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=JetBrains+Mono:wght@500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 1200px; height: 630px; }
-    body {
-      width: 1200px;
-      height: 630px;
-      background:
-        radial-gradient(ellipse 55% 85% at 84% 48%, rgba(201,165,90,0.16), transparent 62%),
-        radial-gradient(ellipse 40% 60% at 12% 60%, rgba(200,205,212,0.06), transparent 60%),
-        #080705;
-      display: flex;
-      align-items: center;
-      gap: 60px;
-      padding: 70px 84px;
-      font-family: 'Syne', system-ui, sans-serif;
-      color: #EDE8DF;
-      position: relative;
-      overflow: hidden;
-    }
-    .frame {
-      position: absolute;
-      inset: 26px;
-      border: 1px solid rgba(201,165,90,0.22);
-      pointer-events: none;
-    }
-    .frame::after {
-      content: '';
-      position: absolute;
-      inset: 8px;
-      border: 1px solid rgba(201,165,90,0.08);
-    }
-    .logo {
-      height: 350px;
-      width: auto;
-      flex-shrink: 0;
-      filter: drop-shadow(0 0 28px rgba(201,165,90,0.22)) drop-shadow(0 0 10px rgba(230,233,238,0.10));
-    }
-    .content { display: flex; flex-direction: column; gap: 22px; }
-    .eyebrow {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 19px;
-      font-weight: 700;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: #C9A55A;
-    }
-    .headline {
-      font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-      font-size: 68px;
-      font-weight: 700;
-      line-height: 1.02;
-      letter-spacing: -0.01em;
-      color: #EDE8DF;
-    }
-    .headline em { font-style: italic; font-weight: 400; color: #DFC280; }
-    .accent {
-      width: 84px;
-      height: 2px;
-      background: linear-gradient(90deg, #C9A55A, #E6E9EE, #DFC280);
-    }
-    .sub {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 22px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      color: rgba(237,232,223,0.72);
-    }
-    .url {
-      position: absolute;
-      bottom: 42px;
-      right: 84px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 17px;
-      font-weight: 500;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(237,232,223,0.4);
-    }
-  </style>
-</head>
-<body>
-  <div class="frame"></div>
-  <img class="logo" src="assets/images/logo-full.png" alt="" />
-  <div class="content">
-    <div class="eyebrow">Academia de Trading Profesional</div>
-    <div class="headline">De Cero a<br /><em>Operar con Estructura</em></div>
-    <div class="accent"></div>
-    <div class="sub">Futuros del Nasdaq (NQ)</div>
-  </div>
-  <div class="url">wealthgenesismentorship.com</div>
-</body>
-</html>
+<html lang="es"><head><meta charset="utf-8" /><style>
+*{box-sizing:border-box}html,body{width:1200px;height:630px;margin:0}body{position:relative;overflow:hidden;background:#090a0b;color:#f5f1e8;font-family:Arial,sans-serif}
+body::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 73% 52%,rgba(196,116,27,.28),transparent 43%),linear-gradient(90deg,rgba(224,179,100,.04) 1px,transparent 1px);background-size:auto,70px 70px}
+.art{position:absolute;right:-70px;top:-145px;width:770px;height:770px;object-fit:cover;mask-image:linear-gradient(90deg,transparent 0,#000 40%)}
+.shade{position:absolute;inset:0;background:linear-gradient(90deg,#090a0b 0%,rgba(9,10,11,.96) 29%,rgba(9,10,11,.08) 72%)}
+.frame{position:absolute;inset:25px;border:1px solid rgba(225,178,96,.23)}
+.brand{position:absolute;left:75px;top:58px;width:315px}
+.eyebrow{position:absolute;left:78px;top:264px;color:#d7ac62;font:bold 15px Arial,sans-serif;letter-spacing:4px}
+.title{position:absolute;left:74px;top:307px;width:760px;font:bold 60px/1.08 Arial,sans-serif;letter-spacing:-3px}
+.title em{color:#edc786;font-family:Georgia,serif;font-weight:400}
+.foot{position:absolute;left:78px;bottom:62px;color:#c8b490;font:600 15px Arial,sans-serif;letter-spacing:2px}
+</style></head><body>
+  <img class="art" src="assets/images/edge33-trading-concept.webp" alt="" />
+  <div class="shade"></div><div class="frame"></div>
+  <img class="brand" src="assets/images/edge33-wordmark.png" alt="" />
+  <div class="eyebrow">ACADEMIA DE TRADING</div>
+  <div class="title">Aprende un sistema.<br /><em>Construye tu criterio.</em></div>
+  <div class="foot">FUNDAMENTOS · REGLAS · INDEPENDENCIA</div>
+</body></html>
