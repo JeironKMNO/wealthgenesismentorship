@@ -44,6 +44,20 @@
     sections.forEach(section => observer.observe(section));
   }
 
+  // Neón de las velas del hero: se pausa cuando el arte sale de pantalla.
+  const heroArt = document.getElementById('heroArt');
+  if (heroArt) {
+    // Las capas de neón (y sus máscaras) entran después de la carga, sin competir con el LCP.
+    const lightUp = () => (window.requestIdleCallback || setTimeout)(() => heroArt.classList.add('is-lit'));
+    if (document.readyState === 'complete') lightUp();
+    else window.addEventListener('load', lightUp, { once: true });
+  }
+  if (heroArt && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      heroArt.classList.toggle('is-paused', !entry.isIntersecting);
+    }).observe(heroArt);
+  }
+
   document.addEventListener('click', event => {
     const link = event.target.closest('a[href^="https://buy.stripe.com/"]');
     if (!link) return;
