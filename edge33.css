@@ -5,6 +5,10 @@
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;overflow-x:hidden;background:var(--black);color:var(--white);font-family:var(--display);-webkit-font-smoothing:antialiased}
+/* Syne trae números "antiguos" por defecto ("EDGE33" se veía con el 33 caído).
+   El atajo `font:` que usan botones y etiquetas reinicia font-variant-numeric,
+   por eso hace falta !important aquí y no basta con heredarlo de body. */
+*,*::before,*::after{font-variant-numeric:lining-nums!important}
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 47vw 37vw at 90% 16%,rgba(179,102,27,.11),transparent 76%),radial-gradient(ellipse 46vw 36vw at 8% 62%,rgba(138,82,22,.07),transparent 76%),linear-gradient(90deg,transparent 49.94%,rgba(219,180,109,.025) 50%,transparent 50.06%);background-size:auto,auto,140px 140px}
 ::selection{background:#9b7033;color:#fff}
 a{color:inherit;text-decoration:none}
@@ -18,7 +22,7 @@ img{max-width:100%}
 .site-header.scrolled{background:rgba(9,10,11,.96);border-color:var(--line)}
 .header-inner{height:88px;display:flex;align-items:center;gap:3rem}
 .brand{display:flex;flex-direction:column;align-items:flex-start;gap:.22rem;flex:none}
-.brand img{display:block;width:170px;height:auto}
+.brand img,.brand picture{display:block;width:170px;height:auto}
 .brand>span{font:500 .49rem var(--mono);letter-spacing:.2em;color:#bba57c;margin-left:2px}
 .desktop-nav{display:flex;align-items:center;gap:clamp(1rem,2.5vw,2.8rem);margin-left:auto}
 .desktop-nav a,.header-cta{font:600 .72rem var(--display);letter-spacing:.045em;text-transform:uppercase}
@@ -119,7 +123,7 @@ h2{font-size:clamp(2.7rem,4.3vw,5rem);font-weight:650;line-height:1.08;margin-bo
 .footer{background:#08090a;padding:2.7rem 0 1.8rem}
 .footer-top,.footer-bottom{display:flex;align-items:center;justify-content:space-between;gap:2rem}
 .footer-top{padding-bottom:2.4rem}
-.footer-top img{display:block;width:155px;height:auto}
+.footer-top img,.footer-top picture{display:block;width:155px;height:auto}
 .footer-top p{margin:0;color:#aaa69e;font-size:.77rem}
 .footer-top>a:last-child,.footer-bottom a{color:#c7a471;font:600 .7rem var(--mono);white-space:nowrap}
 .footer-bottom{padding-top:1.4rem;border-top:1px solid var(--line);color:#89867f;font:500 .57rem/1.6 var(--mono)}
@@ -157,6 +161,11 @@ h2{font-size:clamp(2.7rem,4.3vw,5rem);font-weight:650;line-height:1.08;margin-bo
   mask-image: url("assets/images/edge33-candles-halo.webp");
   opacity: .55;
 }
+
+/* Las capas (y sus máscaras) se activan después de cargar la página:
+   así no compiten con la imagen principal por el ancho de banda. */
+.hero-art-media:not(.is-lit) .candle-glow,
+.hero-art-media:not(.is-lit) .candle-neon { display: none; }
 
 /* Respiración muy leve de todas las velas entre pulso y pulso */
 .candle-glow {
@@ -204,4 +213,65 @@ h2{font-size:clamp(2.7rem,4.3vw,5rem);font-weight:650;line-height:1.08;margin-bo
 .hero-art-media.is-paused .candle-glow,
 .hero-art-media.is-paused .candle-neon::before { animation-play-state: paused; }
 
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hero-glow{animation:none}.button{transition:none}.candle-glow,.candle-neon{display:none}}
+/* ── Botones de inscripción: la misma veta de neón que recorre las velas ──
+   Banda oro/blanco a 64° (la inclinación de la tendencia) que cruza el botón
+   y un glow que respira con ella. En el hero arranca justo cuando el haz
+   termina de subir por las velas: la energía "llega" al botón. */
+.button-primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  animation: btn-glow 7s ease-in-out 5s infinite;
+}
+
+.button-primary::after {
+  content: "";
+  position: absolute;
+  inset: -50% -40%;
+  z-index: -1;
+  background: linear-gradient(64deg,
+    transparent 40%,
+    rgba(255,236,190,0) 43%,
+    rgba(255,240,205,.55) 47.5%,
+    rgba(255,255,255,.95) 50%,
+    rgba(255,240,205,.55) 52.5%,
+    rgba(255,236,190,0) 57%,
+    transparent 60%);
+  transform: translateX(-62%);
+  animation: btn-flow 7s cubic-bezier(.45,.05,.35,1) 5s infinite;
+  pointer-events: none;
+}
+
+.price-card .button-primary,
+.price-card .button-primary::after { animation-delay: 2.2s; }
+
+/* El botón del header (contorno) recibe solo un destello tenue */
+.header-cta { position: relative; overflow: hidden; isolation: isolate; }
+.header-cta::after {
+  content: "";
+  position: absolute;
+  inset: -60% -50%;
+  z-index: -1;
+  background: linear-gradient(64deg, transparent 44%, rgba(245,205,130,.28) 50%, transparent 56%);
+  transform: translateX(-62%);
+  animation: btn-flow 7s cubic-bezier(.45,.05,.35,1) 5.4s infinite;
+  pointer-events: none;
+}
+
+@keyframes btn-flow {
+  0%        { transform: translateX(-62%); opacity: 0; }
+  4%        { opacity: 1; }
+  30%       { opacity: 1; }
+  34%, 100% { transform: translateX(62%); opacity: 0; }
+}
+
+@keyframes btn-glow {
+  0%, 100% { box-shadow: 0 12px 35px rgba(174,102,27,.16); }
+  16%      { box-shadow: 0 12px 42px rgba(245,190,95,.42), 0 0 0 1px rgba(255,226,160,.35); }
+  40%      { box-shadow: 0 12px 35px rgba(174,102,27,.16); }
+}
+
+/* Al pasar el mouse: brillo sostenido, sin esperar el ciclo */
+.button-primary:hover { animation: none; box-shadow: 0 15px 44px rgba(225,155,61,.34); }
+
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hero-glow{animation:none}.button{transition:none}.candle-glow,.candle-neon{display:none}.button-primary,.button-primary::after,.header-cta::after{animation:none}.button-primary::after,.header-cta::after{opacity:0}}
