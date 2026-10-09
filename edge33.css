@@ -17,9 +17,9 @@ img{max-width:100%}
 .site-header{position:sticky;top:0;z-index:100;background:rgba(9,10,11,.86);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.07);transition:background .3s,border-color .3s}
 .site-header.scrolled{background:rgba(9,10,11,.96);border-color:var(--line)}
 .header-inner{height:88px;display:flex;align-items:center;gap:3rem}
-.brand{display:flex;flex-direction:column;align-items:flex-start;gap:.22rem;flex:none}
+.brand{display:flex;flex-direction:column;align-items:center;gap:.22rem;flex:none}
 .brand img{display:block;width:170px;height:auto}
-.brand>span{font:500 .49rem var(--mono);letter-spacing:.2em;color:#bba57c;margin-left:2px}
+.brand>span{font:500 .49rem var(--mono);letter-spacing:.2em;color:#bba57c;text-align:center}
 .desktop-nav{display:flex;align-items:center;gap:clamp(1rem,2.5vw,2.8rem);margin-left:auto}
 .desktop-nav a,.header-cta{font:600 .72rem var(--display);letter-spacing:.045em;text-transform:uppercase}
 .desktop-nav a{color:#c1bfba;transition:color .2s}
@@ -107,8 +107,7 @@ h2{font-size:clamp(2.7rem,4.3vw,5rem);font-weight:650;line-height:1.08;margin-bo
 .price>span{align-self:flex-start;margin:.7rem .2rem 0 0;color:var(--gold);font-size:2rem;letter-spacing:0}
 .price small{margin-left:.9rem;color:#bfb9ad;font-size:.9rem;font-weight:500;letter-spacing:0}
 .price-card>p{position:relative;max-width:400px;color:#bdb8af;font-size:.85rem;line-height:1.75}
-.price-card .button{width:100%;gap:.75rem;margin-top:1.2rem;padding-left:1rem}
-.price-card .button-label{font-size:.7rem;letter-spacing:.04em}
+.price-card .button{width:100%;margin-top:1.2rem}
 .checkout-note{position:relative;display:block;margin:1.25rem auto 0;color:#aaa59b;font:500 .65rem var(--mono);text-align:center}
 .faq{padding-top:4rem;padding-bottom:4.5rem}
 .faq-grid{display:grid;grid-template-columns:.7fr 1.3fr;gap:clamp(3rem,7vw,8rem)}
