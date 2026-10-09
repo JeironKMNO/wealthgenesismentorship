@@ -1,89 +1,20 @@
 <!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <style>
-    * { box-sizing: border-box; }
-    html, body { width: 1200px; height: 630px; margin: 0; }
-    body {
-      position: relative;
-      overflow: hidden;
-      background: #10161a;
-      color: #f1ece2;
-      font-family: Georgia, serif;
-    }
-    body::before {
-      content: '';
-      position: absolute;
-      inset: 22px;
-      border: 1px solid rgba(189,149,88,.35);
-    }
-    .grain {
-      position: absolute;
-      width: 540px;
-      height: 540px;
-      right: -40px;
-      top: 38px;
-      border: 1px solid rgba(189,149,88,.16);
-      border-radius: 50%;
-      box-shadow: 0 0 0 46px rgba(189,149,88,.018), 0 0 0 96px rgba(189,149,88,.014);
-    }
-    .brand {
-      position: absolute;
-      left: 82px;
-      top: 62px;
-      width: 450px;
-      height: 155px;
-      overflow: hidden;
-    }
-    .brand img {
-      display: block;
-      width: 450px;
-      height: 450px;
-      object-fit: cover;
-      transform: translateY(-148px);
-      mix-blend-mode: screen;
-    }
-    .eyebrow {
-      position: absolute;
-      top: 245px;
-      left: 82px;
-      color: #d6b782;
-      font: 700 17px/1.2 Arial, sans-serif;
-      letter-spacing: .2em;
-    }
-    .title {
-      position: absolute;
-      top: 293px;
-      left: 80px;
-      max-width: 800px;
-      font-size: 68px;
-      font-weight: 600;
-      line-height: 1.05;
-      letter-spacing: -.03em;
-    }
-    .title em { color: #d6b782; font-weight: 400; }
-    .footer {
-      position: absolute;
-      left: 82px;
-      right: 82px;
-      bottom: 66px;
-      display: flex;
-      justify-content: space-between;
-      border-top: 1px solid rgba(241,236,226,.22);
-      padding-top: 16px;
-      color: rgba(241,236,226,.65);
-      font: 600 15px Arial, sans-serif;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-    }
-  </style>
-</head>
-<body>
-  <div class="grain"></div>
-  <div class="brand"><img src="assets/images/edge33-logo.png" alt="" /></div>
-  <div class="eyebrow">ACADEMIA DE FUTUROS / NQ · MNQ</div>
-  <div class="title">Tu ventaja está<br /><em>en el proceso.</em></div>
-  <div class="footer"><span>Contexto · Ejecución · Riesgo</span><span>EDGE33</span></div>
-</body>
-</html>
+<html lang="es"><head><meta charset="utf-8" /><style>
+*{box-sizing:border-box}html,body{width:1200px;height:630px;margin:0}body{position:relative;overflow:hidden;background:#090a0b;color:#f5f1e8;font-family:Arial,sans-serif}
+body::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 73% 52%,rgba(196,116,27,.28),transparent 43%),linear-gradient(90deg,rgba(224,179,100,.04) 1px,transparent 1px);background-size:auto,70px 70px}
+.art{position:absolute;right:-70px;top:-145px;width:770px;height:770px;object-fit:cover;mask-image:linear-gradient(90deg,transparent 0,#000 40%)}
+.shade{position:absolute;inset:0;background:linear-gradient(90deg,#090a0b 0%,rgba(9,10,11,.96) 29%,rgba(9,10,11,.08) 72%)}
+.frame{position:absolute;inset:25px;border:1px solid rgba(225,178,96,.23)}
+.brand{position:absolute;left:75px;top:58px;width:315px}
+.eyebrow{position:absolute;left:78px;top:264px;color:#d7ac62;font:bold 15px Arial,sans-serif;letter-spacing:4px}
+.title{position:absolute;left:74px;top:307px;width:760px;font:bold 60px/1.08 Arial,sans-serif;letter-spacing:-3px}
+.title em{color:#edc786;font-family:Georgia,serif;font-weight:400}
+.foot{position:absolute;left:78px;bottom:62px;color:#c8b490;font:600 15px Arial,sans-serif;letter-spacing:2px}
+</style></head><body>
+  <img class="art" src="assets/images/edge33-gold-concept.webp" alt="" />
+  <div class="shade"></div><div class="frame"></div>
+  <img class="brand" src="assets/images/edge33-wordmark.png" alt="" />
+  <div class="eyebrow">ACADEMIA DE TRADING</div>
+  <div class="title">Aprende un sistema.<br /><em>Construye tu criterio.</em></div>
+  <div class="foot">FUNDAMENTOS · REGLAS · INDEPENDENCIA</div>
+</body></html>

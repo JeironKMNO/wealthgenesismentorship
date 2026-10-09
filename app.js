@@ -1,339 +1,58 @@
-/* ============================================================
-   EDGE33 — app.js
-   Financial Precision Luxury
-   ============================================================ */
+(() => {
+  const header = document.getElementById('siteHeader');
+  const toggle = document.getElementById('menuToggle');
+  const menu = document.getElementById('mobileNav');
 
-(function () {
-  'use strict';
-
-  /* ════════════════════════════════════════════════════════════════
-     ANALYTICS & CONVERSION TRACKING
-
-     👉 PEGA TUS IDs REALES AQUÍ ABAJO.
-     Mientras tengan las "X", NO se carga nada (cero requests rotos).
-     Cuando pongas los IDs reales, GA4 y el Pixel se activan solos y
-     cada clic en un CTA de WhatsApp dispara un evento de conversión.
-     ════════════════════════════════════════════════════════════════ */
-  const ANALYTICS = {
-    GA4_ID:        'G-XXXXXXXXXX',    // Google Analytics 4 — Measurement ID
-    META_PIXEL_ID: 'XXXXXXXXXXXXXXX'  // Meta (Facebook/Instagram) — Pixel ID
-  };
-
-  const isConfigured = (id) =>
-    typeof id === 'string' && id.length > 4 && !/X{3,}/i.test(id);
-
-  // Google Analytics 4
-  if (isConfigured(ANALYTICS.GA4_ID)) {
-    const s = document.createElement('script');
-    s.async = true;
-    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + ANALYTICS.GA4_ID;
-    document.head.appendChild(s);
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = function () { window.dataLayer.push(arguments); };
-    window.gtag('js', new Date());
-    window.gtag('config', ANALYTICS.GA4_ID);
+  function closeMenu() {
+    if (!toggle || !menu) return;
+    menu.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Abrir menú');
   }
 
-  // Meta Pixel
-  if (isConfigured(ANALYTICS.META_PIXEL_ID)) {
-    /* eslint-disable */
-    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
-    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    /* eslint-enable */
-    window.fbq('init', ANALYTICS.META_PIXEL_ID);
-    window.fbq('track', 'PageView');
-  }
-
-  // Un solo listener delegado para conversiones: CTA de WhatsApp y botón de pago Stripe.
-  document.addEventListener('click', (e) => {
-    // Pago directo (Stripe) → inicio de checkout.
-    const pay = e.target.closest('#payNow');
-    if (pay) {
-      if (typeof window.gtag === 'function') {
-        window.gtag('event', 'begin_checkout', { event_category: 'conversion' });
-      }
-      if (typeof window.fbq === 'function') {
-        window.fbq('track', 'InitiateCheckout');
-      }
-      return;
-    }
-
-    // CTA de WhatsApp → conversión diferenciada por origen (data-loc).
-    const wa = e.target.closest('a[href*="wa.me"]');
-    if (!wa) return;
-    const loc = (wa.getAttribute('data-loc') || 'other').replace(/[^a-z0-9_]/gi, '_');
-    const label = (wa.textContent || 'whatsapp').trim().slice(0, 60);
-    if (typeof window.gtag === 'function') {
-      window.gtag('event', 'whatsapp_' + loc, {
-        event_category: 'conversion',
-        event_label: label,
-        transport_type: 'beacon'
-      });
-    }
-    if (typeof window.fbq === 'function') {
-      window.fbq('track', 'Contact', { content_name: 'whatsapp_' + loc });
-    }
-  });
-
-  // ── Video: eventos de reproducción (play, 50%, completo) ──
-  const videoEl = document.querySelector('.video-player');
-  if (videoEl) {
-    const firedVid = {};
-    const trackVid = (name) => {
-      if (firedVid[name]) return;
-      firedVid[name] = true;
-      if (typeof window.gtag === 'function') window.gtag('event', name, { event_category: 'video' });
-      if (typeof window.fbq === 'function') window.fbq('trackCustom', name);
-    };
-    videoEl.addEventListener('play', () => trackVid('video_play'));
-    videoEl.addEventListener('timeupdate', () => {
-      if (videoEl.duration && videoEl.currentTime / videoEl.duration >= 0.5) trackVid('video_50');
+  if (toggle && menu) {
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      menu.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
     });
-    videoEl.addEventListener('ended', () => trackVid('video_complete'));
+    menu.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeMenu();
+    });
+    document.addEventListener('click', event => {
+      if (!menu.hidden && !header.contains(event.target)) closeMenu();
+    });
   }
-
-  // ── Scroll Progress Bar ──
-  const scrollBar = document.createElement('div');
-  scrollBar.className = 'scroll-bar';
-  document.body.prepend(scrollBar);
-
-  function updateScrollBar() {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    scrollBar.style.width = Math.min((window.scrollY / max) * 100, 100) + '%';
-  }
-
-  // ── Site Header: compact on scroll ──
-  const siteHeader = document.getElementById('siteHeader');
 
   function updateHeader() {
-    if (window.scrollY > 90) {
-      siteHeader.classList.add('compact');
-    } else {
-      siteHeader.classList.remove('compact');
-    }
+    header?.classList.toggle('scrolled', window.scrollY > 24);
   }
-
-  // ── Mobile Nav ──
-  const navToggle = document.getElementById('navToggle');
-  const navLinks  = document.getElementById('navLinks');
-
-  // Create mobile nav from existing desktop nav
-  const navMobile = document.createElement('div');
-  navMobile.className = 'nav-mobile';
-  navMobile.id = 'navMobile';
-  const ulMobile = document.createElement('ul');
-
-  navLinks.querySelectorAll('a').forEach(link => {
-    const li = document.createElement('li');
-    const a  = link.cloneNode(true);
-    li.appendChild(a);
-    ulMobile.appendChild(li);
-  });
-
-  navMobile.appendChild(ulMobile);
-  document.querySelector('.navbar').appendChild(navMobile);
-
-  navToggle.addEventListener('click', () => {
-    const isOpen = navMobile.classList.toggle('open');
-    navToggle.classList.toggle('open', isOpen);
-    navToggle.setAttribute('aria-expanded', String(isOpen));
-    navToggle.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-  });
-
-  navMobile.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      navMobile.classList.remove('open');
-      navToggle.classList.remove('open');
-      navToggle.setAttribute('aria-expanded', 'false');
-      navToggle.setAttribute('aria-label', 'Abrir menú');
-      document.body.style.overflow = '';
-    });
-  });
-
-  // ── Scrollspy: resalta en el menú la sección que se está leyendo ──
-  // Una línea imaginaria a ~40% de la altura de pantalla decide la sección activa.
-  const spyLinks = [...document.querySelectorAll('.nav-links a[href^="#"], .nav-mobile a[href^="#"]')];
-  const spySections = [...new Set(spyLinks.map(a => a.getAttribute('href')))]
-    .map(id => document.querySelector(id))
-    .filter(Boolean);
-
-  if (spySections.length && 'IntersectionObserver' in window) {
-    // Si la línea cae en una sección sin link (p. ej. Herramientas), no se marca ninguno.
-    const onLine = new Set();
-    const spyObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) onLine.add(entry.target.id);
-        else onLine.delete(entry.target.id);
-      });
-      const id = onLine.size ? '#' + [...onLine].pop() : null;
-      spyLinks.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === id));
-    }, { rootMargin: '-40% 0px -55% 0px' });
-    spySections.forEach(sec => spyObserver.observe(sec));
-  }
-
-  // ── Barra fija de conversión (móvil) ──
-  // Aparece cuando el CTA del hero ya quedó arriba y se oculta mientras la
-  // tarjeta de precio o el CTA final están en pantalla (no duplicar botones).
-  const mobileCta = document.getElementById('mobileCta');
-  const heroCtas  = document.querySelector('.hero-ctas');
-
-  if (mobileCta && heroCtas && 'IntersectionObserver' in window) {
-    let pastHero = false;
-    const ctaInView = new Set();
-    const syncMobileCta = () => {
-      mobileCta.classList.toggle('is-visible', pastHero && ctaInView.size === 0);
-    };
-
-    new IntersectionObserver(([entry]) => {
-      pastHero = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-      syncMobileCta();
-    }).observe(heroCtas);
-
-    const ctaObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) ctaInView.add(entry.target);
-        else ctaInView.delete(entry.target);
-      });
-      syncMobileCta();
-    });
-    document.querySelectorAll('.pricing-action, .final-cta-inner').forEach(el => ctaObserver.observe(el));
-  }
-
-  // ── Smooth Anchor Scroll ──
-  document.addEventListener('click', (e) => {
-    const anchor = e.target.closest('a[href^="#"]');
-    if (!anchor) return;
-    const href = anchor.getAttribute('href');
-    if (href === '#') return;
-    const target = document.querySelector(href);
-    if (!target) return;
-    e.preventDefault();
-    const headerH = siteHeader ? siteHeader.offsetHeight : 0;
-    const top = target.getBoundingClientRect().top + window.scrollY - headerH - 16;
-    window.scrollTo({ top, behavior: 'smooth' });
-  });
-
-  // ── Reveal Animation (IntersectionObserver) ──
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-
-      // Stagger siblings in the same parent
-      const siblings = [...entry.target.parentElement.querySelectorAll('.reveal:not(.visible)')];
-      const idx = siblings.indexOf(entry.target);
-      const delay = idx >= 0 ? idx * 90 : 0;
-
-      setTimeout(() => {
-        entry.target.classList.add('visible');
-      }, delay);
-
-      revealObserver.unobserve(entry.target);
-    });
-  }, {
-    threshold: 0.08,
-    rootMargin: '0px 0px -44px 0px'
-  });
-
-  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-  // ── Hero Image Parallax ──
-  const heroImg = document.getElementById('heroImg');
-  let heroBottom = 0;
-
-  function updateParallax() {
-    if (!heroImg) return;
-    if (!heroBottom) {
-      const hero = document.getElementById('hero');
-      if (hero) heroBottom = hero.offsetTop + hero.offsetHeight;
-    }
-    if (window.scrollY < heroBottom) {
-      // Se escribe como CSS custom property (no como transform directo) para que
-      // el keyframe float-gentle pueda componer ambos efectos vía calc().
-      heroImg.style.setProperty('--parallax-y', `${window.scrollY * 0.07}px`);
-    }
-  }
-
-  // ── Card Hover 3D Tilt ──
-  function addTilt(selector) {
-    document.querySelectorAll(selector).forEach(card => {
-      card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width  - 0.5;
-        const y = (e.clientY - rect.top)  / rect.height - 0.5;
-        card.style.transform = `perspective(900px) rotateY(${x * 5}deg) rotateX(${-y * 5}deg) translateY(-5px)`;
-      });
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = '';
-        card.style.transition = 'transform 0.45s ease, border-color 0.3s';
-        setTimeout(() => { card.style.transition = ''; }, 450);
-      });
-    });
-  }
-
-  addTilt('.feat-item');
-
-  // ── Brillo intermitente de partículas ──
-  // Cada punto es un <span> con su propia duración y desfase, así titilan por
-  // separado y no todos a la vez. Se reparten hacia los bordes (oro a la
-  // izquierda, plata a la derecha, como el campo de partículas). Solo animan
-  // opacity y se pausan fuera de pantalla.
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if (!reduceMotion && 'IntersectionObserver' in window) {
-    const sparkleObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => entry.target.classList.toggle('is-live', entry.isIntersecting));
-    });
-
-    // Se crean en tiempo ocioso: leer offsetWidth/Height fuerza layout y no
-    // debe competir con el primer render.
-    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
-    idle(() => document.querySelectorAll('.brand-particles').forEach(field => {
-      const area = field.offsetWidth * field.offsetHeight;
-      const count = Math.max(14, Math.min(38, Math.round(area / 20000)));
-      const frag = document.createDocumentFragment();
-
-      for (let i = 0; i < count; i++) {
-        const side = i % 2 === 0 ? 'gold' : 'silver';
-        const edge = Math.pow(Math.random(), 1.4) * 42;   // sesgo hacia el borde
-        const x = side === 'gold' ? edge : 100 - edge;
-        const s = document.createElement('span');
-        s.className = `sparkle sparkle--${side}`;
-        s.style.left = `${x}%`;
-        s.style.top = `${8 + Math.random() * 84}%`;
-        s.style.setProperty('--sp-size', `${(0.8 + Math.random() * 0.7).toFixed(2)}`);
-        s.style.animationDuration = `${(3.5 + Math.random() * 3.5).toFixed(2)}s`;
-        s.style.animationDelay = `${(-Math.random() * 7).toFixed(2)}s`;
-        frag.appendChild(s);
-      }
-
-      field.appendChild(frag);
-      sparkleObserver.observe(field);
-    }));
-  }
-
-  // ── Passive Scroll Handler ──
-  window.addEventListener('scroll', () => {
-    updateScrollBar();
-    updateHeader();
-    updateParallax();
-  }, { passive: true });
-
-  // ── Init ──
-  updateScrollBar();
+  window.addEventListener('scroll', updateHeader, { passive: true });
   updateHeader();
 
-  // ── Console Branding ──
-  console.log(
-    '%cEDGE33',
-    'color:#D6B782;font-family:monospace;font-size:13px;font-weight:700;'
-  );
-  console.log(
-    '%cTu ventaja está en el proceso.',
-    'color:#778A8C;font-family:monospace;font-size:10px;'
-  );
+  const links = [...document.querySelectorAll('.desktop-nav a[href^="#"]')];
+  const sections = links.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+  if ('IntersectionObserver' in window && sections.length) {
+    const visible = new Map();
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => visible.set(entry.target.id, entry.isIntersecting));
+      const current = sections.find(section => visible.get(section.id));
+      links.forEach(link => link.classList.toggle('is-active', Boolean(current) && link.getAttribute('href') === '#' + current.id));
+    }, { rootMargin: '-25% 0px -65% 0px' });
+    sections.forEach(section => observer.observe(section));
+  }
 
+  document.addEventListener('click', event => {
+    const link = event.target.closest('a[href*="wa.me"]');
+    if (!link) return;
+    const source = (link.dataset.loc || 'other').replace(/[^a-z0-9_]/gi, '_');
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'whatsapp_' + source, { event_category: 'conversion', transport_type: 'beacon' });
+    }
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', 'Contact', { content_name: 'whatsapp_' + source });
+    }
+  });
 })();
