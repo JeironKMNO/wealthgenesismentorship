@@ -55,7 +55,6 @@ h1 em,h2 em{font-family:"Cormorant Garamond",Georgia,serif;font-size:1.09em;font
 .hero-art img{display:block;width:min(49vw,620px);height:auto;max-width:none;aspect-ratio:1;object-fit:cover;opacity:.96;mask-image:radial-gradient(ellipse 68% 66% at center,#000 47%,transparent 100%);filter:saturate(.9)}
 .art-coordinate{position:absolute;right:0;color:#a98755;font:500 .56rem var(--mono);letter-spacing:.16em}
 .art-coordinate--top{top:12%}
-.art-coordinate--bottom{bottom:13%}
 .hero-bottom{display:flex;justify-content:space-between;align-items:center;padding:0 0 1.8rem;color:#b6a17e;font:500 .59rem var(--mono);letter-spacing:.12em;text-transform:uppercase}
 .hero-bottom b{margin-left:1.2rem;font-size:1rem}
 .section{position:relative;padding:clamp(4rem,6vw,6rem) 0;scroll-margin-top:88px}
