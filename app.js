@@ -44,6 +44,14 @@
     sections.forEach(section => observer.observe(section));
   }
 
+  // Neón de las velas del hero: se pausa cuando el arte sale de pantalla.
+  const heroArt = document.getElementById('heroArt');
+  if (heroArt && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      heroArt.classList.toggle('is-paused', !entry.isIntersecting);
+    }).observe(heroArt);
+  }
+
   document.addEventListener('click', event => {
     const link = event.target.closest('a[href^="https://buy.stripe.com/"]');
     if (!link) return;
