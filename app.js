@@ -58,6 +58,27 @@
     }).observe(heroArt);
   }
 
+  const evidenceDialog = document.getElementById('evidenceDialog');
+  const evidenceImage = document.getElementById('evidenceImage');
+  const evidenceCaption = document.getElementById('evidenceCaption');
+  if (evidenceDialog && evidenceImage && evidenceCaption) {
+    document.querySelectorAll('[data-evidence]').forEach(button => {
+      button.addEventListener('click', () => {
+        evidenceCaption.textContent = button.dataset.caption;
+        evidenceImage.alt = button.dataset.caption;
+        evidenceImage.src = button.dataset.evidence;
+        evidenceDialog.showModal();
+      });
+    });
+    evidenceDialog.querySelector('.evidence-close').addEventListener('click', () => evidenceDialog.close());
+    evidenceDialog.addEventListener('click', event => {
+      if (event.target !== evidenceDialog) return;
+      const bounds = evidenceDialog.getBoundingClientRect();
+      if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) evidenceDialog.close();
+    });
+    evidenceDialog.addEventListener('close', () => evidenceImage.removeAttribute('src'));
+  }
+
   document.addEventListener('click', event => {
     const link = event.target.closest('a[href^="https://buy.stripe.com/"]');
     if (!link) return;
