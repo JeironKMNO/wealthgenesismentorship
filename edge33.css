@@ -291,7 +291,6 @@ h2{font-size:clamp(2.7rem,4.3vw,5rem);font-weight:650;line-height:1.08;margin-bo
 .evidence-provider{display:flex;justify-content:space-between;width:100%;color:var(--gold);font:600 .65rem var(--mono);letter-spacing:.12em}
 .evidence-card strong{margin:1.3rem 0 .6rem;font-size:clamp(2.2rem,4vw,3.1rem);font-weight:650;letter-spacing:-.065em}
 .evidence-card strong small{font:500 .6rem var(--mono);letter-spacing:0;color:var(--muted)}
-.evidence-status{font-size:.74rem;color:#c6beb0}
 .evidence-link{margin-top:1.3rem;color:var(--gold-bright);font-size:.68rem;border-bottom:1px solid var(--line);padding-bottom:.3rem}
 .evidence-note{margin:1rem 0 1.5rem;max-width:880px;color:#99968e;font-size:.71rem;line-height:1.7}
 .certificate-gallery{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -311,6 +310,6 @@ h2{font-size:clamp(2.7rem,4.3vw,5rem);font-weight:650;line-height:1.08;margin-bo
 .evidence-close span{margin-left:.5rem}
 .evidence-document{padding:1rem}
 .evidence-document img{display:block;width:100%;height:auto}
-@media(max-width:820px){.experience-heading{display:block}.experience-heading>p{margin-top:1rem}.evidence-card{padding:1.1rem}.evidence-status{font-size:.65rem}}
-@media(max-width:520px){.payout-grid,.certificate-grid{grid-template-columns:1fr}.evidence-card{display:grid;grid-template-columns:1fr auto;gap:.7rem;padding:1.2rem}.evidence-provider{grid-column:1/-1}.evidence-card strong{margin:0;font-size:2.3rem}.evidence-status{grid-column:1;grid-row:3;font-size:.7rem}.evidence-link{grid-column:2;grid-row:3;margin:0;font-size:.62rem}.certificate-gallery summary{font-size:.76rem}.certificate-gallery summary>span{font-size:.55rem}.evidence-dialog-header{padding:.8rem}.evidence-dialog-header p{font-size:.68rem}.evidence-document{padding:.4rem}}
+@media(max-width:820px){.experience-heading{display:block}.experience-heading>p{margin-top:1rem}.evidence-card{padding:1.1rem}}
+@media(max-width:520px){.payout-grid,.certificate-grid{grid-template-columns:1fr}.evidence-card{display:grid;grid-template-columns:1fr auto;gap:.7rem;padding:1.2rem}.evidence-provider{grid-column:1/-1}.evidence-card strong{margin:0;font-size:2.3rem}.evidence-link{grid-column:1/-1;margin:0;font-size:.68rem;justify-self:start}.certificate-gallery summary{font-size:.76rem}.certificate-gallery summary>span{font-size:.55rem}.evidence-dialog-header{padding:.8rem}.evidence-dialog-header p{font-size:.68rem}.evidence-document{padding:.4rem}}
 @media(prefers-reduced-motion:reduce){.evidence-card{transition:none}}
