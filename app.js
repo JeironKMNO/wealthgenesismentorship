@@ -58,6 +58,18 @@
     }).observe(heroArt);
   }
 
+  const experienceTitle = document.querySelector('.experience-title');
+  if (experienceTitle && 'IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    experienceTitle.classList.add('is-reveal-ready');
+    const reveal = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting)) return;
+      experienceTitle.classList.remove('is-reveal-ready');
+      experienceTitle.classList.add('is-revealed');
+      reveal.disconnect();
+    }, { threshold: 0.25 });
+    reveal.observe(experienceTitle);
+  }
+
   const evidenceDialog = document.getElementById('evidenceDialog');
   const evidenceImage = document.getElementById('evidenceImage');
   const evidenceCaption = document.getElementById('evidenceCaption');
