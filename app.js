@@ -45,14 +45,14 @@
   }
 
   document.addEventListener('click', event => {
-    const link = event.target.closest('a[href*="wa.me"]');
+    const link = event.target.closest('a[href^="https://buy.stripe.com/"]');
     if (!link) return;
     const source = (link.dataset.loc || 'other').replace(/[^a-z0-9_]/gi, '_');
     if (typeof window.gtag === 'function') {
-      window.gtag('event', 'whatsapp_' + source, { event_category: 'conversion', transport_type: 'beacon' });
+      window.gtag('event', 'begin_checkout', { event_category: 'conversion', currency: 'USD', value: 75, checkout_source: source, transport_type: 'beacon' });
     }
     if (typeof window.fbq === 'function') {
-      window.fbq('track', 'Contact', { content_name: 'whatsapp_' + source });
+      window.fbq('track', 'InitiateCheckout', { content_name: 'edge33_' + source, currency: 'USD', value: 75 });
     }
   });
 })();

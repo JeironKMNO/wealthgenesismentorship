@@ -104,8 +104,7 @@ h2{font-size:clamp(2.7rem,4.3vw,5rem);font-weight:650;line-height:1.08;margin-bo
 .price small{margin-left:.9rem;color:#bfb9ad;font-size:.9rem;font-weight:500;letter-spacing:0}
 .price-card>p{position:relative;max-width:400px;color:#bdb8af;font-size:.85rem;line-height:1.75}
 .price-card .button{width:100%;margin-top:1.2rem}
-.pay-link{display:block;width:max-content;max-width:100%;margin:1.5rem auto 0;padding-bottom:.25rem;border-bottom:1px solid var(--line);color:#aaa59b;font-size:.72rem}
-.pay-link:hover{color:var(--gold-bright)}
+.checkout-note{position:relative;display:block;margin:1.25rem auto 0;color:#aaa59b;font:500 .65rem var(--mono);text-align:center}
 .faq{padding-top:4rem;padding-bottom:4.5rem}
 .faq-grid{display:grid;grid-template-columns:.7fr 1.3fr;gap:clamp(3rem,7vw,8rem)}
 .faq h2{font-size:clamp(2.6rem,3.8vw,4.4rem)}
