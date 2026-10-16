@@ -95,6 +95,24 @@ h2 em,.experience-title>em{font-family:var(--display);font-style:normal;font-wei
 .price-card::before{background:rgba(220,182,115,.15)}
 .evidence-card{border-radius:10px;transition:transform .22s,border-color .22s,background .22s,box-shadow .22s}
 .evidence-card:hover{transform:translateY(-3px);border-color:rgba(245,220,169,.72);background:linear-gradient(145deg,rgba(237,225,198,.16),rgba(98,86,69,.14) 38%,rgba(19,19,21,.83));box-shadow:inset 0 1px 0 rgba(255,247,224,.24),0 28px 66px rgba(0,0,0,.32)}
+
+/* Dos destellos suaves por ciclo; el texto permanece estable y legible. */
+.header-cta,.button-primary{animation:edge33-glass-pulse 6.5s ease-in-out infinite}
+.hero-actions .button-primary{animation-delay:.8s}
+.header-cta{animation-delay:3.1s}
+@keyframes edge33-glass-pulse{
+  0%,9%,20%,29%,100%{
+    border-color:rgba(245,220,169,.58);
+    box-shadow:inset 0 1px 0 rgba(255,249,229,.42),inset 0 -1px 0 rgba(99,73,37,.2),0 14px 34px rgba(0,0,0,.28),0 0 26px rgba(197,166,106,.13);
+  }
+  14%,24%{
+    border-color:rgba(255,241,206,.94);
+    box-shadow:inset 0 1px 0 rgba(255,252,239,.65),inset 0 -1px 0 rgba(99,73,37,.2),0 14px 34px rgba(0,0,0,.28),0 0 20px rgba(237,202,135,.42),0 0 42px rgba(197,166,106,.24);
+  }
+}
+.header-cta:hover,.header-cta:focus-visible,.button-primary:hover,.button-primary:focus-visible{animation:none}
+.header-cta:focus-visible,.button-primary:focus-visible{outline:2px solid var(--gold-bright);outline-offset:4px}
+@media(prefers-reduced-motion:reduce){.header-cta,.button-primary{animation:none}}
 @media(prefers-reduced-transparency:reduce){
   .header-cta,.button-primary{background:#51402b;-webkit-backdrop-filter:none;backdrop-filter:none}
   .system-flow,.price-card,.evidence-card{background:#242220;-webkit-backdrop-filter:none;backdrop-filter:none}
